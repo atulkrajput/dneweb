@@ -93,12 +93,11 @@ jobs:
             mkdir -p ~/.ssh
             echo "$SSH_PRIVATE_KEY" | base64 --decode > ~/.ssh/deploy_key
             chmod 600 ~/.ssh/deploy_key
-            # Disable strict host key checking to avoid interactive prompts
             cat >> ~/.ssh/config \<<EOF
             Host deploy-host
-              HostName ${SSH_HOST}
-              User ${SSH_USER}
-              Port ${SSH_PORT}
+              HostName $SSH_HOST
+              User $SSH_USER
+              Port $SSH_PORT
               IdentityFile ~/.ssh/deploy_key
               StrictHostKeyChecking no
               UserKnownHostsFile /dev/null
@@ -132,44 +131,44 @@ jobs:
               --exclude='.styleci.yml' \
               --exclude='tests' \
               --exclude='phpunit.xml' \
-              -e "ssh -p ${SSH_PORT} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
-              ~/project/ ${SSH_USER}@${SSH_HOST}:~/public_html/
+              -e "ssh -p $SSH_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+              ~/project/ "$SSH_USER@$SSH_HOST:~/public_html/"
 
       # -- Run post-deployment commands on the server
       - run:
           name: Run post-deployment commands
           command: |
-            ssh -p ${SSH_PORT} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
-              ${SSH_USER}@${SSH_HOST} << 'ENDSSH'
-              set -e
+            ssh -p "$SSH_PORT" -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              "$SSH_USER@$SSH_HOST" bash -s <<'ENDSSH'
+            set -e
 
-              cd ~/public_html
+            cd ~/public_html
 
-              # Install/update PHP dependencies (production only)
-              echo ">>> Installing Composer dependencies..."
-              composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+            # Install/update PHP dependencies (production only)
+            echo ">>> Installing Composer dependencies..."
+            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
-              # Run database migrations (non-interactive, forced for production)
-              echo ">>> Running database migrations..."
-              php artisan migrate --force
+            # Run database migrations (non-interactive, forced for production)
+            echo ">>> Running database migrations..."
+            php artisan migrate --force
 
-              # Clear all caches to avoid stale config/routes/views
-              echo ">>> Clearing caches..."
-              php artisan optimize:clear
+            # Clear all caches to avoid stale config/routes/views
+            echo ">>> Clearing caches..."
+            php artisan optimize:clear
 
-              # Rebuild optimized cache (config, routes, views)
-              echo ">>> Building optimized cache..."
-              php artisan optimize
+            # Rebuild optimized cache (config, routes, views)
+            echo ">>> Building optimized cache..."
+            php artisan optimize
 
-              # Create storage symlink only if it doesn't already exist
-              if [ ! -L public/storage ]; then
-                echo ">>> Creating storage symlink..."
-                php artisan storage:link
-              else
-                echo ">>> Storage symlink already exists, skipping."
-              fi
+            # Create storage symlink only if it doesn't already exist
+            if [ ! -L public/storage ]; then
+              echo ">>> Creating storage symlink..."
+              php artisan storage:link
+            else
+              echo ">>> Storage symlink already exists, skipping."
+            fi
 
-              echo ">>> Deployment complete!"
+            echo ">>> Deployment complete!"
             ENDSSH
 
 # ---------------------------------------------------------------------------
