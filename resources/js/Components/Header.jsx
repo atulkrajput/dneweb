@@ -3,10 +3,13 @@ import { Link, usePage } from '@inertiajs/react';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/Components/ui/sheet';
+import ThemeToggle from '@/Components/ThemeToggle';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const { url } = usePage();
+  const { theme } = useTheme();
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -20,12 +23,14 @@ export default function Header() {
     return url.startsWith(path);
   };
 
+  const logoSrc = theme === 'dark' ? '/logo-white.png' : '/logo.png';
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 py-[3px] items-center justify-between">
           <Link href="/" className="flex items-center transition-opacity duration-200 hover:opacity-80">
-            <img src="/logo-white.png" alt="DNE Consultants" className="h-[50px] w-auto" />
+            <img src={logoSrc} alt="DNE Consultants" className="h-[50px] w-auto" />
           </Link>
 
           <nav className="hidden md:flex items-center space-x-1">
@@ -44,7 +49,8 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center gap-2">
+            <ThemeToggle />
             <Link href="/contact#contact-form">
               <Button className="btn-primary px-6 py-5">
                 Let's Build
@@ -53,7 +59,8 @@ export default function Header() {
             </Link>
           </div>
 
-          <div className="md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
+            <ThemeToggle />
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-foreground hover:bg-muted">
