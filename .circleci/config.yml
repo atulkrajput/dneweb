@@ -142,7 +142,7 @@ jobs:
             php artisan optimize
             if [ ! -L public/storage ]; then
               echo ">>> Creating storage symlink..."
-              php artisan storage:link
+              ln -s ../storage/app/public public/storage
             else
               echo ">>> Storage symlink already exists, skipping."
             fi
