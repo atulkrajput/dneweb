@@ -151,8 +151,8 @@ export default function About({ page, team, values, stats, products }) {
                 <motion.div key={index} variants={itemVariant} className="bg-card border border-border/50 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 flex flex-col">
                   {/* Product Logo */}
                   {product.logo && (
-                    <div className="w-14 h-14 rounded-xl bg-background border border-border flex items-center justify-center mb-6 overflow-hidden">
-                      <img src={product.logo} alt={product.name} className="w-10 h-10 object-contain" />
+                    <div className="w-full flex justify-center mb-6">
+                      <img src={product.logo} alt={product.name} className="h-[100px] w-auto object-contain" />
                     </div>
                   )}
 
