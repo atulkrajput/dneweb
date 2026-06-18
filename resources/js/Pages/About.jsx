@@ -152,7 +152,7 @@ export default function About({ page, team, values, stats, products }) {
                   {/* Product Logo */}
                   {product.logo && (
                     <div className="w-full flex justify-center mb-6">
-                      <img src={product.logo} alt={product.name} className="h-[100px] w-auto object-contain" />
+                      <img src={product.logo} alt={product.name} className="h-[100px] w-auto object-contain rounded-2xl" />
                     </div>
                   )}
 
