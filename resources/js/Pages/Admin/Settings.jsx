@@ -9,6 +9,9 @@ export default function Settings({ settings }) {
     general: [
       { key: 'footer_tagline', label: 'Footer Tagline', type: 'text' },
     ],
+    pages: [
+      { key: 'about_show_team', label: 'Show Team Section on About Page', type: 'toggle' },
+    ],
     contact: [
       { key: 'contact_email', label: 'Contact Email', type: 'email' },
       { key: 'company_location', label: 'Company Location', type: 'text' },
@@ -51,6 +54,7 @@ export default function Settings({ settings }) {
 
   const tabs = [
     { id: 'general', label: 'General' },
+    { id: 'pages', label: 'Pages' },
     { id: 'contact', label: 'Contact' },
     { id: 'social', label: 'Social Media' },
     { id: 'tracking', label: 'Tracking & Analytics' },
@@ -79,23 +83,37 @@ export default function Settings({ settings }) {
         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
           {settingsConfig[activeTab]?.map(field => (
             <div key={field.key}>
-              <label className="block text-sm font-medium text-foreground mb-2">{field.label}</label>
-              {field.type === 'textarea' ? (
-                <textarea
-                  value={getValue(field.key)}
-                  onChange={(e) => updateValue(field.key, e.target.value)}
-                  className="form-input min-h-[100px] resize-y"
-                  placeholder={field.placeholder || ''}
-                  rows={4}
-                />
+              {field.type === 'toggle' ? (
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={getValue(field.key) === '1' || getValue(field.key) === 'true'}
+                    onChange={(e) => updateValue(field.key, e.target.checked ? '1' : '0')}
+                    className="rounded border-input text-primary focus:ring-primary h-5 w-5"
+                  />
+                  <span className="text-sm font-medium text-foreground">{field.label}</span>
+                </label>
               ) : (
-                <input
-                  type={field.type}
-                  value={getValue(field.key)}
-                  onChange={(e) => updateValue(field.key, e.target.value)}
-                  className="form-input"
-                  placeholder={field.placeholder || ''}
-                />
+                <>
+                  <label className="block text-sm font-medium text-foreground mb-2">{field.label}</label>
+                  {field.type === 'textarea' ? (
+                    <textarea
+                      value={getValue(field.key)}
+                      onChange={(e) => updateValue(field.key, e.target.value)}
+                      className="form-input min-h-[100px] resize-y"
+                      placeholder={field.placeholder || ''}
+                      rows={4}
+                    />
+                  ) : (
+                    <input
+                      type={field.type}
+                      value={getValue(field.key)}
+                      onChange={(e) => updateValue(field.key, e.target.value)}
+                      className="form-input"
+                      placeholder={field.placeholder || ''}
+                    />
+                  )}
+                </>
               )}
             </div>
           ))}

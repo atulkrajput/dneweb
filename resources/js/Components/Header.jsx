@@ -45,7 +45,7 @@ export default function Header() {
           </nav>
 
           <div className="hidden md:flex items-center">
-            <Link href="/contact">
+            <Link href="/contact#contact-form">
               <Button className="btn-primary px-6 py-5">
                 Let's Build
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -78,7 +78,7 @@ export default function Header() {
                     </Link>
                   ))}
                   <div className="pt-4 border-t border-border mt-4">
-                    <Link href="/contact" onClick={() => setIsOpen(false)}>
+                    <Link href="/contact#contact-form" onClick={() => setIsOpen(false)}>
                       <Button className="w-full btn-primary py-6 text-base">
                         Let's Build
                         <ArrowRight className="ml-2 h-4 w-4" />

@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             ['group' => 'social', 'key' => 'linkedin_url', 'value' => 'https://linkedin.com/company/dnetechnologyconsultants-'],
             ['group' => 'social', 'key' => 'twitter_url', 'value' => ''],
             ['group' => 'general', 'key' => 'footer_tagline', 'value' => 'Technology that works. Results you can measure.'],
+            ['group' => 'pages', 'key' => 'about_show_team', 'value' => '1'],
             ['group' => 'tracking', 'key' => 'ga4_id', 'value' => ''],
             ['group' => 'tracking', 'key' => 'gtm_id', 'value' => ''],
             ['group' => 'tracking', 'key' => 'meta_pixel', 'value' => ''],

@@ -83,7 +83,7 @@ export default function Contact({ page }) {
       <Toaster theme="dark" position="bottom-right" />
 
       {/* HERO */}
-      <section className="relative pt-24 pb-20 lg:pt-32 lg:pb-28 overflow-hidden border-b border-border/40">
+      <section className="relative pt-16 pb-12 lg:pt-20 lg:pb-16 overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 z-0">
           <img src="https://images.unsplash.com/photo-1606822096762-8805b2db0878" alt="Workspace Background" className="w-full h-full object-cover opacity-[0.05] mix-blend-screen grayscale" />
           <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background to-background" />
@@ -100,7 +100,7 @@ export default function Contact({ page }) {
       </section>
 
       {/* MAIN CONTACT SECTION */}
-      <section className="section-padding bg-background relative z-10">
+      <section id="contact-form" className="py-12 md:py-16 bg-background relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-12">
             {/* Contact Form */}

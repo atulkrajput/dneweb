@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { ArrowRight, User, ExternalLink } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -7,7 +7,8 @@ import PublicLayout from '@/Layouts/PublicLayout';
 
 export default function About({ page, team, values, stats, products }) {
   const seo = page || {};
-
+  const { settings = {} } = usePage().props;
+  const showTeam = settings.about_show_team !== '0';
   const staggerContainer = {
     hidden: { opacity: 0 },
     show: { opacity: 1, transition: { staggerChildren: 0.15 } }
@@ -109,33 +110,6 @@ export default function About({ page, team, values, stats, products }) {
         </div>
       </section>
 
-      {/* TEAM */}
-      <section className="section-padding bg-background border-y border-border/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }} className="mb-16 text-center max-w-3xl mx-auto">
-            <span className="eyebrow">The Team</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">Senior people. No hand-offs to juniors.</h2>
-            <p className="text-lg text-muted-foreground">When you partner with DNE, the experts you speak with on day one are the same experts building your systems.</p>
-          </motion.div>
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
-            {teamData.map((member, index) => (
-              <motion.div key={index} variants={itemVariant} className="flex flex-col items-center text-center group bg-card border border-border/50 p-8 rounded-2xl hover:border-primary/30 transition-colors">
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-secondary border-2 border-border flex items-center justify-center mb-6 group-hover:border-primary/50 transition-colors duration-300 overflow-hidden">
-                  {member.photo ? (
-                    <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/50" />
-                  )}
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-1">{member.name}</h3>
-                <p className="text-primary font-medium text-sm mb-4">{member.role}</p>
-                <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">{member.bio}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
       {/* OUR SAAS PRODUCTS */}
       {products && products.length > 0 && (
         <section className="section-padding bg-secondary">
@@ -186,6 +160,35 @@ export default function About({ page, team, values, stats, products }) {
         </section>
       )}
 
+      {/* TEAM */}
+      {showTeam && (
+        <section className="section-padding bg-background border-y border-border/40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }} className="mb-16 text-center max-w-3xl mx-auto">
+              <span className="eyebrow">The Team</span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">Senior people. No hand-offs to juniors.</h2>
+              <p className="text-lg text-muted-foreground">When you partner with DNE, the experts you speak with on day one are the same experts building your systems.</p>
+            </motion.div>
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
+              {teamData.map((member, index) => (
+                <motion.div key={index} variants={itemVariant} className="flex flex-col items-center text-center group bg-card border border-border/50 p-8 rounded-2xl hover:border-primary/30 transition-colors">
+                  <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-secondary border-2 border-border flex items-center justify-center mb-6 group-hover:border-primary/50 transition-colors duration-300 overflow-hidden">
+                    {member.photo ? (
+                      <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground/50" />
+                    )}
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-1">{member.name}</h3>
+                  <p className="text-primary font-medium text-sm mb-4">{member.role}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">{member.bio}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
+
       {/* DNE DIFFERENCE */}
       <section className="section-padding bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -202,9 +205,9 @@ export default function About({ page, team, values, stats, products }) {
             <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer} className="space-y-6">
               {statsData.map((stat, index) => (
                 <motion.div key={index} variants={itemVariant}>
-                  <div className="bg-card p-6 md:p-8 border-t-2 border-t-primary rounded-b-xl shadow-lg flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 hover:-translate-y-1 transition-transform duration-300">
-                    <span className="text-4xl md:text-5xl font-bold text-foreground tracking-tight whitespace-nowrap w-full sm:w-1/3">{stat.value}</span>
-                    <span className="text-muted-foreground text-base md:text-lg leading-snug sm:w-2/3">{stat.label}</span>
+                  <div className="bg-card p-6 md:p-8 border-t-2 border-t-primary rounded-b-xl shadow-lg hover:-translate-y-1 transition-transform duration-300">
+                    <span className="block text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-2">{stat.value}</span>
+                    <span className="text-muted-foreground text-base md:text-lg leading-snug">{stat.label}</span>
                   </div>
                 </motion.div>
               ))}
