@@ -1,0 +1,194 @@
+# =============================================================================
+# CircleCI Configuration — DNE Consultants
+# Laravel 12 + React (Vite) → Hostinger Shared Hosting via SSH/rsync
+# Deploys only from the master branch.
+# =============================================================================
+
+version: 2.1
+
+# ---------------------------------------------------------------------------
+# Orbs — pre-built packages for common CI tasks
+# ---------------------------------------------------------------------------
+orbs:
+  node: circleci/node@5.2.0
+
+# ---------------------------------------------------------------------------
+# Jobs
+# ---------------------------------------------------------------------------
+jobs:
+  # =========================================================================
+  # BUILD — Install dependencies and compile frontend assets
+  # =========================================================================
+  build:
+    docker:
+      - image: cimg/php:8.2-node
+    working_directory: ~/project
+    steps:
+      # -- Checkout source code
+      - checkout
+
+      # -- Restore Composer cache for faster builds
+      - restore_cache:
+          keys:
+            - composer-v1-{{ checksum "composer.lock" }}
+            - composer-v1-
+
+      # -- Install PHP dependencies (no dev for production)
+      - run:
+          name: Install Composer dependencies
+          command: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+      # -- Save Composer cache
+      - save_cache:
+          key: composer-v1-{{ checksum "composer.lock" }}
+          paths:
+            - vendor
+
+      # -- Restore npm cache for faster builds
+      - restore_cache:
+          keys:
+            - npm-v1-{{ checksum "package-lock.json" }}
+            - npm-v1-
+
+      # -- Install Node.js dependencies
+      - run:
+          name: Install npm dependencies
+          command: npm ci
+
+      # -- Save npm cache
+      - save_cache:
+          key: npm-v1-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+
+      # -- Build frontend assets (Vite production build)
+      - run:
+          name: Build Vite assets
+          command: npm run build
+
+      # -- Persist the workspace for the deploy job
+      # -- This includes compiled assets and vendor directory
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - .
+
+  # =========================================================================
+  # DEPLOY — Upload files to Hostinger via rsync over SSH
+  # =========================================================================
+  deploy:
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/project
+    steps:
+      # -- Attach the built workspace from the build job
+      - attach_workspace:
+          at: ~/project
+
+      # -- Configure SSH private key for server access
+      # -- The key is stored as a CircleCI environment variable (base64-encoded)
+      - run:
+          name: Configure SSH key
+          command: |
+            mkdir -p ~/.ssh
+            echo "$SSH_PRIVATE_KEY" | base64 --decode > ~/.ssh/deploy_key
+            chmod 600 ~/.ssh/deploy_key
+            # Disable strict host key checking to avoid interactive prompts
+            cat >> ~/.ssh/config \<<EOF
+            Host deploy-host
+              HostName ${SSH_HOST}
+              User ${SSH_USER}
+              Port ${SSH_PORT}
+              IdentityFile ~/.ssh/deploy_key
+              StrictHostKeyChecking no
+              UserKnownHostsFile /dev/null
+            EOF
+
+      # -- Deploy files via rsync
+      # -- Excludes sensitive/unnecessary files that should never be uploaded
+      - run:
+          name: Deploy files via rsync
+          command: |
+            rsync -azP --delete \
+              --exclude='.git' \
+              --exclude='.gitignore' \
+              --exclude='.gitattributes' \
+              --exclude='node_modules' \
+              --exclude='.circleci' \
+              --exclude='.env' \
+              --exclude='.env.example' \
+              --exclude='.htaccess' \
+              --exclude='public/.htaccess' \
+              --exclude='storage/logs/*' \
+              --exclude='storage/framework/cache/data/*' \
+              --exclude='storage/framework/sessions/*' \
+              --exclude='storage/framework/views/*' \
+              --exclude='storage/app/*' \
+              --exclude='OLDCode' \
+              --exclude='Branding' \
+              --exclude='docs' \
+              --exclude='.github' \
+              --exclude='.editorconfig' \
+              --exclude='.styleci.yml' \
+              --exclude='tests' \
+              --exclude='phpunit.xml' \
+              -e "ssh -p ${SSH_PORT} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+              ~/project/ ${SSH_USER}@${SSH_HOST}:~/public_html/
+
+      # -- Run post-deployment commands on the server
+      - run:
+          name: Run post-deployment commands
+          command: |
+            ssh -p ${SSH_PORT} -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+              ${SSH_USER}@${SSH_HOST} << 'ENDSSH'
+              set -e
+
+              cd ~/public_html
+
+              # Install/update PHP dependencies (production only)
+              echo ">>> Installing Composer dependencies..."
+              composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+              # Run database migrations (non-interactive, forced for production)
+              echo ">>> Running database migrations..."
+              php artisan migrate --force
+
+              # Clear all caches to avoid stale config/routes/views
+              echo ">>> Clearing caches..."
+              php artisan optimize:clear
+
+              # Rebuild optimized cache (config, routes, views)
+              echo ">>> Building optimized cache..."
+              php artisan optimize
+
+              # Create storage symlink only if it doesn't already exist
+              if [ ! -L public/storage ]; then
+                echo ">>> Creating storage symlink..."
+                php artisan storage:link
+              else
+                echo ">>> Storage symlink already exists, skipping."
+              fi
+
+              echo ">>> Deployment complete!"
+            ENDSSH
+
+# ---------------------------------------------------------------------------
+# Workflows — orchestrate job execution
+# ---------------------------------------------------------------------------
+workflows:
+  version: 2
+
+  # Only build and deploy when pushing to master
+  build-and-deploy:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: master
+
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
