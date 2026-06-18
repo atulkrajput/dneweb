@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Page;
+use App\Models\Product;
 use App\Models\Service;
 use App\Models\TeamMember;
 use Inertia\Inertia;
@@ -50,6 +51,7 @@ class PageController extends Controller
     {
         $page = Page::findBySlug('about');
         $team = TeamMember::active()->ordered()->get();
+        $products = Product::active()->ordered()->get();
 
         return Inertia::render('About', [
             'page' => $page,
@@ -58,6 +60,13 @@ class PageController extends Controller
                 'role' => $m->role,
                 'bio' => $m->bio,
                 'photo' => $m->photo,
+            ])->toArray(),
+            'products' => $products->map(fn ($p) => [
+                'name' => $p->name,
+                'description' => $p->description,
+                'features' => $p->features,
+                'logo' => $p->logo,
+                'link' => $p->link,
             ])->toArray(),
         ]);
     }

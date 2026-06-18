@@ -1,11 +1,11 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { ArrowRight, User } from 'lucide-react';
+import { ArrowRight, User, ExternalLink } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout';
 
-export default function About({ page, team, values, stats }) {
+export default function About({ page, team, values, stats, products }) {
   const seo = page || {};
 
   const staggerContainer = {
@@ -135,6 +135,56 @@ export default function About({ page, team, values, stats }) {
           </motion.div>
         </div>
       </section>
+
+      {/* OUR SAAS PRODUCTS */}
+      {products && products.length > 0 && (
+        <section className="section-padding bg-secondary">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }} className="mb-16 text-center max-w-3xl mx-auto">
+              <span className="eyebrow">Our SaaS Products</span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">Products we've built and launched.</h2>
+              <p className="text-lg text-muted-foreground">We don't just build for clients — we build our own products too. Here's what we're shipping.</p>
+            </motion.div>
+
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {products.map((product, index) => (
+                <motion.div key={index} variants={itemVariant} className="bg-card border border-border/50 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 flex flex-col">
+                  {/* Product Logo */}
+                  {product.logo && (
+                    <div className="w-14 h-14 rounded-xl bg-background border border-border flex items-center justify-center mb-6 overflow-hidden">
+                      <img src={product.logo} alt={product.name} className="w-10 h-10 object-contain" />
+                    </div>
+                  )}
+
+                  {/* Name & Link */}
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <h3 className="text-xl font-semibold text-foreground">{product.name}</h3>
+                    {product.link && (
+                      <a href={product.link} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 text-primary hover:text-primary/80 transition-colors">
+                        <ExternalLink className="w-5 h-5" />
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  {product.description && (
+                    <p className="text-muted-foreground leading-relaxed mb-6 flex-1">{product.description}</p>
+                  )}
+
+                  {/* Features */}
+                  {product.features && product.features.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-auto">
+                      {product.features.map((feature, i) => (
+                        <span key={i} className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">{feature}</span>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* DNE DIFFERENCE */}
       <section className="section-padding bg-background">

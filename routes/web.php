@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ContactController as AdminContactController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LegalPageController as AdminLegalPageController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TeamMemberController;
@@ -35,6 +36,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     // Team Members
     Route::resource('team', TeamMemberController::class)->parameters(['team' => 'team_member']);
+
+    // Products
+    Route::resource('products', ProductController::class);
 
     // Contacts
     Route::get('/contacts', [AdminContactController::class, 'index'])->name('contacts.index');

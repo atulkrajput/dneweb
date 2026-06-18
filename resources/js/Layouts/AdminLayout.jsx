@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown } from 'lucide-react';
 
 export default function AdminLayout({ children, title }) {
   const { auth } = usePage().props;
@@ -9,6 +9,7 @@ export default function AdminLayout({ children, title }) {
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Services', href: '/admin/services', icon: Briefcase },
+    { name: 'Products', href: '/admin/products', icon: Package },
     { name: 'Team Members', href: '/admin/team', icon: Users },
     { name: 'Contacts', href: '/admin/contacts', icon: MessageSquare },
     { name: 'Legal Pages', href: '/admin/legal-pages', icon: FileText },
