@@ -2,37 +2,44 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that is loaded on the first page visit.
-     *
-     * @var string
-     */
     protected $rootView = 'app';
 
-    /**
-     * Determine the current asset version.
-     */
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    /**
-     * Define the props that are shared by default.
-     *
-     * @return array<string, mixed>
-     */
     public function share(Request $request): array
     {
+        $settings = [];
+        try {
+            $settings = Setting::getAllAsArray();
+        } catch (\Exception $e) {
+            // Table may not exist yet during migrations
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+            ],
+            'settings' => $settings,
+            'tracking' => [
+                'ga4_id' => $settings['ga4_id'] ?? '',
+                'gtm_id' => $settings['gtm_id'] ?? '',
+                'meta_pixel' => $settings['meta_pixel'] ?? '',
+                'header_scripts' => $settings['header_scripts'] ?? '',
+                'footer_scripts' => $settings['footer_scripts'] ?? '',
+            ],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
             ],
         ];
     }

@@ -1,59 +1,149 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# DNE Consultants — Website
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Production-ready company website built with Laravel 12 + React (Inertia.js). Dynamic content managed from a built-in admin panel.
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Backend:** Laravel 12, PHP 8.2+
+- **Frontend:** React 18, Inertia.js, Tailwind CSS 3
+- **Animations:** Framer Motion
+- **UI Components:** shadcn/ui (Radix primitives)
+- **Database:** SQLite (default), MySQL/PostgreSQL supported
+- **Build:** Vite 7
+- **Auth:** Laravel Breeze (session-based)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Quick Start
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+# Install PHP dependencies
+composer install
 
-## Learning Laravel
+# Install JS dependencies
+npm install
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+# Setup environment
+cp .env.example .env
+php artisan key:generate
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# Run migrations and seed default content
+php artisan migrate --seed
 
-## Laravel Sponsors
+# Build frontend assets
+npm run build
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# Start development server
+php artisan serve
+```
 
-### Premium Partners
+For concurrent dev (server + vite HMR + queue + logs):
+```bash
+composer dev
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Admin Panel
 
-## Contributing
+- **URL:** `/admin`
+- **Default login:** `admin@dnetechnology.com` / `password`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Admin Features
 
-## Code of Conduct
+- Dashboard with stats and recent contacts
+- Services management (CRUD)
+- Team members management (CRUD)
+- Contact form submissions (view, mark read, delete)
+- Site settings (contact info, social links, footer)
+- Tracking & Analytics (GA4, GTM, Meta Pixel, custom scripts)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Project Structure
 
-## Security Vulnerabilities
+```
+app/
+├── Http/Controllers/
+│   ├── PageController.php          # Public pages
+│   ├── ContactFormController.php   # Contact form handler
+│   └── Admin/                      # Admin CRUD controllers
+├── Models/                         # Eloquent models
+resources/
+├── js/
+│   ├── Components/                 # Shared React components
+│   │   ├── Header.jsx
+│   │   ├── Footer.jsx
+│   │   └── ui/                     # shadcn/ui components
+│   ├── Layouts/                    # Page layouts
+│   ├── Pages/                      # Inertia pages
+│   │   ├── Home.jsx
+│   │   ├── Services.jsx
+│   │   ├── About.jsx
+│   │   ├── Contact.jsx
+│   │   └── Admin/                  # Admin panel pages
+│   └── lib/utils.js                # Utility functions
+├── css/app.css                     # Tailwind + theme
+├── views/app.blade.php             # Root template + tracking
+database/
+├── migrations/                     # All table schemas
+├── seeders/                        # Default content seeder
+public/
+├── favicon.ico                     # Browser icon
+├── icon.png                        # App icon (192px)
+├── logo.png                        # Full logo (OG/SEO)
+├── logo-white.png                  # White logo (dark backgrounds)
+├── logo.svg                        # Vector logo
+docs/
+├── MIGRATION_REPORT.md
+├── DATABASE_SCHEMA.md
+├── ADMIN_FEATURES.md
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Public Pages
+
+| Route | Page |
+|-------|------|
+| `/` | Homepage — hero, capabilities, stats, services preview, CTA |
+| `/services` | Services — detailed service sections with checklists |
+| `/about` | About — story, values, team, stats |
+| `/contact` | Contact — form (saves to DB), info, process steps |
+
+## Dynamic Content
+
+All content is database-driven and managed from the admin panel:
+- Services (title, description, checklist, images, CTA)
+- Team members (name, role, bio, photo)
+- Site settings (email, location, social links, tagline)
+- SEO metadata (per-page titles and descriptions)
+- Tracking codes (GA4, GTM, Meta Pixel, custom scripts)
+- Contact submissions (stored, viewable in admin)
+
+## Commands
+
+```bash
+# Development
+npm run dev              # Vite dev server with HMR
+php artisan serve        # Laravel dev server
+composer dev             # All services concurrently
+
+# Production
+npm run build            # Build optimized assets
+php artisan migrate      # Run migrations
+php artisan db:seed      # Seed default content
+php artisan config:cache # Cache configuration
+php artisan route:cache  # Cache routes
+
+# Testing
+php artisan test         # Run PHPUnit tests
+```
+
+## Environment Variables
+
+Key variables in `.env`:
+
+```
+APP_NAME="DNE Consultants"
+APP_URL=http://localhost
+DB_CONNECTION=sqlite
+```
+
+Tracking codes are managed from the admin panel (no env vars needed).
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Proprietary — DNE Technology Consultants.
