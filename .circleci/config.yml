@@ -88,8 +88,9 @@ jobs:
       # -- SSH key is configured in CircleCI project settings
       - add_ssh_keys
       - run:
-          name: Add server to known_hosts
+          name: Install rsync and add server to known_hosts
           command: |
+            sudo apt-get update && sudo apt-get install -y rsync
             mkdir -p ~/.ssh
             ssh-keyscan -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
 
