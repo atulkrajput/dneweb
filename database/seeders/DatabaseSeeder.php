@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         // Create admin user
         User::updateOrCreate(
-            ['email' => 'admin@dnetechnology.com'],
+            ['email' => 'admin@dneconsultants.com'],
             [
                 'name' => 'Admin',
                 'password' => Hash::make('password'),

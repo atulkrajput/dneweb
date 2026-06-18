@@ -1,25 +1,61 @@
-import React from 'react';
-import { Head, useForm, Link } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { Head, useForm, Link, router } from '@inertiajs/react';
+import { Upload, X, User } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 export default function TeamMemberForm({ member }) {
   const isEditing = !!member;
+  const [preview, setPreview] = useState(member?.photo || null);
 
-  const { data, setData, post, put, processing, errors } = useForm({
+  const { data, setData, post, processing, errors } = useForm({
     name: member?.name || '',
     role: member?.role || '',
     bio: member?.bio || '',
     photo: member?.photo || '',
+    photo_file: null,
     sort_order: member?.sort_order || 0,
     is_active: member?.is_active ?? true,
   });
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setData('photo_file', file);
+      setData('photo', '');
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removePhoto = () => {
+    setData('photo_file', null);
+    setData('photo', '');
+    setPreview(null);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('role', data.role);
+    formData.append('bio', data.bio || '');
+    formData.append('photo', data.photo || '');
+    formData.append('sort_order', data.sort_order);
+    formData.append('is_active', data.is_active ? '1' : '0');
+
+    if (data.photo_file) {
+      formData.append('photo_file', data.photo_file);
+    }
+
     if (isEditing) {
-      put(`/admin/team/${member.id}`);
+      formData.append('_method', 'PUT');
+      router.post(`/admin/team/${member.id}`, formData, {
+        forceFormData: true,
+      });
     } else {
-      post('/admin/team');
+      router.post('/admin/team', formData, {
+        forceFormData: true,
+      });
     }
   };
 
@@ -46,9 +82,64 @@ export default function TeamMemberForm({ member }) {
             <textarea value={data.bio} onChange={(e) => setData('bio', e.target.value)} className="form-input resize-y" rows={3} />
           </div>
 
+          {/* Photo Upload Section */}
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Photo URL</label>
-            <input type="text" value={data.photo} onChange={(e) => setData('photo', e.target.value)} className="form-input" placeholder="https://..." />
+            <label className="block text-sm font-medium text-foreground mb-3">Photo</label>
+
+            {/* Preview */}
+            {preview && (
+              <div className="relative w-32 h-32 mb-4">
+                <img src={preview} alt="Preview" className="w-full h-full object-cover rounded-xl border border-border" />
+                <button
+                  type="button"
+                  onClick={removePhoto}
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/80 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            )}
+
+            {!preview && (
+              <div className="w-32 h-32 mb-4 rounded-xl border border-border bg-muted flex items-center justify-center">
+                <User className="h-12 w-12 text-muted-foreground/30" />
+              </div>
+            )}
+
+            {/* Upload button */}
+            <div className="flex flex-col gap-3">
+              <label className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium cursor-pointer hover:bg-secondary/80 transition-colors w-fit">
+                <Upload className="h-4 w-4" />
+                Upload Image
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+
+              {/* Or enter URL */}
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">or enter URL:</span>
+                <input
+                  type="text"
+                  value={data.photo}
+                  onChange={(e) => {
+                    setData('photo', e.target.value);
+                    setData('photo_file', null);
+                    setPreview(e.target.value || null);
+                  }}
+                  className="form-input flex-1 text-sm"
+                  placeholder="https://..."
+                />
+              </div>
+
+              <p className="text-xs text-muted-foreground">Accepts JPG, PNG, WebP. Max 2MB.</p>
+            </div>
+
+            {errors.photo_file && <p className="text-sm text-destructive mt-1">{errors.photo_file}</p>}
+            {errors.photo && <p className="text-sm text-destructive mt-1">{errors.photo}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-6">
