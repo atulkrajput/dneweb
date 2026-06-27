@@ -63,6 +63,7 @@ class PageController extends Controller
             ])->toArray(),
             'products' => $products->map(fn ($p) => [
                 'name' => $p->name,
+                'slug' => $p->slug,
                 'description' => $p->description,
                 'features' => $p->features,
                 'logo' => $p->logo,

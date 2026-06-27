@@ -6,12 +6,22 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    protected $fillable = ['name', 'slug', 'description', 'features', 'logo', 'link', 'sort_order', 'is_active'];
+    protected $fillable = [
+        'name', 'slug', 'description', 'summary', 'details', 'features', 'features_detail',
+        'screenshots', 'logo', 'link', 'demo_link', 'demo_credentials',
+        'sort_order', 'is_active', 'status',
+    ];
 
     protected $casts = [
         'features' => 'array',
+        'screenshots' => 'array',
         'is_active' => 'boolean',
     ];
+
+    public function interests()
+    {
+        return $this->hasMany(ProductInterest::class);
+    }
 
     public function scopeActive($query)
     {

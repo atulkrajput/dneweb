@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\TeamMemberController;
 use App\Http\Controllers\ContactFormController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\ProductPageController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,11 @@ Route::get('/services', [PageController::class, 'services'])->name('services');
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::post('/contact', [ContactFormController::class, 'store'])->name('contact.store');
+
+// Products
+Route::get('/products', [ProductPageController::class, 'index'])->name('products.index');
+Route::get('/products/{slug}', [ProductPageController::class, 'show'])->name('products.show');
+Route::post('/products/{slug}/interest', [ProductPageController::class, 'storeInterest'])->name('products.interest');
 
 // Legal pages (privacy, terms, etc.)
 Route::get('/page/{slug}', [LegalPageController::class, 'show'])->name('legal.show');
@@ -38,6 +44,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::resource('team', TeamMemberController::class)->parameters(['team' => 'team_member']);
 
     // Products
+    Route::delete('/products/interests/{interest}', [ProductController::class, 'destroyInterest'])->name('products.interests.destroy');
     Route::resource('products', ProductController::class);
 
     // Contacts

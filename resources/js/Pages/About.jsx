@@ -147,12 +147,19 @@ export default function About({ page, team, values, stats, products }) {
 
                   {/* Features */}
                   {product.features && product.features.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-auto">
+                    <div className="flex flex-wrap gap-2 mb-4">
                       {product.features.map((feature, i) => (
                         <span key={i} className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">{feature}</span>
                       ))}
                     </div>
                   )}
+
+                  {/* View Details Link */}
+                  <div className="mt-auto pt-4 border-t border-border/50">
+                    <Link href={`/products/${product.slug}`} className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+                      View Details <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
                 </motion.div>
               ))}
             </motion.div>
