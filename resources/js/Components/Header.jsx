@@ -13,9 +13,9 @@ export default function Header() {
 
   const navItems = [
     { name: 'Home', path: '/' },
+    { name: 'About DNE', path: '/about' },
     { name: 'Services', path: '/services' },
     { name: 'Products', path: '/products' },
-    { name: 'About DNE', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
 

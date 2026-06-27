@@ -50,7 +50,7 @@ export default function ProductsIndex({ products }) {
           >
             <span className="eyebrow">Our Products</span>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-              SaaS Products Built by DNE
+              Products Built by DNE
             </h1>
             <p className="text-lg text-muted-foreground">
               We don't just build for clients — we build products of our own. Explore our suite of SaaS solutions designed to solve real business problems.
