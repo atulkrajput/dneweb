@@ -20,6 +20,7 @@ export default function ProductForm({ product }) {
     screenshots: product?.screenshots || [],
     logo: product?.logo || '',
     logo_file: null,
+    icon: product?.icon || '',
     screenshot_files: [],
     link: product?.link || '',
     demo_link: product?.demo_link || '',
@@ -93,6 +94,7 @@ export default function ProductForm({ product }) {
     formData.append('details', data.details || '');
     formData.append('features_detail', data.features_detail || '');
     formData.append('logo', data.logo || '');
+    formData.append('icon', data.icon || '');
     formData.append('link', data.link || '');
     formData.append('demo_link', data.demo_link || '');
     formData.append('demo_credentials', data.demo_credentials || '');
@@ -227,6 +229,17 @@ export default function ProductForm({ product }) {
             <p className="text-xs text-muted-foreground">Accepts JPG, PNG, WebP, SVG. Max 2MB.</p>
           </div>
           {errors.logo_file && <p className="text-sm text-destructive mt-1">{errors.logo_file}</p>}
+        </div>
+
+        {/* Icon */}
+        <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-foreground">Product Icon</h3>
+          <p className="text-sm text-muted-foreground">Enter a Lucide icon name (e.g. Bot, Layers, Rocket, ShoppingCart). Used as fallback when no logo is set, or alongside the logo on cards.</p>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">Icon Name</label>
+            <input type="text" value={data.icon} onChange={(e) => setData('icon', e.target.value)} className="form-input" placeholder="e.g. Rocket, Bot, Layers" />
+            {errors.icon && <p className="text-sm text-destructive mt-1">{errors.icon}</p>}
+          </div>
         </div>
 
         {/* Detail Content */}

@@ -67,6 +67,7 @@ class PageController extends Controller
                 'description' => $p->description,
                 'features' => $p->features,
                 'logo' => $p->logo,
+                'icon' => $p->icon,
                 'link' => $p->link,
             ])->toArray(),
         ]);

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ExternalLink, Monitor, CheckCircle } from 'lucide-react';
+import DynamicIcon from '@/Components/DynamicIcon';
 import PublicLayout from '@/Layouts/PublicLayout';
 
 export default function ProductShow({ product }) {
@@ -62,11 +63,15 @@ export default function ProductShow({ product }) {
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <div className="flex flex-col md:flex-row md:items-center gap-6">
-              {product.logo && (
+              {product.logo ? (
                 <div className="w-20 h-20 rounded-2xl bg-card border border-border flex items-center justify-center overflow-hidden flex-shrink-0">
                   <img src={product.logo} alt={product.name} className="w-14 h-14 object-contain" />
                 </div>
-              )}
+              ) : product.icon ? (
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                  <DynamicIcon name={product.icon} className="w-10 h-10 text-primary" />
+                </div>
+              ) : null}
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl md:text-4xl font-bold text-foreground">{product.name}</h1>
