@@ -48,6 +48,7 @@ export default function ProductsIndex({ products }) {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Order</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Product</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Feature Tags</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Visibility</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Interests</th>
@@ -71,6 +72,17 @@ export default function ProductsIndex({ products }) {
                         <p className="text-xs text-muted-foreground">{product.slug}</p>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {product.features && product.features.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 max-w-xs">
+                        {product.features.map((f, i) => (
+                          <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">{f}</span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4">{statusBadge(product.status)}</td>
                   <td className="px-6 py-4">
@@ -104,7 +116,7 @@ export default function ProductsIndex({ products }) {
               ))}
               {products.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
                     No products yet. Add your first SaaS product.
                   </td>
                 </tr>
