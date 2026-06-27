@@ -51,6 +51,7 @@ export default function ProductsIndex({ products }) {
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Visibility</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Interests</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Views</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -60,9 +61,9 @@ export default function ProductsIndex({ products }) {
                   <td className="px-6 py-4 text-sm text-muted-foreground">{product.sort_order}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      {product.logo && (
+                      {(product.icon || product.logo) && (
                         <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center overflow-hidden flex-shrink-0">
-                          <img src={product.logo} alt={product.name} className="w-6 h-6 object-contain" />
+                          <img src={product.icon || product.logo} alt={product.name} className="w-6 h-6 object-contain" />
                         </div>
                       )}
                       <div>
@@ -79,6 +80,9 @@ export default function ProductsIndex({ products }) {
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-muted-foreground">{product.interests_count || 0}</span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm text-muted-foreground">{product.views || 0}</span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-1">
                     <Link href={`/admin/products/${product.id}`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="View interests">
@@ -100,7 +104,7 @@ export default function ProductsIndex({ products }) {
               ))}
               {products.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
                     No products yet. Add your first SaaS product.
                   </td>
                 </tr>

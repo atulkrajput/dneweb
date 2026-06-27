@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, Monitor, CheckCircle } from 'lucide-react';
-import DynamicIcon from '@/Components/DynamicIcon';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ExternalLink, Monitor, CheckCircle, ChevronLeft, ChevronRight, X as XIcon } from 'lucide-react';
 import PublicLayout from '@/Layouts/PublicLayout';
 
 export default function ProductShow({ product }) {
   const { flash } = usePage().props;
   const [lightboxImage, setLightboxImage] = useState(null);
+  const [activeScreenshot, setActiveScreenshot] = useState(0);
+  const scrollRef = useRef(null);
 
   const { data, setData, post, processing, errors, reset } = useForm({
     name: '',
@@ -48,11 +49,66 @@ export default function ProductShow({ product }) {
       <Head title={`${product.name} | DNE Consultants`} />
 
       {/* Lightbox */}
-      {lightboxImage && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={() => setLightboxImage(null)}>
-          <img src={lightboxImage} alt="Screenshot" className="max-w-full max-h-full object-contain rounded-lg" />
-        </div>
-      )}
+      <AnimatePresence>
+        {lightboxImage !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4"
+            onClick={() => setLightboxImage(null)}
+          >
+            <button
+              onClick={() => setLightboxImage(null)}
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors z-10"
+            >
+              <XIcon className="h-5 w-5 text-white" />
+            </button>
+
+            {product.screenshots.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setLightboxImage((lightboxImage - 1 + product.screenshots.length) % product.screenshots.length); }}
+                  className="absolute left-4 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors z-10"
+                >
+                  <ChevronLeft className="h-6 w-6 text-white" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setLightboxImage((lightboxImage + 1) % product.screenshots.length); }}
+                  className="absolute right-4 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors z-10"
+                >
+                  <ChevronRight className="h-6 w-6 text-white" />
+                </button>
+              </>
+            )}
+
+            <motion.img
+              key={lightboxImage}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              src={product.screenshots[lightboxImage]}
+              alt="Screenshot"
+              className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Dots */}
+            {product.screenshots.length > 1 && (
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                {product.screenshots.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => { e.stopPropagation(); setLightboxImage(i); }}
+                    className={`w-2 h-2 rounded-full transition-all ${i === lightboxImage ? 'bg-white w-6' : 'bg-white/40 hover:bg-white/60'}`}
+                  />
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Hero */}
       <section className="section-padding bg-gradient-to-b from-muted/50 to-background">
@@ -63,15 +119,11 @@ export default function ProductShow({ product }) {
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <div className="flex flex-col md:flex-row md:items-center gap-6">
-              {product.logo ? (
+              {(product.icon || product.logo) && (
                 <div className="w-20 h-20 rounded-2xl bg-card border border-border flex items-center justify-center overflow-hidden flex-shrink-0">
-                  <img src={product.logo} alt={product.name} className="w-14 h-14 object-contain" />
+                  <img src={product.icon || product.logo} alt={product.name} className="w-14 h-14 object-contain" />
                 </div>
-              ) : product.icon ? (
-                <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                  <DynamicIcon name={product.icon} className="w-10 h-10 text-primary" />
-                </div>
-              ) : null}
+              )}
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl md:text-4xl font-bold text-foreground">{product.name}</h1>
@@ -147,19 +199,88 @@ export default function ProductShow({ product }) {
         </section>
       )}
 
-      {/* Screenshots */}
+      {/* Screenshots Gallery */}
       {product.screenshots && product.screenshots.length > 0 && (
-        <section className="py-12 bg-muted/30 border-y border-border/40">
+        <section className="py-16 bg-muted/30 border-y border-border/40 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-              <h2 className="text-2xl font-bold text-foreground mb-6">Screenshots</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {product.screenshots.map((screenshot, i) => (
-                  <button key={i} onClick={() => setLightboxImage(screenshot)} className="group overflow-hidden rounded-xl border border-border hover:border-primary/30 transition-all">
-                    <img src={screenshot} alt={`${product.name} screenshot ${i + 1}`} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
-                  </button>
-                ))}
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-bold text-foreground">Screenshots</h2>
+                {product.screenshots.length > 1 && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const prev = (activeScreenshot - 1 + product.screenshots.length) % product.screenshots.length;
+                        setActiveScreenshot(prev);
+                        scrollRef.current?.children[prev]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                      }}
+                      className="w-9 h-9 rounded-full border border-border bg-card hover:bg-muted flex items-center justify-center transition-colors"
+                    >
+                      <ChevronLeft className="h-4 w-4 text-foreground" />
+                    </button>
+                    <span className="text-sm text-muted-foreground tabular-nums">
+                      {activeScreenshot + 1} / {product.screenshots.length}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const next = (activeScreenshot + 1) % product.screenshots.length;
+                        setActiveScreenshot(next);
+                        scrollRef.current?.children[next]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                      }}
+                      className="w-9 h-9 rounded-full border border-border bg-card hover:bg-muted flex items-center justify-center transition-colors"
+                    >
+                      <ChevronRight className="h-4 w-4 text-foreground" />
+                    </button>
+                  </div>
+                )}
               </div>
+
+              {/* Main Preview */}
+              <div className="mb-6">
+                <button
+                  onClick={() => setLightboxImage(activeScreenshot)}
+                  className="w-full overflow-hidden rounded-2xl border border-border hover:border-primary/30 transition-all bg-card group"
+                >
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={activeScreenshot}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      src={product.screenshots[activeScreenshot]}
+                      alt={`${product.name} screenshot ${activeScreenshot + 1}`}
+                      className="w-full h-[300px] sm:h-[400px] md:h-[500px] object-contain bg-black/5 dark:bg-white/5 group-hover:scale-[1.02] transition-transform duration-500"
+                    />
+                  </AnimatePresence>
+                </button>
+              </div>
+
+              {/* Thumbnail Strip */}
+              {product.screenshots.length > 1 && (
+                <div
+                  ref={scrollRef}
+                  className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory"
+                >
+                  {product.screenshots.map((screenshot, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveScreenshot(i)}
+                      className={`flex-shrink-0 snap-center overflow-hidden rounded-xl border-2 transition-all duration-200 ${
+                        i === activeScreenshot
+                          ? 'border-primary ring-2 ring-primary/20 scale-105'
+                          : 'border-border hover:border-primary/40 opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <img
+                        src={screenshot}
+                        alt={`Thumbnail ${i + 1}`}
+                        className="w-28 h-20 sm:w-36 sm:h-24 object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </motion.div>
           </div>
         </section>

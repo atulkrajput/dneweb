@@ -142,7 +142,7 @@ Contact form submissions.
 
 ## Laravel Core Tables
 
-- **users** — Admin authentication (email: admin@dnetechnology.com, password: password)
+- **users** — Admin authentication (email: admin@dneconsultants.com, password: password)
 - **cache** — Framework cache
 - **jobs** / **job_batches** / **failed_jobs** — Queue system
 

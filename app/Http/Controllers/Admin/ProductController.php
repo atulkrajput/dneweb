@@ -25,6 +25,10 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge([
+            'is_active' => filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:products,slug',
@@ -36,12 +40,13 @@ class ProductController extends Controller
             'screenshots' => 'nullable|array',
             'logo' => 'nullable|string|max:500',
             'logo_file' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
-            'icon' => 'nullable|string|max:100',
+            'icon' => 'nullable|string|max:500',
+            'icon_file' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
             'screenshot_files' => 'nullable|array',
             'screenshot_files.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
             'link' => 'nullable|string|max:500',
             'demo_link' => 'nullable|string|max:500',
-            'demo_credentials' => 'nullable|string',
+            'demo_credentials' => 'nullable|string|max:5000',
             'sort_order' => 'nullable|integer',
             'is_active' => 'boolean',
             'status' => 'nullable|string|in:active,coming_soon,beta,deprecated',
@@ -50,6 +55,11 @@ class ProductController extends Controller
         if ($request->hasFile('logo_file')) {
             $path = $request->file('logo_file')->store('products', 'public');
             $validated['logo'] = '/storage/' . $path;
+        }
+
+        if ($request->hasFile('icon_file')) {
+            $path = $request->file('icon_file')->store('products/icons', 'public');
+            $validated['icon'] = '/storage/' . $path;
         }
 
         // Handle screenshot uploads
@@ -62,7 +72,7 @@ class ProductController extends Controller
         }
         $validated['screenshots'] = $screenshots;
 
-        unset($validated['logo_file'], $validated['screenshot_files']);
+        unset($validated['logo_file'], $validated['icon_file'], $validated['screenshot_files']);
 
         Product::create($validated);
 
@@ -78,6 +88,10 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
+        $request->merge([
+            'is_active' => filter_var($request->input('is_active'), FILTER_VALIDATE_BOOLEAN),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:products,slug,' . $product->id,
@@ -89,12 +103,13 @@ class ProductController extends Controller
             'screenshots' => 'nullable|array',
             'logo' => 'nullable|string|max:500',
             'logo_file' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
-            'icon' => 'nullable|string|max:100',
+            'icon' => 'nullable|string|max:500',
+            'icon_file' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
             'screenshot_files' => 'nullable|array',
             'screenshot_files.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
             'link' => 'nullable|string|max:500',
             'demo_link' => 'nullable|string|max:500',
-            'demo_credentials' => 'nullable|string',
+            'demo_credentials' => 'nullable|string|max:5000',
             'sort_order' => 'nullable|integer',
             'is_active' => 'boolean',
             'status' => 'nullable|string|in:active,coming_soon,beta,deprecated',
@@ -108,6 +123,14 @@ class ProductController extends Controller
             $validated['logo'] = '/storage/' . $path;
         }
 
+        if ($request->hasFile('icon_file')) {
+            if ($product->icon && str_starts_with($product->icon, '/storage/')) {
+                Storage::disk('public')->delete(str_replace('/storage/', '', $product->icon));
+            }
+            $path = $request->file('icon_file')->store('products/icons', 'public');
+            $validated['icon'] = '/storage/' . $path;
+        }
+
         // Handle screenshot uploads
         $screenshots = $validated['screenshots'] ?? [];
         if ($request->hasFile('screenshot_files')) {
@@ -118,7 +141,7 @@ class ProductController extends Controller
         }
         $validated['screenshots'] = $screenshots;
 
-        unset($validated['logo_file'], $validated['screenshot_files']);
+        unset($validated['logo_file'], $validated['icon_file'], $validated['screenshot_files']);
 
         $product->update($validated);
 
@@ -137,6 +160,10 @@ class ProductController extends Controller
     {
         if ($product->logo && str_starts_with($product->logo, '/storage/')) {
             Storage::disk('public')->delete(str_replace('/storage/', '', $product->logo));
+        }
+
+        if ($product->icon && str_starts_with($product->icon, '/storage/')) {
+            Storage::disk('public')->delete(str_replace('/storage/', '', $product->icon));
         }
 
         // Delete screenshot files

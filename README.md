@@ -43,7 +43,7 @@ composer dev
 ## Admin Panel
 
 - **URL:** `/admin`
-- **Default login:** `admin@dnetechnology.com` / `password`
+- **Default login:** `admin@dneconsultants.com` / `password`
 
 ### Admin Features
 

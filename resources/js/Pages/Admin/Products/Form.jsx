@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { Head, useForm, Link, router } from '@inertiajs/react';
-import { Upload, X, Package, Image } from 'lucide-react';
+import { Head, useForm, Link, router, usePage } from '@inertiajs/react';
+import { Upload, X, Package, Image, AlertCircle } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import RichTextEditor from '@/Components/RichTextEditor';
 
 export default function ProductForm({ product }) {
   const isEditing = !!product;
   const [preview, setPreview] = useState(product?.logo || null);
+  const [iconPreview, setIconPreview] = useState(product?.icon || null);
   const [screenshotPreviews, setScreenshotPreviews] = useState(product?.screenshots || []);
 
-  const { data, setData, processing, errors } = useForm({
+  const { props } = usePage();
+  const pageErrors = props.errors || {};
+
+  const { data, setData, processing, errors: formErrors } = useForm({
     name: product?.name || '',
     slug: product?.slug || '',
     description: product?.description || '',
@@ -21,6 +25,7 @@ export default function ProductForm({ product }) {
     logo: product?.logo || '',
     logo_file: null,
     icon: product?.icon || '',
+    icon_file: null,
     screenshot_files: [],
     link: product?.link || '',
     demo_link: product?.demo_link || '',
@@ -29,6 +34,10 @@ export default function ProductForm({ product }) {
     is_active: product?.is_active ?? true,
     status: product?.status || 'active',
   });
+
+  // Merge errors from both sources
+  const errors = { ...formErrors, ...pageErrors };
+  const hasErrors = Object.keys(errors).length > 0;
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -45,6 +54,21 @@ export default function ProductForm({ product }) {
     setPreview(null);
   };
 
+  const handleIconFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setData('icon_file', file);
+      setData('icon', '');
+      setIconPreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeIcon = () => {
+    setData('icon_file', null);
+    setData('icon', '');
+    setIconPreview(null);
+  };
+
   const handleScreenshotUpload = (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
@@ -55,7 +79,6 @@ export default function ProductForm({ product }) {
   };
 
   const removeScreenshot = (index) => {
-    // Check if it's an existing screenshot or a new upload
     const existingCount = data.screenshots.length;
     if (index < existingCount) {
       const updated = data.screenshots.filter((_, i) => i !== index);
@@ -116,6 +139,10 @@ export default function ProductForm({ product }) {
       formData.append('logo_file', data.logo_file);
     }
 
+    if (data.icon_file) {
+      formData.append('icon_file', data.icon_file);
+    }
+
     // Append new screenshot files
     data.screenshot_files.forEach((file, i) => {
       formData.append(`screenshot_files[${i}]`, file);
@@ -123,9 +150,15 @@ export default function ProductForm({ product }) {
 
     if (isEditing) {
       formData.append('_method', 'PUT');
-      router.post(`/admin/products/${product.id}`, formData, { forceFormData: true });
+      router.post(`/admin/products/${product.id}`, formData, {
+        forceFormData: true,
+        preserveScroll: true,
+      });
     } else {
-      router.post('/admin/products', formData, { forceFormData: true });
+      router.post('/admin/products', formData, {
+        forceFormData: true,
+        preserveScroll: true,
+      });
     }
   };
 
@@ -134,6 +167,26 @@ export default function ProductForm({ product }) {
       <Head title={isEditing ? `Edit ${product.name}` : 'Add Product'} />
 
       <form onSubmit={handleSubmit} className="max-w-4xl space-y-6">
+
+        {/* Error Summary */}
+        {hasErrors && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-medium text-destructive mb-2">Please fix the following errors:</h4>
+                <ul className="list-disc list-inside space-y-1">
+                  {Object.entries(errors).map(([field, message]) => (
+                    <li key={field} className="text-sm text-destructive/90">
+                      <span className="font-medium">{field.replace(/_/g, ' ').replace(/\./g, ' ')}:</span> {message}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Basic Info */}
         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
           <h3 className="text-lg font-semibold text-foreground">Basic Information</h3>
@@ -141,12 +194,12 @@ export default function ProductForm({ product }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">Product Name *</label>
-              <input type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} className="form-input" placeholder="My SaaS App" />
+              <input type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} className={`form-input ${errors.name ? 'border-destructive' : ''}`} placeholder="My SaaS App" />
               {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">Slug *</label>
-              <input type="text" value={data.slug} onChange={(e) => setData('slug', e.target.value)} className="form-input" placeholder="my-saas-app" />
+              <input type="text" value={data.slug} onChange={(e) => setData('slug', e.target.value)} className={`form-input ${errors.slug ? 'border-destructive' : ''}`} placeholder="my-saas-app" />
               {errors.slug && <p className="text-sm text-destructive mt-1">{errors.slug}</p>}
             </div>
           </div>
@@ -234,12 +287,43 @@ export default function ProductForm({ product }) {
         {/* Icon */}
         <div className="bg-card border border-border rounded-xl p-6 space-y-4">
           <h3 className="text-lg font-semibold text-foreground">Product Icon</h3>
-          <p className="text-sm text-muted-foreground">Enter a Lucide icon name (e.g. Bot, Layers, Rocket, ShoppingCart). Used as fallback when no logo is set, or alongside the logo on cards.</p>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Icon Name</label>
-            <input type="text" value={data.icon} onChange={(e) => setData('icon', e.target.value)} className="form-input" placeholder="e.g. Rocket, Bot, Layers" />
-            {errors.icon && <p className="text-sm text-destructive mt-1">{errors.icon}</p>}
+          <p className="text-sm text-muted-foreground">A smaller icon image used alongside or as fallback for the logo (e.g. favicon-style, app icon).</p>
+
+          {iconPreview && (
+            <div className="relative w-16 h-16">
+              <img src={iconPreview} alt="Icon preview" className="w-full h-full object-contain rounded-lg border border-border bg-background p-1" />
+              <button type="button" onClick={removeIcon} className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center hover:bg-destructive/80 transition-colors">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+
+          {!iconPreview && (
+            <div className="w-16 h-16 rounded-lg border border-border bg-muted flex items-center justify-center">
+              <Package className="h-6 w-6 text-muted-foreground/30" />
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3">
+            <label className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium cursor-pointer hover:bg-secondary/80 transition-colors w-fit">
+              <Upload className="h-4 w-4" />
+              Upload Icon
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" onChange={handleIconFileChange} className="hidden" />
+            </label>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">or enter URL:</span>
+              <input
+                type="text"
+                value={data.icon}
+                onChange={(e) => { setData('icon', e.target.value); setData('icon_file', null); setIconPreview(e.target.value || null); }}
+                className="form-input flex-1 text-sm"
+                placeholder="https://..."
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Accepts JPG, PNG, WebP, SVG. Max 2MB.</p>
           </div>
+          {errors.icon_file && <p className="text-sm text-destructive mt-1">{errors.icon_file}</p>}
         </div>
 
         {/* Detail Content */}

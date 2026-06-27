@@ -123,10 +123,10 @@ export default function About({ page, team, values, stats, products }) {
             <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {products.map((product, index) => (
                 <motion.div key={index} variants={itemVariant} className="bg-card border border-border/50 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 flex flex-col">
-                  {/* Product Logo */}
-                  {product.logo && (
+                  {/* Product Logo or Icon */}
+                  {(product.logo || product.icon) && (
                     <div className="w-full flex justify-center mb-6">
-                      <img src={product.logo} alt={product.name} className="h-[100px] w-auto object-contain rounded-2xl" />
+                      <img src={product.icon || product.logo} alt={product.name} className="h-[100px] w-auto object-contain rounded-2xl" />
                     </div>
                   )}
 

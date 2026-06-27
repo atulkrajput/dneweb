@@ -2,7 +2,6 @@ import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { ArrowRight, ExternalLink } from 'lucide-react';
-import DynamicIcon from '@/Components/DynamicIcon';
 import PublicLayout from '@/Layouts/PublicLayout';
 
 const staggerContainer = {
@@ -77,15 +76,11 @@ export default function ProductsIndex({ products }) {
                   className="group bg-card border border-border rounded-2xl p-6 flex flex-col hover:border-primary/30 hover:shadow-lg transition-all duration-300"
                 >
                   {/* Logo or Icon */}
-                  {product.logo ? (
+                  {(product.icon || product.logo) && (
                     <div className="w-14 h-14 rounded-xl bg-muted border border-border flex items-center justify-center overflow-hidden mb-4">
-                      <img src={product.logo} alt={product.name} className="w-10 h-10 object-contain" />
+                      <img src={product.icon || product.logo} alt={product.name} className="w-10 h-10 object-contain" />
                     </div>
-                  ) : product.icon ? (
-                    <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
-                      <DynamicIcon name={product.icon} className="w-7 h-7 text-primary" />
-                    </div>
-                  ) : null}
+                  )}
 
                   {/* Name & Status */}
                   <div className="flex items-center gap-2 mb-3">

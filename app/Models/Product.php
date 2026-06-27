@@ -9,7 +9,7 @@ class Product extends Model
     protected $fillable = [
         'name', 'slug', 'description', 'summary', 'details', 'features', 'features_detail',
         'screenshots', 'logo', 'icon', 'link', 'demo_link', 'demo_credentials',
-        'sort_order', 'is_active', 'status',
+        'sort_order', 'is_active', 'status', 'views',
     ];
 
     protected $casts = [

@@ -33,6 +33,9 @@ class ProductPageController extends Controller
     {
         $product = Product::where('slug', $slug)->where('is_active', true)->firstOrFail();
 
+        // Increment view counter
+        $product->increment('views');
+
         return Inertia::render('Products/Show', [
             'product' => [
                 'id' => $product->id,

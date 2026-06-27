@@ -4,7 +4,7 @@
 
 - **URL:** `/admin`
 - **Login:** `/login`
-- **Default Credentials:** admin@dnetechnology.com / password
+- **Default Credentials:** admin@dneconsultants.com / password
 - **Auth:** Laravel Breeze session-based authentication
 - **Protection:** `auth` + `verified` middleware on all admin routes
 
