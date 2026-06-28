@@ -4,7 +4,7 @@ import { Facebook, Instagram, Linkedin, Twitter, Mail, MapPin } from 'lucide-rea
 import { useTheme } from '@/hooks/useTheme';
 
 export default function Footer() {
-  const { settings = {} } = usePage().props;
+  const { settings = {}, footerServices = [] } = usePage().props;
   const { theme } = useTheme();
 
   const logoSrc = theme === 'dark' ? '/logo-white.png' : '/logo.png';
@@ -12,15 +12,9 @@ export default function Footer() {
   const navigationLinks = [
     { name: 'Home', path: '/' },
     { name: 'Services', path: '/services' },
+    { name: 'Products', path: '/products' },
     { name: 'About DNE', path: '/about' },
     { name: 'Contact', path: '/contact' },
-  ];
-
-  const servicesList = [
-    'AI & Automation',
-    'AI & SaaS Products',
-    'Web & Mobile Development',
-    'IT & Managed Services',
   ];
 
   const socialLinks = [
@@ -66,9 +60,14 @@ export default function Footer() {
           <div>
             <span className="text-sm font-semibold text-foreground mb-6 block">Services</span>
             <ul className="space-y-4">
-              {servicesList.map((service) => (
-                <li key={service}>
-                  <span className="text-sm text-muted-foreground">{service}</span>
+              {footerServices.map((service) => (
+                <li key={service.slug}>
+                  <Link
+                    href={`/services#service-${service.slug}`}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
+                  >
+                    {service.title}
+                  </Link>
                 </li>
               ))}
             </ul>
