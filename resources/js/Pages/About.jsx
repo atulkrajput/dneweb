@@ -110,8 +110,8 @@ export default function About({ page, team, values, stats, testimonials, partner
         </div>
       </section>
 
-      {/* TEAM — bg-background (light) */}
-      {showTeam && (
+      {/* TEAM — commented out for now */}
+      {/* {showTeam && (
         <section className="section-padding bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }} className="mb-16 text-center max-w-3xl mx-auto">
@@ -137,11 +137,11 @@ export default function About({ page, team, values, stats, testimonials, partner
             </motion.div>
           </div>
         </section>
-      )}
+      )} */}
 
-      {/* CLIENT TESTIMONIALS — bg-secondary (dark) */}
+      {/* CLIENT TESTIMONIALS — bg-background (light) */}
       {testimonials && testimonials.length > 0 && (
-        <section className="section-padding bg-secondary">
+        <section className="section-padding bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }} className="mb-16 text-center max-w-3xl mx-auto">
               <span className="eyebrow">Client Testimonials</span>
@@ -195,8 +195,8 @@ export default function About({ page, team, values, stats, testimonials, partner
         </section>
       )}
 
-      {/* DNE DIFFERENCE — bg-background (light) */}
-      <section className="section-padding bg-background">
+      {/* DNE DIFFERENCE — bg-secondary (dark) */}
+      <section className="section-padding bg-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }}>
@@ -222,9 +222,9 @@ export default function About({ page, team, values, stats, testimonials, partner
         </div>
       </section>
 
-      {/* OUR PARTNERS — bg-secondary (dark) */}
+      {/* OUR PARTNERS — bg-background (light) */}
       {partners && partners.length > 0 && (
-        <section className="py-16 bg-secondary overflow-hidden">
+        <section className="py-16 bg-background overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-12">
               <span className="eyebrow">Our Partners</span>
@@ -233,8 +233,8 @@ export default function About({ page, team, values, stats, testimonials, partner
           </div>
 
           <div className="relative">
-            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-secondary to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-secondary to-transparent z-10 pointer-events-none" />
+            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
             <div className="flex animate-scroll-x">
               {[...partners, ...partners, ...partners].map((partner, index) => (
