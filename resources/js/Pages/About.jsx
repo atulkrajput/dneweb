@@ -5,7 +5,7 @@ import { ArrowRight, User, ExternalLink, Star, Quote } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout';
 
-export default function About({ page, team, values, stats, products, testimonials }) {
+export default function About({ page, team, values, stats, testimonials, partners }) {
   const seo = page || {};
   const { settings = {} } = usePage().props;
   const showTeam = settings.about_show_team !== '0';
@@ -67,7 +67,7 @@ export default function About({ page, team, values, stats, products, testimonial
         </div>
       </section>
 
-      {/* OUR STORY */}
+      {/* OUR STORY — bg-background (light) */}
       <section className="section-padding bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8">
@@ -86,7 +86,7 @@ export default function About({ page, team, values, stats, products, testimonial
         </div>
       </section>
 
-      {/* VALUES */}
+      {/* VALUES — bg-secondary (dark) */}
       <section className="section-padding bg-secondary">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }} className="mb-16 max-w-3xl">
@@ -110,66 +110,9 @@ export default function About({ page, team, values, stats, products, testimonial
         </div>
       </section>
 
-      {/* OUR SAAS PRODUCTS */}
-      {products && products.length > 0 && (
-        <section className="section-padding bg-secondary">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }} className="mb-16 text-center max-w-3xl mx-auto">
-              <span className="eyebrow">Our SaaS Products</span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">Products we've built and launched.</h2>
-              <p className="text-lg text-muted-foreground">We don't just build for clients — we build our own products too. Here's what we're shipping.</p>
-            </motion.div>
-
-            <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {products.map((product, index) => (
-                <motion.div key={index} variants={itemVariant} className="bg-card border border-border/50 rounded-2xl p-8 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 flex flex-col">
-                  {/* Product Logo or Icon */}
-                  {(product.logo || product.icon) && (
-                    <div className="w-full flex justify-center mb-6">
-                      <img src={product.icon || product.logo} alt={product.name} className="h-[100px] w-auto object-contain rounded-2xl" />
-                    </div>
-                  )}
-
-                  {/* Name & Link */}
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <h3 className="text-xl font-semibold text-foreground">{product.name}</h3>
-                    {product.link && (
-                      <a href={product.link} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 text-primary hover:text-primary/80 transition-colors">
-                        <ExternalLink className="w-5 h-5" />
-                      </a>
-                    )}
-                  </div>
-
-                  {/* Description */}
-                  {product.description && (
-                    <p className="text-muted-foreground leading-relaxed mb-6 flex-1">{product.description}</p>
-                  )}
-
-                  {/* Features */}
-                  {product.features && product.features.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {product.features.map((feature, i) => (
-                        <span key={i} className="text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">{feature}</span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* View Details Link */}
-                  <div className="mt-auto pt-4 border-t border-border/50">
-                    <Link href={`/products/${product.slug}`} className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors">
-                      View Details <ArrowRight className="h-3 w-3" />
-                    </Link>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
-      )}
-
-      {/* TEAM */}
+      {/* TEAM — bg-background (light) */}
       {showTeam && (
-        <section className="section-padding bg-background border-y border-border/40">
+        <section className="section-padding bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }} className="mb-16 text-center max-w-3xl mx-auto">
               <span className="eyebrow">The Team</span>
@@ -196,9 +139,9 @@ export default function About({ page, team, values, stats, products, testimonial
         </section>
       )}
 
-      {/* CLIENT TESTIMONIALS */}
+      {/* CLIENT TESTIMONIALS — bg-secondary (dark) */}
       {testimonials && testimonials.length > 0 && (
-        <section className="section-padding bg-secondary border-y border-border/40">
+        <section className="section-padding bg-secondary">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }} className="mb-16 text-center max-w-3xl mx-auto">
               <span className="eyebrow">Client Testimonials</span>
@@ -209,10 +152,8 @@ export default function About({ page, team, values, stats, products, testimonial
             <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {testimonials.map((testimonial, index) => (
                 <motion.div key={index} variants={itemVariant} className="bg-card border border-border/50 rounded-2xl p-8 flex flex-col relative hover:border-primary/30 transition-all duration-300">
-                  {/* Quote Icon */}
                   <Quote className="w-8 h-8 text-primary/20 mb-4" />
 
-                  {/* Rating */}
                   {testimonial.rating && (
                     <div className="flex items-center gap-0.5 mb-4">
                       {[...Array(5)].map((_, i) => (
@@ -221,10 +162,8 @@ export default function About({ page, team, values, stats, products, testimonial
                     </div>
                   )}
 
-                  {/* Quote */}
                   <p className="text-muted-foreground leading-relaxed mb-6 flex-1 italic">"{testimonial.quote}"</p>
 
-                  {/* Author */}
                   <div className="flex items-center gap-3 pt-4 border-t border-border/50">
                     {testimonial.photo ? (
                       <div className="w-12 h-12 rounded-full border border-border overflow-hidden flex-shrink-0">
@@ -256,7 +195,7 @@ export default function About({ page, team, values, stats, products, testimonial
         </section>
       )}
 
-      {/* DNE DIFFERENCE */}
+      {/* DNE DIFFERENCE — bg-background (light) */}
       <section className="section-padding bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
@@ -283,7 +222,40 @@ export default function About({ page, team, values, stats, products, testimonial
         </div>
       </section>
 
-      {/* BOTTOM CTA */}
+      {/* OUR PARTNERS — bg-secondary (dark) */}
+      {partners && partners.length > 0 && (
+        <section className="py-16 bg-secondary overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="text-center mb-12">
+              <span className="eyebrow">Our Partners</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground">Trusted by industry leaders.</h2>
+            </motion.div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-secondary to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-secondary to-transparent z-10 pointer-events-none" />
+
+            <div className="flex animate-scroll-x">
+              {[...partners, ...partners, ...partners].map((partner, index) => (
+                <div key={index} className="flex-shrink-0 mx-8">
+                  {partner.website ? (
+                    <a href={partner.website} target="_blank" rel="noopener noreferrer" className="block grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300" title={partner.name}>
+                      <img src={partner.logo} alt={partner.name} className="h-12 md:h-16 w-auto object-contain" />
+                    </a>
+                  ) : (
+                    <div className="grayscale hover:grayscale-0 opacity-60 hover:opacity-100 transition-all duration-300" title={partner.name}>
+                      <img src={partner.logo} alt={partner.name} className="h-12 md:h-16 w-auto object-contain" />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* BOTTOM CTA — bg-primary (accent) */}
       <section className="bg-primary py-24 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake } from 'lucide-react';
 
 export default function AdminLayout({ children, title }) {
   const { auth } = usePage().props;
@@ -12,6 +12,7 @@ export default function AdminLayout({ children, title }) {
     { name: 'Products', href: '/admin/products', icon: Package },
     { name: 'Team Members', href: '/admin/team', icon: Users },
     { name: 'Testimonials', href: '/admin/testimonials', icon: Star },
+    { name: 'Partners', href: '/admin/partners', icon: Handshake },
     { name: 'Contacts', href: '/admin/contacts', icon: MessageSquare },
     { name: 'Legal Pages', href: '/admin/legal-pages', icon: FileText },
     { name: 'Settings', href: '/admin/settings', icon: Settings },

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Page;
-use App\Models\Product;
+use App\Models\Partner;
 use App\Models\Service;
 use App\Models\TeamMember;
 use App\Models\Testimonial;
@@ -52,8 +52,8 @@ class PageController extends Controller
     {
         $page = Page::findBySlug('about');
         $team = TeamMember::active()->ordered()->get();
-        $products = Product::active()->ordered()->get();
         $testimonials = Testimonial::active()->ordered()->get();
+        $partners = Partner::active()->ordered()->get();
 
         return Inertia::render('About', [
             'page' => $page,
@@ -72,14 +72,10 @@ class PageController extends Controller
                 'rating' => $t->rating,
                 'photo' => $t->photo,
             ])->toArray(),
-            'products' => $products->map(fn ($p) => [
+            'partners' => $partners->map(fn ($p) => [
                 'name' => $p->name,
-                'slug' => $p->slug,
-                'description' => $p->description,
-                'features' => $p->features,
                 'logo' => $p->logo,
-                'icon' => $p->icon,
-                'link' => $p->link,
+                'website' => $p->website,
             ])->toArray(),
         ]);
     }
