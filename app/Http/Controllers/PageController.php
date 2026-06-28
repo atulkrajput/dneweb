@@ -6,6 +6,7 @@ use App\Models\Page;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\TeamMember;
+use App\Models\Testimonial;
 use Inertia\Inertia;
 
 class PageController extends Controller
@@ -52,6 +53,7 @@ class PageController extends Controller
         $page = Page::findBySlug('about');
         $team = TeamMember::active()->ordered()->get();
         $products = Product::active()->ordered()->get();
+        $testimonials = Testimonial::active()->ordered()->get();
 
         return Inertia::render('About', [
             'page' => $page,
@@ -60,6 +62,15 @@ class PageController extends Controller
                 'role' => $m->role,
                 'bio' => $m->bio,
                 'photo' => $m->photo,
+            ])->toArray(),
+            'testimonials' => $testimonials->map(fn ($t) => [
+                'author' => $t->author,
+                'role' => $t->role,
+                'company' => $t->company,
+                'website' => $t->website,
+                'quote' => $t->quote,
+                'rating' => $t->rating,
+                'photo' => $t->photo,
             ])->toArray(),
             'products' => $products->map(fn ($p) => [
                 'name' => $p->name,

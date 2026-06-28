@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TeamMemberController;
+use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\ContactFormController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\PageController;
@@ -42,6 +43,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     // Team Members
     Route::resource('team', TeamMemberController::class)->parameters(['team' => 'team_member']);
+
+    // Testimonials
+    Route::resource('testimonials', TestimonialController::class);
 
     // Products
     Route::delete('/products/interests/{interest}', [ProductController::class, 'destroyInterest'])->name('products.interests.destroy');

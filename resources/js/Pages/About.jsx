@@ -1,11 +1,11 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { ArrowRight, User, ExternalLink } from 'lucide-react';
+import { ArrowRight, User, ExternalLink, Star, Quote } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout';
 
-export default function About({ page, team, values, stats, products }) {
+export default function About({ page, team, values, stats, products, testimonials }) {
   const seo = page || {};
   const { settings = {} } = usePage().props;
   const showTeam = settings.about_show_team !== '0';
@@ -189,6 +189,66 @@ export default function About({ page, team, values, stats, products }) {
                   <h3 className="text-xl font-semibold text-foreground mb-1">{member.name}</h3>
                   <p className="text-primary font-medium text-sm mb-4">{member.role}</p>
                   <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">{member.bio}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* CLIENT TESTIMONIALS */}
+      {testimonials && testimonials.length > 0 && (
+        <section className="section-padding bg-secondary border-y border-border/40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }} className="mb-16 text-center max-w-3xl mx-auto">
+              <span className="eyebrow">Client Testimonials</span>
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">What our clients say.</h2>
+              <p className="text-lg text-muted-foreground">Real feedback from real partners we've worked with.</p>
+            </motion.div>
+
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {testimonials.map((testimonial, index) => (
+                <motion.div key={index} variants={itemVariant} className="bg-card border border-border/50 rounded-2xl p-8 flex flex-col relative hover:border-primary/30 transition-all duration-300">
+                  {/* Quote Icon */}
+                  <Quote className="w-8 h-8 text-primary/20 mb-4" />
+
+                  {/* Rating */}
+                  {testimonial.rating && (
+                    <div className="flex items-center gap-0.5 mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`h-4 w-4 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/20'}`} />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Quote */}
+                  <p className="text-muted-foreground leading-relaxed mb-6 flex-1 italic">"{testimonial.quote}"</p>
+
+                  {/* Author */}
+                  <div className="flex items-center gap-3 pt-4 border-t border-border/50">
+                    {testimonial.photo ? (
+                      <div className="w-12 h-12 rounded-full border border-border overflow-hidden flex-shrink-0">
+                        <img src={testimonial.photo} alt={testimonial.author} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-muted border border-border flex items-center justify-center flex-shrink-0">
+                        <User className="w-5 h-5 text-muted-foreground/50" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground truncate">{testimonial.author}</p>
+                      {(testimonial.role || testimonial.company) && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {testimonial.role}{testimonial.role && testimonial.company ? ', ' : ''}{testimonial.company}
+                        </p>
+                      )}
+                    </div>
+                    {testimonial.website && (
+                      <a href={testimonial.website} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors flex-shrink-0">
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
                 </motion.div>
               ))}
             </motion.div>
