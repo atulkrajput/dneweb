@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import {
   Bold, Italic, Strikethrough, List, ListOrdered,
   Heading1, Heading2, Heading3, Link as LinkIcon,
-  Undo, Redo, Minus, Quote
+  Undo, Redo, Minus, Quote, Code
 } from 'lucide-react';
 
 function MenuButton({ onClick, active, children, title }) {
@@ -24,6 +24,9 @@ function MenuButton({ onClick, active, children, title }) {
 }
 
 export default function RichTextEditor({ content, onChange }) {
+  const [showCode, setShowCode] = useState(false);
+  const [codeContent, setCodeContent] = useState('');
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -51,6 +54,19 @@ export default function RichTextEditor({ content, onChange }) {
     const url = window.prompt('Enter URL:');
     if (url) {
       editor.chain().focus().setLink({ href: url }).run();
+    }
+  };
+
+  const toggleCodeView = () => {
+    if (!showCode) {
+      // Switching to code view - grab current HTML
+      setCodeContent(editor.getHTML());
+      setShowCode(true);
+    } else {
+      // Switching back to visual - apply code changes
+      editor.commands.setContent(codeContent);
+      onChange(codeContent);
+      setShowCode(false);
     }
   };
 
@@ -109,10 +125,28 @@ export default function RichTextEditor({ content, onChange }) {
         <MenuButton onClick={() => editor.chain().focus().redo().run()} title="Redo">
           <Redo className="h-4 w-4" />
         </MenuButton>
+
+        <div className="w-px bg-border mx-1" />
+
+        <MenuButton onClick={toggleCodeView} active={showCode} title="View Source Code">
+          <Code className="h-4 w-4" />
+        </MenuButton>
       </div>
 
-      {/* Editor */}
-      <EditorContent editor={editor} />
+      {/* Editor / Code View */}
+      {showCode ? (
+        <textarea
+          value={codeContent}
+          onChange={(e) => {
+            setCodeContent(e.target.value);
+            onChange(e.target.value);
+          }}
+          className="w-full min-h-[400px] p-4 bg-background text-foreground font-mono text-sm focus:outline-none resize-y"
+          spellCheck={false}
+        />
+      ) : (
+        <EditorContent editor={editor} />
+      )}
     </div>
   );
 }
