@@ -169,7 +169,7 @@ export default function ProductShow({ product }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
               <h2 className="text-2xl font-bold text-foreground mb-6">Overview</h2>
-              <div className="prose prose-invert max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground prose-li:text-muted-foreground" dangerouslySetInnerHTML={{ __html: product.summary }} />
+              <div className="prose prose-invert max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground prose-li:text-muted-foreground prose-ul:list-none prose-ul:pl-0 prose-ol:list-none prose-ol:pl-0 prose-li:pl-0" dangerouslySetInnerHTML={{ __html: product.summary }} />
             </motion.div>
           </div>
         </section>
@@ -181,7 +181,7 @@ export default function ProductShow({ product }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
               <h2 className="text-2xl font-bold text-foreground mb-6">Details</h2>
-              <div className="prose prose-invert max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground prose-li:text-muted-foreground" dangerouslySetInnerHTML={{ __html: product.details }} />
+              <div className="prose prose-invert max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground prose-li:text-muted-foreground prose-ul:list-none prose-ul:pl-0 prose-ol:list-none prose-ol:pl-0 prose-li:pl-0" dangerouslySetInnerHTML={{ __html: product.details }} />
             </motion.div>
           </div>
         </section>
@@ -193,7 +193,7 @@ export default function ProductShow({ product }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
               <h2 className="text-2xl font-bold text-foreground mb-6">Features</h2>
-              <div className="prose prose-invert max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground prose-li:text-muted-foreground" dangerouslySetInnerHTML={{ __html: product.features_detail }} />
+              <div className="prose prose-invert max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground prose-li:text-muted-foreground prose-ul:list-none prose-ul:pl-0 prose-ol:list-none prose-ol:pl-0 prose-li:pl-0" dangerouslySetInnerHTML={{ __html: product.features_detail }} />
             </motion.div>
           </div>
         </section>
