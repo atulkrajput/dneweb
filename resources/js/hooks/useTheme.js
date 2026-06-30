@@ -1,10 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useSyncExternalStore } from 'react';
+
+// Shared listeners for cross-component synchronization
+let listeners = [];
+function subscribe(listener) {
+  listeners.push(listener);
+  return () => {
+    listeners = listeners.filter(l => l !== listener);
+  };
+}
+function notifyAll() {
+  listeners.forEach(l => l());
+}
+function getSnapshot() {
+  if (typeof window === 'undefined') return 'dark';
+  return localStorage.getItem('theme') || 'dark';
+}
 
 export function useTheme() {
-  const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') return 'dark';
-    return localStorage.getItem('theme') || 'dark';
-  });
+  const theme = useSyncExternalStore(subscribe, getSnapshot, () => 'dark');
 
   useEffect(() => {
     const root = document.documentElement;
@@ -13,12 +26,20 @@ export function useTheme() {
     } else {
       root.classList.remove('dark');
     }
-    localStorage.setItem('theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+  const setTheme = useCallback((value) => {
+    const newTheme = typeof value === 'function' ? value(getSnapshot()) : value;
+    localStorage.setItem('theme', newTheme);
+    notifyAll();
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    const current = getSnapshot();
+    const next = current === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    notifyAll();
+  }, []);
 
   return { theme, setTheme, toggleTheme };
 }
