@@ -40,7 +40,7 @@ export default function ProductsIndex({ products }) {
       <Head title="Our Products | DNE Consultants" />
 
       {/* Hero */}
-      <section className="py-10 md:py-12 bg-gradient-to-b from-muted/50 to-background">
+      <section className="py-10 md:py-12 bg-gradient-to-b from-muted/50 to-background border-b border-border/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
