@@ -92,7 +92,7 @@ export default function Services({ page, services }) {
       </Head>
 
       {/* HERO */}
-      <section className="relative pt-24 pb-32 lg:pt-36 lg:pb-40 overflow-hidden border-b border-border/40">
+      <section className="relative pt-10 pb-12 md:pt-12 md:pb-14 overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 z-0 bg-background" />
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen opacity-50 transform translate-x-1/3 -translate-y-1/3" />
         <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] mix-blend-screen opacity-50" />
