@@ -3,13 +3,24 @@ import { Head, useForm, Link, router } from '@inertiajs/react';
 import { Upload, X, User } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
-export default function TeamMemberForm({ member }) {
+const ROLE_LABELS = {
+  super_admin: 'Super Admin',
+  sales: 'Sales',
+  project_manager: 'Project Manager',
+  developer: 'Developer',
+  accountant: 'Accountant',
+};
+
+export default function TeamMemberForm({ member, roles }) {
   const isEditing = !!member;
   const [preview, setPreview] = useState(member?.photo || null);
 
   const { data, setData, post, processing, errors } = useForm({
     name: member?.name || '',
-    role: member?.role || '',
+    email: member?.email || '',
+    password: '',
+    team_role: member?.team_role || 'developer',
+    position: member?.position || '',
     bio: member?.bio || '',
     photo: member?.photo || '',
     photo_file: null,
@@ -37,7 +48,12 @@ export default function TeamMemberForm({ member }) {
 
     const formData = new FormData();
     formData.append('name', data.name);
-    formData.append('role', data.role);
+    formData.append('email', data.email);
+    if (data.password) {
+      formData.append('password', data.password);
+    }
+    formData.append('team_role', data.team_role);
+    formData.append('position', data.position || '');
     formData.append('bio', data.bio || '');
     formData.append('photo', data.photo || '');
     formData.append('sort_order', data.sort_order);
@@ -64,17 +80,51 @@ export default function TeamMemberForm({ member }) {
       <Head title={isEditing ? 'Edit Team Member' : 'Add Team Member'} />
 
       <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+        {/* Account Info */}
         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Name *</label>
-            <input type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} className="form-input" />
-            {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
+          <h3 className="text-sm font-semibold text-foreground border-b border-border pb-3">Account</h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Name *</label>
+              <input type="text" value={data.name} onChange={(e) => setData('name', e.target.value)} className="form-input" />
+              {errors.name && <p className="text-sm text-destructive mt-1">{errors.name}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Email *</label>
+              <input type="email" value={data.email} onChange={(e) => setData('email', e.target.value)} className="form-input" />
+              {errors.email && <p className="text-sm text-destructive mt-1">{errors.email}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Password {isEditing ? '(leave blank to keep)' : '*'}
+              </label>
+              <input type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} className="form-input" />
+              {errors.password && <p className="text-sm text-destructive mt-1">{errors.password}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Team Role *</label>
+              <select value={data.team_role} onChange={(e) => setData('team_role', e.target.value)} className="form-input">
+                {(roles || []).map((role) => (
+                  <option key={role} value={role}>{ROLE_LABELS[role] || role}</option>
+                ))}
+              </select>
+              {errors.team_role && <p className="text-sm text-destructive mt-1">{errors.team_role}</p>}
+            </div>
           </div>
+        </div>
+
+        {/* Profile Info */}
+        <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+          <h3 className="text-sm font-semibold text-foreground border-b border-border pb-3">Profile</h3>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Role *</label>
-            <input type="text" value={data.role} onChange={(e) => setData('role', e.target.value)} className="form-input" />
-            {errors.role && <p className="text-sm text-destructive mt-1">{errors.role}</p>}
+            <label className="block text-sm font-medium text-foreground mb-2">Position / Title</label>
+            <input type="text" value={data.position} onChange={(e) => setData('position', e.target.value)} className="form-input" placeholder="e.g. Lead Developer, Sales Manager" />
+            {errors.position && <p className="text-sm text-destructive mt-1">{errors.position}</p>}
           </div>
 
           <div>
@@ -86,7 +136,6 @@ export default function TeamMemberForm({ member }) {
           <div>
             <label className="block text-sm font-medium text-foreground mb-3">Photo</label>
 
-            {/* Preview */}
             {preview && (
               <div className="relative w-32 h-32 mb-4">
                 <img src={preview} alt="Preview" className="w-full h-full object-cover rounded-xl border border-border" />
@@ -106,7 +155,6 @@ export default function TeamMemberForm({ member }) {
               </div>
             )}
 
-            {/* Upload button */}
             <div className="flex flex-col gap-3">
               <label className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium cursor-pointer hover:bg-secondary/80 transition-colors w-fit">
                 <Upload className="h-4 w-4" />
@@ -119,7 +167,6 @@ export default function TeamMemberForm({ member }) {
                 />
               </label>
 
-              {/* Or enter URL */}
               <div className="flex items-center gap-3">
                 <span className="text-xs text-muted-foreground">or enter URL:</span>
                 <input

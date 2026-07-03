@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Page;
 use App\Models\Partner;
 use App\Models\Service;
-use App\Models\TeamMember;
+use App\Models\User;
 use App\Models\Testimonial;
 use Inertia\Inertia;
 
@@ -51,7 +51,7 @@ class PageController extends Controller
     public function about()
     {
         $page = Page::findBySlug('about');
-        $team = TeamMember::active()->ordered()->get();
+        $team = User::active()->ordered()->get();
         $testimonials = Testimonial::active()->ordered()->get();
         $partners = Partner::active()->ordered()->get();
 
@@ -59,7 +59,7 @@ class PageController extends Controller
             'page' => $page,
             'team' => $team->map(fn ($m) => [
                 'name' => $m->name,
-                'role' => $m->role,
+                'role' => $m->position,
                 'bio' => $m->bio,
                 'photo' => $m->photo,
             ])->toArray(),

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { ArrowLeft, Trash2, Edit3, Save, X, MessageSquare, Calendar, Clock, User } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit3, Save, X, MessageSquare, Calendar, Clock, User, Timer } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import NotesSection from '@/Components/NotesSection';
 
@@ -25,13 +25,14 @@ const PRIORITY_COLORS = {
   urgent: 'text-red-400',
 };
 
-export default function TaskShow({ task, team, internalNotes }) {
+export default function TaskShow({ task, team, sprints, internalNotes }) {
   const [editing, setEditing] = useState(false);
 
   const { data, setData, put, processing, errors } = useForm({
     title: task.title,
     description: task.description || '',
     assignee_id: task.assignee_id || '',
+    sprint_id: task.sprint_id || '',
     priority: task.priority,
     due_date: task.due_date ? task.due_date.split('T')[0] : '',
     status: task.status,
@@ -140,6 +141,15 @@ export default function TaskShow({ task, team, internalNotes }) {
                         {Object.entries(team).map(([id, name]) => <option key={id} value={id}>{name}</option>)}
                       </select>
                     </div>
+                    <div>
+                      <label className="form-label">Sprint</label>
+                      <select value={data.sprint_id} onChange={(e) => setData('sprint_id', e.target.value)} className="form-input">
+                        <option value="">Backlog</option>
+                        {(sprints || []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="form-label">Due Date</label>
                       <input type="date" value={data.due_date} onChange={(e) => setData('due_date', e.target.value)} className="form-input" />
@@ -278,6 +288,13 @@ export default function TaskShow({ task, team, internalNotes }) {
                     <Calendar className="h-3 w-3" />
                     {task.due_date ? new Date(task.due_date).toLocaleDateString() : '—'}
                     {isOverdue && ' (Overdue)'}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground uppercase tracking-wider">Sprint</label>
+                  <p className="text-sm text-foreground mt-1 flex items-center gap-1">
+                    <Timer className="h-3 w-3 text-muted-foreground" />
+                    {task.sprint?.name || 'Backlog'}
                   </p>
                 </div>
                 <div>

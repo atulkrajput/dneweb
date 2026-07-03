@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { ArrowLeft, Trash2, Edit3, Save, X, Building2, Calendar, DollarSign } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit3, Save, X, Building2, Calendar, DollarSign, Plus, Play, CheckCircle, Timer } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import NotesSection from '@/Components/NotesSection';
 
@@ -31,9 +31,19 @@ const PRIORITY_COLORS = {
   urgent: 'text-red-400',
 };
 
-export default function ProjectShow({ project, clients, team, internalNotes }) {
+const SPRINT_STATUS_CONFIG = {
+  planning: { label: 'Planning', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+  active: { label: 'Active', color: 'bg-green-500/10 text-green-400 border-green-500/20' },
+  completed: { label: 'Completed', color: 'bg-gray-500/10 text-gray-400 border-gray-500/20' },
+};
+
+const DURATION_LABELS = { week: '1 Week', two_weeks: '2 Weeks', month: '1 Month' };
+
+export default function ProjectShow({ project, clients, team, sprints, sprintDurations, sprintDurationLabels, internalNotes }) {
   const [editing, setEditing] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [showSprintCreate, setShowSprintCreate] = useState(false);
+  const [editingSprint, setEditingSprint] = useState(null);
 
   const { data, setData, put, processing, errors } = useForm({
     client_id: String(project.client_id),
@@ -51,11 +61,18 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
     notes: project.notes || '',
   });
 
+  const sprintForm = useForm({
+    name: '',
+    duration: 'two_weeks',
+    start_date: new Date().toISOString().split('T')[0],
+    goal: '',
+  });
+
+  const sprintEditForm = useForm({ name: '', duration: '', start_date: '', goal: '', status: '' });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    put(`/admin/projects/${project.id}`, {
-      onSuccess: () => setEditing(false),
-    });
+    put(`/admin/projects/${project.id}`, { onSuccess: () => setEditing(false) });
   };
 
   const handleDelete = () => {
@@ -66,15 +83,9 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
 
   const addTag = () => {
     const tag = tagInput.trim();
-    if (tag && !data.tags.includes(tag)) {
-      setData('tags', [...data.tags, tag]);
-      setTagInput('');
-    }
+    if (tag && !data.tags.includes(tag)) { setData('tags', [...data.tags, tag]); setTagInput(''); }
   };
-
-  const removeTag = (tag) => {
-    setData('tags', data.tags.filter(t => t !== tag));
-  };
+  const removeTag = (tag) => setData('tags', data.tags.filter(t => t !== tag));
 
   const handleTeamToggle = (id) => {
     const idStr = String(id);
@@ -85,13 +96,51 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
     }
   };
 
+  // Sprint handlers
+  const handleCreateSprint = (e) => {
+    e.preventDefault();
+    sprintForm.post(`/admin/projects/${project.id}/sprints`, {
+      onSuccess: () => { sprintForm.reset('name', 'goal'); setShowSprintCreate(false); },
+    });
+  };
+
+  const startEditSprint = (sprint) => {
+    setEditingSprint(sprint.id);
+    sprintEditForm.setData({
+      name: sprint.name, duration: sprint.duration,
+      start_date: sprint.start_date?.split('T')[0] || '', goal: sprint.goal || '', status: sprint.status,
+    });
+  };
+
+  const handleUpdateSprint = (e) => {
+    e.preventDefault();
+    sprintEditForm.put(`/admin/sprints/${editingSprint}`, { onSuccess: () => setEditingSprint(null) });
+  };
+
+  const handleStartSprint = (sprint) => {
+    if (confirm('Start this sprint? Any active sprint will be completed.')) {
+      router.post(`/admin/sprints/${sprint.id}/start`);
+    }
+  };
+
+  const handleCompleteSprint = (sprint) => {
+    if (confirm('Complete this sprint?')) { router.post(`/admin/sprints/${sprint.id}/complete`); }
+  };
+
+  const handleDeleteSprint = (sprint) => {
+    if (confirm(`Delete "${sprint.name}"? Tasks will move to backlog.`)) {
+      router.delete(`/admin/sprints/${sprint.id}`);
+    }
+  };
+
+  const formatDate = (d) => d ? new Date(d).toLocaleDateString('en', { month: 'short', day: 'numeric' }) : '';
   const isOverdue = project.deadline && new Date(project.deadline) < new Date() && !['completed', 'cancelled'].includes(project.status);
 
   return (
     <AdminLayout title="Project Details">
       <Head title={`Project - ${project.name}`} />
 
-      <div className="max-w-4xl">
+      <div className="max-w-5xl">
         <div className="flex items-center justify-between mb-6">
           <Link href="/admin/projects" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Projects
@@ -120,9 +169,7 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
                 <div>
                   <label className="form-label">Client <span className="text-primary">*</span></label>
                   <select value={data.client_id} onChange={(e) => setData('client_id', e.target.value)} className="form-input">
-                    {Object.entries(clients).map(([id, company]) => (
-                      <option key={id} value={id}>{company}</option>
-                    ))}
+                    {Object.entries(clients).map(([id, company]) => <option key={id} value={id}>{company}</option>)}
                   </select>
                 </div>
               </div>
@@ -138,18 +185,13 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
                 <div>
                   <label className="form-label">Priority</label>
                   <select value={data.priority} onChange={(e) => setData('priority', e.target.value)} className="form-input">
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option>
                   </select>
                 </div>
                 <div>
                   <label className="form-label">Status</label>
                   <select value={data.status} onChange={(e) => setData('status', e.target.value)} className="form-input">
-                    {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>{label}</option>
-                    ))}
+                    {Object.entries(STATUS_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
               </div>
@@ -189,8 +231,7 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
                   <div className="flex flex-wrap gap-2 mt-2">
                     {data.tags.map((tag) => (
                       <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                        {tag}
-                        <button type="button" onClick={() => removeTag(tag)} className="text-primary/60 hover:text-primary">×</button>
+                        {tag} <button type="button" onClick={() => removeTag(tag)} className="text-primary/60 hover:text-primary">×</button>
                       </span>
                     ))}
                   </div>
@@ -201,10 +242,8 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
                 <textarea value={data.notes} onChange={(e) => setData('notes', e.target.value)} rows="3" className="form-input resize-y" />
               </div>
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-                <button type="button" onClick={() => setEditing(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <X className="h-4 w-4" /> Cancel
-                </button>
-                <button type="submit" disabled={processing} className="flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
+                <button type="button" onClick={() => setEditing(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /> Cancel</button>
+                <button type="submit" disabled={processing} className="flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
                   <Save className="h-4 w-4" /> {processing ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
@@ -227,8 +266,6 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
                   {STATUS_LABELS[project.status]}
                 </span>
               </div>
-
-              {/* Progress Bar */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">Progress</span>
@@ -238,7 +275,6 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
                   <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${project.progress}%` }} />
                 </div>
               </div>
-
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="flex items-center gap-3">
                   <DollarSign className="h-5 w-5 text-muted-foreground" />
@@ -267,6 +303,122 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
               </div>
             </div>
 
+            {/* Sprints Section */}
+            <div className="bg-card border border-border rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Timer className="h-4 w-4 text-muted-foreground" /> Sprints
+                </h3>
+                <button onClick={() => setShowSprintCreate(!showSprintCreate)} className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/90 transition-colors">
+                  <Plus className="h-3 w-3" /> New Sprint
+                </button>
+              </div>
+
+              {/* Create Sprint Form */}
+              {showSprintCreate && (
+                <form onSubmit={handleCreateSprint} className="border border-border rounded-lg p-4 mb-4 bg-muted/30 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-muted-foreground">Name *</label>
+                      <input type="text" value={sprintForm.data.name} onChange={(e) => sprintForm.setData('name', e.target.value)} className="form-input text-sm mt-1" placeholder="Sprint 1" />
+                      {sprintForm.errors.name && <p className="text-xs text-destructive mt-1">{sprintForm.errors.name}</p>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground">Duration *</label>
+                        <select value={sprintForm.data.duration} onChange={(e) => sprintForm.setData('duration', e.target.value)} className="form-input text-sm mt-1">
+                          {(sprintDurations || []).map((d) => <option key={d} value={d}>{DURATION_LABELS[d]}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Start *</label>
+                        <input type="date" value={sprintForm.data.start_date} onChange={(e) => sprintForm.setData('start_date', e.target.value)} className="form-input text-sm mt-1" />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Goal</label>
+                    <input type="text" value={sprintForm.data.goal} onChange={(e) => sprintForm.setData('goal', e.target.value)} className="form-input text-sm mt-1" placeholder="What to achieve..." />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button type="button" onClick={() => setShowSprintCreate(false)} className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+                    <button type="submit" disabled={sprintForm.processing} className="px-3 py-1.5 bg-primary text-primary-foreground rounded text-xs font-medium hover:bg-primary/90 disabled:opacity-50">Create</button>
+                  </div>
+                </form>
+              )}
+
+              {/* Sprint List */}
+              {sprints && sprints.length > 0 ? (
+                <div className="space-y-3">
+                  {sprints.map((sprint) => {
+                    const sc = SPRINT_STATUS_CONFIG[sprint.status];
+                    const progress = sprint.tasks_count > 0 ? Math.round((sprint.completed_tasks_count / sprint.tasks_count) * 100) : 0;
+                    const sprintOverdue = new Date(sprint.end_date) < new Date() && sprint.status !== 'completed';
+
+                    if (editingSprint === sprint.id) {
+                      return (
+                        <form key={sprint.id} onSubmit={handleUpdateSprint} className="border border-border rounded-lg p-4 bg-muted/30 space-y-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <input type="text" value={sprintEditForm.data.name} onChange={(e) => sprintEditForm.setData('name', e.target.value)} className="form-input text-sm" placeholder="Name" />
+                            <select value={sprintEditForm.data.duration} onChange={(e) => sprintEditForm.setData('duration', e.target.value)} className="form-input text-sm">
+                              {(sprintDurations || []).map((d) => <option key={d} value={d}>{DURATION_LABELS[d]}</option>)}
+                            </select>
+                            <input type="date" value={sprintEditForm.data.start_date} onChange={(e) => sprintEditForm.setData('start_date', e.target.value)} className="form-input text-sm" />
+                            <select value={sprintEditForm.data.status} onChange={(e) => sprintEditForm.setData('status', e.target.value)} className="form-input text-sm">
+                              <option value="planning">Planning</option><option value="active">Active</option><option value="completed">Completed</option>
+                            </select>
+                          </div>
+                          <input type="text" value={sprintEditForm.data.goal} onChange={(e) => sprintEditForm.setData('goal', e.target.value)} className="form-input text-sm" placeholder="Goal..." />
+                          <div className="flex justify-end gap-2">
+                            <button type="button" onClick={() => setEditingSprint(null)} className="px-3 py-1.5 text-xs text-muted-foreground">Cancel</button>
+                            <button type="submit" disabled={sprintEditForm.processing} className="px-3 py-1.5 bg-primary text-primary-foreground rounded text-xs font-medium">Save</button>
+                          </div>
+                        </form>
+                      );
+                    }
+
+                    return (
+                      <div key={sprint.id} className="border border-border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-medium text-foreground">{sprint.name}</span>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${sc.color}`}>{sc.label}</span>
+                            <span className="text-xs text-muted-foreground">{DURATION_LABELS[sprint.duration]}</span>
+                            {sprintOverdue && <span className="text-xs text-red-400 font-medium">Overdue</span>}
+                          </div>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                            <span>{formatDate(sprint.start_date)} — {formatDate(sprint.end_date)}</span>
+                            {sprint.goal && <span className="truncate max-w-[200px]">{sprint.goal}</span>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-center min-w-[60px]">
+                            <div className="text-sm font-bold text-foreground">{progress}%</div>
+                            <div className="text-xs text-muted-foreground">{sprint.completed_tasks_count}/{sprint.tasks_count}</div>
+                            <div className="w-full h-1 bg-muted rounded-full mt-1">
+                              <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {sprint.status === 'planning' && (
+                              <button onClick={() => handleStartSprint(sprint)} className="p-1.5 text-green-400 hover:bg-green-500/10 rounded transition-colors" title="Start"><Play className="h-3.5 w-3.5" /></button>
+                            )}
+                            {sprint.status === 'active' && (
+                              <button onClick={() => handleCompleteSprint(sprint)} className="p-1.5 text-blue-400 hover:bg-blue-500/10 rounded transition-colors" title="Complete"><CheckCircle className="h-3.5 w-3.5" /></button>
+                            )}
+                            <button onClick={() => startEditSprint(sprint)} className="p-1.5 text-muted-foreground hover:text-foreground rounded transition-colors" title="Edit"><Edit3 className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => handleDeleteSprint(sprint)} className="p-1.5 text-muted-foreground hover:text-destructive rounded transition-colors" title="Delete"><Trash2 className="h-3.5 w-3.5" /></button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No sprints yet. Create one to organize tasks.</p>
+              )}
+            </div>
+
             {/* Details */}
             <div className="bg-card border border-border rounded-xl p-6">
               <div className="space-y-6">
@@ -280,22 +432,18 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
                       <label className="text-xs text-muted-foreground uppercase tracking-wider">Assigned Team</label>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {project.assigned_team.map((id) => (
-                          <span key={id} className="px-2 py-0.5 rounded text-xs bg-muted text-foreground">
-                            {team[id] || `#${id}`}
-                          </span>
+                          <span key={id} className="px-2 py-0.5 rounded text-xs bg-muted text-foreground">{team[id] || `#${id}`}</span>
                         ))}
                       </div>
                     </div>
                   )}
                 </div>
-
                 {project.description && (
                   <div>
                     <label className="text-xs text-muted-foreground uppercase tracking-wider">Description</label>
                     <p className="text-foreground mt-2 whitespace-pre-wrap bg-muted/50 p-4 rounded-lg">{project.description}</p>
                   </div>
                 )}
-
                 {project.tags && project.tags.length > 0 && (
                   <div>
                     <label className="text-xs text-muted-foreground uppercase tracking-wider">Tags</label>
@@ -306,7 +454,6 @@ export default function ProjectShow({ project, clients, team, internalNotes }) {
                     </div>
                   </div>
                 )}
-
                 {project.notes && (
                   <div>
                     <label className="text-xs text-muted-foreground uppercase tracking-wider">Notes</label>

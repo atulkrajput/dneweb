@@ -36,7 +36,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'team_role',
+        'position',
+        'bio',
+        'photo',
+        'sort_order',
+        'is_active',
     ];
 
     /**
@@ -59,21 +64,22 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
     public function isSuperAdmin(): bool
     {
-        return $this->role === self::ROLE_SUPER_ADMIN;
+        return $this->team_role === self::ROLE_SUPER_ADMIN;
     }
 
     public function hasRole(string|array $roles): bool
     {
         if (is_string($roles)) {
-            return $this->role === $roles;
+            return $this->team_role === $roles;
         }
 
-        return in_array($this->role, $roles);
+        return in_array($this->team_role, $roles);
     }
 
     public function canAccessModule(string $module): bool
@@ -95,6 +101,21 @@ class User extends Authenticatable
         ];
 
         $allowedRoles = $access[$module] ?? [];
-        return in_array($this->role, $allowedRoles);
+        return in_array($this->team_role, $allowedRoles);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort_order');
+    }
+
+    public function assignedTasks()
+    {
+        return $this->hasMany(Task::class, 'assignee_id');
     }
 }

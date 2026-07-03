@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Models\Sprint;
 use App\Models\Task;
 use App\Models\TaskComment;
-use App\Models\TeamMember;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -18,12 +19,21 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $projectId = $request->input('project_id');
+        $sprintId = $request->input('sprint_id');
         $projects = Project::active()->with('client:id,company')->orderBy('name')->get(['id', 'name', 'client_id']);
 
-        $query = Task::with(['assignee:id,name', 'project:id,name']);
+        $query = Task::with(['assignee:id,name', 'project:id,name', 'sprint:id,name']);
 
         if ($projectId) {
             $query->where('project_id', $projectId);
+        }
+
+        if ($sprintId) {
+            if ($sprintId === 'backlog') {
+                $query->whereNull('sprint_id');
+            } else {
+                $query->where('sprint_id', $sprintId);
+            }
         }
 
         $tasks = $query->orderBy('sort_order')->orderBy('created_at', 'desc')->get();
@@ -36,13 +46,28 @@ class TaskController extends Controller
             'done' => $tasks->where('status', 'done')->values(),
         ];
 
-        $team = TeamMember::orderBy('name')->pluck('name', 'id');
+        $team = User::orderBy('name')->pluck('name', 'id');
+
+        // Get sprints for the filter (scoped by project if selected)
+        $sprintsQuery = Sprint::select('id', 'name', 'status', 'project_id', 'start_date', 'end_date')
+            ->orderByRaw("FIELD(status, 'active', 'planning', 'completed')")
+            ->orderBy('start_date', 'desc');
+
+        if ($projectId) {
+            $sprintsQuery->where('project_id', $projectId);
+        }
+
+        $sprints = $sprintsQuery->get();
 
         return Inertia::render('Admin/Tasks/Index', [
             'columns' => $columns,
             'projects' => $projects,
             'team' => $team,
-            'filters' => ['project_id' => $projectId],
+            'sprints' => $sprints,
+            'filters' => [
+                'project_id' => $projectId,
+                'sprint_id' => $sprintId,
+            ],
         ]);
     }
 
@@ -50,9 +75,10 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'project_id' => 'required|exists:projects,id',
+            'sprint_id' => 'nullable|exists:sprints,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:5000',
-            'assignee_id' => 'nullable|exists:team_members,id',
+            'assignee_id' => 'nullable|exists:users,id',
             'priority' => 'required|string|in:' . implode(',', Task::PRIORITIES),
             'due_date' => 'nullable|date',
             'status' => 'nullable|string|in:' . implode(',', Task::STATUSES),
@@ -67,13 +93,18 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        $task->load(['project.client', 'assignee', 'comments.user']);
+        $task->load(['project.client', 'assignee', 'sprint', 'comments.user']);
         $internalNotes = $task->notes()->with('user')->get();
-        $team = TeamMember::orderBy('name')->pluck('name', 'id');
+        $team = User::orderBy('name')->pluck('name', 'id');
+        $sprints = Sprint::where('project_id', $task->project_id)
+            ->whereIn('status', ['planning', 'active'])
+            ->orderBy('start_date')
+            ->get(['id', 'name', 'status']);
 
         return Inertia::render('Admin/Tasks/Show', [
             'task' => $task,
             'team' => $team,
+            'sprints' => $sprints,
             'internalNotes' => $internalNotes,
         ]);
     }
@@ -83,7 +114,8 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:5000',
-            'assignee_id' => 'nullable|exists:team_members,id',
+            'assignee_id' => 'nullable|exists:users,id',
+            'sprint_id' => 'nullable|exists:sprints,id',
             'priority' => 'required|string|in:' . implode(',', Task::PRIORITIES),
             'due_date' => 'nullable|date',
             'status' => 'required|string|in:' . implode(',', Task::STATUSES),

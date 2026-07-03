@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Plus, X, Calendar, User, GripVertical } from 'lucide-react';
+import { Plus, X, Calendar, User, GripVertical, Timer } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 const COLUMN_CONFIG = {
@@ -17,12 +17,13 @@ const PRIORITY_COLORS = {
   urgent: 'bg-red-500/10 text-red-400',
 };
 
-export default function TasksIndex({ columns, projects, team, filters }) {
+export default function TasksIndex({ columns, projects, team, sprints, filters }) {
   const [showCreate, setShowCreate] = useState(false);
   const [draggedTask, setDraggedTask] = useState(null);
 
   const { data, setData, post, processing, errors, reset } = useForm({
     project_id: filters.project_id || '',
+    sprint_id: filters.sprint_id || '',
     title: '',
     description: '',
     assignee_id: '',
@@ -32,8 +33,13 @@ export default function TasksIndex({ columns, projects, team, filters }) {
     estimated_hours: '',
   });
 
-  const handleFilterProject = (projectId) => {
-    router.get('/admin/tasks', { project_id: projectId || undefined }, { preserveState: true });
+  const handleFilter = (key, value) => {
+    const params = { ...filters, [key]: value || undefined };
+    // Reset sprint filter when project changes
+    if (key === 'project_id') {
+      params.sprint_id = undefined;
+    }
+    router.get('/admin/tasks', params, { preserveState: true });
   };
 
   const handleCreateTask = (e) => {
@@ -64,21 +70,39 @@ export default function TasksIndex({ columns, projects, team, filters }) {
     setDraggedTask(null);
   };
 
+  // Filter sprints by selected project
+  const availableSprints = filters.project_id
+    ? sprints.filter(s => String(s.project_id) === String(filters.project_id))
+    : sprints;
+
   return (
     <AdminLayout title="Tasks">
       <Head title="Tasks" />
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <select
             value={filters.project_id || ''}
-            onChange={(e) => handleFilterProject(e.target.value)}
+            onChange={(e) => handleFilter('project_id', e.target.value)}
             className="form-input text-sm"
           >
             <option value="">All Projects</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>{p.name} ({p.client?.company})</option>
+            ))}
+          </select>
+          <select
+            value={filters.sprint_id || ''}
+            onChange={(e) => handleFilter('sprint_id', e.target.value)}
+            className="form-input text-sm"
+          >
+            <option value="">All Sprints</option>
+            <option value="backlog">Backlog (No Sprint)</option>
+            {availableSprints.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} {s.status === 'active' ? '●' : ''}
+              </option>
             ))}
           </select>
         </div>
@@ -115,7 +139,16 @@ export default function TasksIndex({ columns, projects, team, filters }) {
                 {errors.project_id && <p className="mt-1 text-xs text-destructive">{errors.project_id}</p>}
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+              <div>
+                <label className="form-label">Sprint</label>
+                <select value={data.sprint_id} onChange={(e) => setData('sprint_id', e.target.value)} className="form-input">
+                  <option value="">Backlog</option>
+                  {(data.project_id ? sprints.filter(s => String(s.project_id) === String(data.project_id)) : sprints).map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label className="form-label">Assignee</label>
                 <select value={data.assignee_id} onChange={(e) => setData('assignee_id', e.target.value)} className="form-input">
@@ -196,6 +229,12 @@ export default function TasksIndex({ columns, projects, team, filters }) {
                       <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${PRIORITY_COLORS[task.priority]}`}>
                         {task.priority}
                       </span>
+                      {task.sprint && (
+                        <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-primary/10 text-primary">
+                          <Timer className="h-3 w-3" />
+                          {task.sprint.name}
+                        </span>
+                      )}
                       {task.due_date && (
                         <span className={`flex items-center gap-1 text-xs ${isOverdue ? 'text-red-400' : 'text-muted-foreground'}`}>
                           <Calendar className="h-3 w-3" />

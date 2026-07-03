@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function AdminLayout({ children, title }) {
   const { auth } = usePage().props;
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   const unreadCount = auth?.unreadNotifications || 0;
   const role = auth?.role || 'developer';
   const isSuperAdmin = auth?.isSuperAdmin || false;
@@ -21,7 +23,6 @@ export default function AdminLayout({ children, title }) {
       campaigns: ['sales'],
       services: ['project_manager'],
       team: ['project_manager'],
-      users: [],
     };
     return (access[module] || []).includes(role);
   };
@@ -37,16 +38,14 @@ export default function AdminLayout({ children, title }) {
     { name: 'Campaigns', href: '/admin/campaigns', icon: BarChart3, module: 'campaigns' },
     { name: 'Reports', href: '/admin/reports', icon: PieChart, module: null },
     { name: 'Services', href: '/admin/services', icon: Briefcase, module: 'services' },
-    { name: 'Team Members', href: '/admin/team', icon: Users, module: 'team' },
+    { name: 'Team', href: '/admin/team', icon: Users, module: 'team' },
     { name: 'Contacts', href: '/admin/contacts', icon: MessageSquare, module: null },
-    { name: 'Users', href: '/admin/users', icon: Settings, module: 'users' },
     { name: 'Settings', href: '/admin/settings', icon: Settings, module: null },
   ];
 
   const navItems = allNavItems.filter(item => {
     if (item.module === null) {
-      // Dashboard, Contacts, Settings — shown to all or only super admin for Settings
-      if (item.name === 'Settings' || item.name === 'Users') return isSuperAdmin;
+      if (item.name === 'Settings') return isSuperAdmin;
       return true;
     }
     return canAccess(item.module);
@@ -66,7 +65,7 @@ export default function AdminLayout({ children, title }) {
 
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full min-h-0">
           <div className="p-6 border-b border-border">
             <Link href="/admin" className="flex items-center gap-3">
               <img src="/logo-white.png" alt="DNE" className="h-7 w-auto" />
@@ -74,7 +73,7 @@ export default function AdminLayout({ children, title }) {
             </Link>
           </div>
 
-          <nav className="flex-1 p-4 space-y-1">
+          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
             {navItems.map((item) => {
               const isActive = currentPath === item.href || (item.href !== '/admin' && currentPath.startsWith(item.href));
               return (
@@ -93,7 +92,7 @@ export default function AdminLayout({ children, title }) {
             })}
           </nav>
 
-          <div className="p-4 border-t border-border">
+          <div className="p-4 border-t border-border shrink-0">
             <div className="flex items-center gap-3 px-4 py-2">
               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                 <span className="text-xs font-bold text-primary">{auth?.user?.name?.[0] || 'A'}</span>
@@ -101,6 +100,14 @@ export default function AdminLayout({ children, title }) {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">{auth?.user?.name}</p>
               </div>
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              >
+                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
             </div>
             <Link
               href="/admin/notifications"

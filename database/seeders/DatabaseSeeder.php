@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Page;
 use App\Models\Service;
 use App\Models\Setting;
-use App\Models\TeamMember;
 use App\Models\LegalPage;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -21,6 +20,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Admin',
                 'password' => Hash::make('password'),
+                'team_role' => 'super_admin',
                 'email_verified_at' => now(),
             ]
         );
@@ -124,13 +124,13 @@ class DatabaseSeeder extends Seeder
 
         // Team Members
         $team = [
-            ['name' => 'Marcus Chen', 'role' => 'Head of AI & Automation', 'bio' => 'Former enterprise architect specializing in LLM integration and process automation pipelines.', 'sort_order' => 0],
-            ['name' => 'Sarah Jenkins', 'role' => 'Lead Product Engineer', 'bio' => 'Full-stack developer with 12+ years building scalable SaaS platforms and custom web applications.', 'sort_order' => 1],
-            ['name' => 'David Okafor', 'role' => 'Director of IT Infrastructure', 'bio' => 'Cloud migration expert and cybersecurity specialist managing enterprise-grade networks.', 'sort_order' => 2],
+            ['name' => 'Marcus Chen', 'position' => 'Head of AI & Automation', 'bio' => 'Former enterprise architect specializing in LLM integration and process automation pipelines.', 'sort_order' => 0, 'email' => 'marcus@dneconsultants.com', 'password' => Hash::make('password'), 'team_role' => 'developer'],
+            ['name' => 'Sarah Jenkins', 'position' => 'Lead Product Engineer', 'bio' => 'Full-stack developer with 12+ years building scalable SaaS platforms and custom web applications.', 'sort_order' => 1, 'email' => 'sarah@dneconsultants.com', 'password' => Hash::make('password'), 'team_role' => 'developer'],
+            ['name' => 'David Okafor', 'position' => 'Director of IT Infrastructure', 'bio' => 'Cloud migration expert and cybersecurity specialist managing enterprise-grade networks.', 'sort_order' => 2, 'email' => 'david@dneconsultants.com', 'password' => Hash::make('password'), 'team_role' => 'project_manager'],
         ];
 
         foreach ($team as $member) {
-            TeamMember::updateOrCreate(['name' => $member['name']], $member);
+            User::updateOrCreate(['name' => $member['name']], $member);
         }
 
         // Legal Pages

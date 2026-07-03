@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Project;
-use App\Models\TeamMember;
+use App\Models\Sprint;
 use App\Models\User;
 use App\Notifications\ProjectCompletedNotification;
 use Illuminate\Http\Request;
@@ -54,7 +54,7 @@ class ProjectController extends Controller
     public function create(Request $request)
     {
         $clients = Client::active()->orderBy('company')->pluck('company', 'id');
-        $team = TeamMember::orderBy('name')->pluck('name', 'id');
+        $team = User::orderBy('name')->pluck('name', 'id');
 
         return Inertia::render('Admin/Projects/Create', [
             'clients' => $clients,
@@ -90,12 +90,24 @@ class ProjectController extends Controller
         $project->load('client');
         $internalNotes = $project->notes()->with('user')->get();
         $clients = Client::active()->orderBy('company')->pluck('company', 'id');
-        $team = TeamMember::orderBy('name')->pluck('name', 'id');
+        $team = User::orderBy('name')->pluck('name', 'id');
+
+        $sprints = Sprint::where('project_id', $project->id)
+            ->withCount('tasks')
+            ->withCount(['tasks as completed_tasks_count' => function ($q) {
+                $q->where('status', 'done');
+            }])
+            ->orderByRaw("FIELD(status, 'active', 'planning', 'completed')")
+            ->orderBy('start_date', 'desc')
+            ->get();
 
         return Inertia::render('Admin/Projects/Show', [
             'project' => $project,
             'clients' => $clients,
             'team' => $team,
+            'sprints' => $sprints,
+            'sprintDurations' => Sprint::DURATIONS,
+            'sprintDurationLabels' => Sprint::DURATION_LABELS,
             'internalNotes' => $internalNotes,
         ]);
     }

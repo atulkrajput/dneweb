@@ -40,7 +40,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'unreadNotifications' => $request->user() ? $request->user()->unreadNotifications()->count() : 0,
-                'role' => $request->user()?->role,
+                'role' => $request->user()?->team_role,
                 'isSuperAdmin' => $request->user()?->isSuperAdmin() ?? false,
             ],
             'settings' => $settings,

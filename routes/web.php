@@ -16,10 +16,10 @@ use App\Http\Controllers\Admin\ProposalController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SprintController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\TeamMemberController;
 use App\Http\Controllers\Admin\TestimonialController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ContactFormController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\PageController;
@@ -53,7 +53,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     // Services
     Route::resource('services', ServiceController::class);
 
-    // Team Members
+    // Team Members (unified with users)
     Route::resource('team', TeamMemberController::class)->parameters(['team' => 'team_member']);
 
     // Testimonials
@@ -90,6 +90,14 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
     Route::post('/tasks/{task}/comments', [TaskController::class, 'addComment'])->name('tasks.comments.store');
 
+    // Sprints (project-scoped)
+    Route::get('/projects/{project}/sprints', [SprintController::class, 'index'])->name('sprints.index');
+    Route::post('/projects/{project}/sprints', [SprintController::class, 'store'])->name('sprints.store');
+    Route::put('/sprints/{sprint}', [SprintController::class, 'update'])->name('sprints.update');
+    Route::delete('/sprints/{sprint}', [SprintController::class, 'destroy'])->name('sprints.destroy');
+    Route::post('/sprints/{sprint}/start', [SprintController::class, 'start'])->name('sprints.start');
+    Route::post('/sprints/{sprint}/complete', [SprintController::class, 'complete'])->name('sprints.complete');
+
     // Invoices
     Route::resource('invoices', InvoiceController::class)->except(['edit']);
     Route::post('/invoices/{invoice}/payments', [InvoiceController::class, 'addPayment'])->name('invoices.payments.store');
@@ -106,12 +114,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
-
-    // User Management (Super Admin only)
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::post('/users', [UserController::class, 'store'])->name('users.store');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
     // Campaign Analytics
     Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
