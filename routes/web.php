@@ -1,14 +1,25 @@
 <?php
 
+use App\Http\Controllers\Admin\CampaignController;
+use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ContactController as AdminContactController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\LeadController;
 use App\Http\Controllers\Admin\LegalPageController as AdminLegalPageController;
+use App\Http\Controllers\Admin\NoteController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PartnerController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\ProposalController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\TeamMemberController;
 use App\Http\Controllers\Admin\TestimonialController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ContactFormController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\PageController;
@@ -59,6 +70,58 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/contacts', [AdminContactController::class, 'index'])->name('contacts.index');
     Route::get('/contacts/{contact}', [AdminContactController::class, 'show'])->name('contacts.show');
     Route::delete('/contacts/{contact}', [AdminContactController::class, 'destroy'])->name('contacts.destroy');
+
+    // Leads
+    Route::resource('leads', LeadController::class)->except(['edit']);
+    Route::post('/leads/{lead}/convert', [ClientController::class, 'convertFromLead'])->name('leads.convert');
+
+    // Clients
+    Route::resource('clients', ClientController::class)->except(['edit']);
+
+    // Projects
+    Route::resource('projects', ProjectController::class)->except(['edit']);
+
+    // Tasks
+    Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+    Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+    Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+    Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+    Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
+    Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+    Route::post('/tasks/{task}/comments', [TaskController::class, 'addComment'])->name('tasks.comments.store');
+
+    // Invoices
+    Route::resource('invoices', InvoiceController::class)->except(['edit']);
+    Route::post('/invoices/{invoice}/payments', [InvoiceController::class, 'addPayment'])->name('invoices.payments.store');
+
+    // Proposals
+    Route::resource('proposals', ProposalController::class)->except(['edit']);
+    Route::post('/proposals/{proposal}/accept', [ProposalController::class, 'accept'])->name('proposals.accept');
+
+    // Notes (polymorphic)
+    Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');
+    Route::delete('/notes/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
+
+    // User Management (Super Admin only)
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+    // Campaign Analytics
+    Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
+
+    // Reports
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/leads', [ReportController::class, 'leads'])->name('reports.leads');
+    Route::get('/reports/revenue', [ReportController::class, 'revenue'])->name('reports.revenue');
+    Route::get('/reports/projects', [ReportController::class, 'projects'])->name('reports.projects');
+    Route::get('/reports/productivity', [ReportController::class, 'productivity'])->name('reports.productivity');
 
     // Legal Pages
     Route::resource('legal-pages', AdminLegalPageController::class)->parameters(['legal-pages' => 'legal_page']);

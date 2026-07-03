@@ -5,18 +5,25 @@ import { Mail, MapPin, Clock, Facebook, Instagram, Linkedin, ArrowRight, Loader2
 import { Toaster, toast } from 'sonner';
 import { Button } from '@/Components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout';
+import { getTrackingData } from '@/lib/tracking';
 
 export default function Contact({ page }) {
   const seo = page || {};
   const { settings = {} } = usePage().props;
 
-  const { data, setData, post, processing, errors, reset } = useForm({
+  const { data, setData, post, processing, errors, reset, transform } = useForm({
     full_name: '',
     email: '',
     company: '',
     inquiry_type: '',
-    message: ''
+    message: '',
   });
+
+  // Transform data before submission to include tracking
+  transform((data) => ({
+    ...data,
+    tracking: getTrackingData(),
+  }));
 
   const [clientErrors, setClientErrors] = useState({});
 

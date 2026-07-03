@@ -13,6 +13,20 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    const ROLE_SUPER_ADMIN = 'super_admin';
+    const ROLE_SALES = 'sales';
+    const ROLE_PROJECT_MANAGER = 'project_manager';
+    const ROLE_DEVELOPER = 'developer';
+    const ROLE_ACCOUNTANT = 'accountant';
+
+    const ROLES = [
+        self::ROLE_SUPER_ADMIN,
+        self::ROLE_SALES,
+        self::ROLE_PROJECT_MANAGER,
+        self::ROLE_DEVELOPER,
+        self::ROLE_ACCOUNTANT,
+    ];
+
     /**
      * The attributes that are mass assignable.
      *
@@ -22,6 +36,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -45,5 +60,41 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === self::ROLE_SUPER_ADMIN;
+    }
+
+    public function hasRole(string|array $roles): bool
+    {
+        if (is_string($roles)) {
+            return $this->role === $roles;
+        }
+
+        return in_array($this->role, $roles);
+    }
+
+    public function canAccessModule(string $module): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        $access = [
+            'leads' => [self::ROLE_SALES, self::ROLE_PROJECT_MANAGER],
+            'clients' => [self::ROLE_SALES, self::ROLE_PROJECT_MANAGER, self::ROLE_ACCOUNTANT],
+            'proposals' => [self::ROLE_SALES, self::ROLE_PROJECT_MANAGER],
+            'projects' => [self::ROLE_PROJECT_MANAGER, self::ROLE_DEVELOPER],
+            'tasks' => [self::ROLE_PROJECT_MANAGER, self::ROLE_DEVELOPER],
+            'invoices' => [self::ROLE_ACCOUNTANT, self::ROLE_SALES],
+            'campaigns' => [self::ROLE_SALES],
+            'team' => [self::ROLE_PROJECT_MANAGER],
+            'settings' => [],
+        ];
+
+        $allowedRoles = $access[$module] ?? [];
+        return in_array($this->role, $allowedRoles);
     }
 }

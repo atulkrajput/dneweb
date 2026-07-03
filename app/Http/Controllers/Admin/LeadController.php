@@ -1,0 +1,122 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Lead;
+use App\Models\Service;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class LeadController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = Lead::query();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('company', 'like', "%{$search}%");
+            });
+        }
+
+        $leads = $query->latest()->paginate(20)->withQueryString();
+
+        $stats = [
+            'total' => Lead::count(),
+            'new' => Lead::status('new')->count(),
+            'qualified' => Lead::status('qualified')->count(),
+            'won' => Lead::status('won')->count(),
+        ];
+
+        return Inertia::render('Admin/Leads/Index', [
+            'leads' => $leads,
+            'stats' => $stats,
+            'filters' => $request->only(['status', 'search']),
+        ]);
+    }
+
+    public function create()
+    {
+        $services = Service::active()->ordered()->pluck('title', 'slug');
+
+        return Inertia::render('Admin/Leads/Create', [
+            'services' => $services,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'country' => 'nullable|string|max:100',
+            'interested_service' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:5000',
+            'status' => 'nullable|string|in:' . implode(',', Lead::STATUSES),
+        ]);
+
+        $lead = Lead::create($validated);
+        $lead->logActivity('created', 'Lead was created manually.');
+
+        return redirect()->route('admin.leads.show', $lead)->with('success', 'Lead created.');
+    }
+
+    public function show(Lead $lead)
+    {
+        $lead->load(['activities.user', 'contact', 'client']);
+        $internalNotes = $lead->notes()->with('user')->get();
+        $services = Service::active()->ordered()->pluck('title', 'slug');
+
+        return Inertia::render('Admin/Leads/Show', [
+            'lead' => $lead,
+            'services' => $services,
+            'internalNotes' => $internalNotes,
+        ]);
+    }
+
+    public function update(Request $request, Lead $lead)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'company' => 'nullable|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'country' => 'nullable|string|max:100',
+            'interested_service' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:5000',
+            'status' => 'required|string|in:' . implode(',', Lead::STATUSES),
+        ]);
+
+        $oldStatus = $lead->status;
+        $lead->update($validated);
+
+        // Log status change
+        if ($oldStatus !== $validated['status']) {
+            $lead->logActivity('status_changed', "Status changed from {$oldStatus} to {$validated['status']}.", [
+                'old_status' => $oldStatus,
+                'new_status' => $validated['status'],
+            ]);
+        } else {
+            $lead->logActivity('updated', 'Lead details were updated.');
+        }
+
+        return redirect()->route('admin.leads.show', $lead)->with('success', 'Lead updated.');
+    }
+
+    public function destroy(Lead $lead)
+    {
+        $lead->delete();
+
+        return redirect()->route('admin.leads.index')->with('success', 'Lead deleted.');
+    }
+}

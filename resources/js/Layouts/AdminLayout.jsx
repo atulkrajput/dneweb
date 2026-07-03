@@ -1,22 +1,56 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart } from 'lucide-react';
 
 export default function AdminLayout({ children, title }) {
   const { auth } = usePage().props;
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const unreadCount = auth?.unreadNotifications || 0;
+  const role = auth?.role || 'developer';
+  const isSuperAdmin = auth?.isSuperAdmin || false;
 
-  const navItems = [
-    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Services', href: '/admin/services', icon: Briefcase },
-    { name: 'Products', href: '/admin/products', icon: Package },
-    { name: 'Team Members', href: '/admin/team', icon: Users },
-    { name: 'Testimonials', href: '/admin/testimonials', icon: Star },
-    { name: 'Partners', href: '/admin/partners', icon: Handshake },
-    { name: 'Contacts', href: '/admin/contacts', icon: MessageSquare },
-    { name: 'Legal Pages', href: '/admin/legal-pages', icon: FileText },
-    { name: 'Settings', href: '/admin/settings', icon: Settings },
+  const canAccess = (module) => {
+    if (isSuperAdmin) return true;
+    const access = {
+      leads: ['sales', 'project_manager'],
+      clients: ['sales', 'project_manager', 'accountant'],
+      proposals: ['sales', 'project_manager'],
+      projects: ['project_manager', 'developer'],
+      tasks: ['project_manager', 'developer'],
+      invoices: ['accountant', 'sales'],
+      campaigns: ['sales'],
+      services: ['project_manager'],
+      team: ['project_manager'],
+      users: [],
+    };
+    return (access[module] || []).includes(role);
+  };
+
+  const allNavItems = [
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, module: null },
+    { name: 'Leads', href: '/admin/leads', icon: Target, module: 'leads' },
+    { name: 'Clients', href: '/admin/clients', icon: Building2, module: 'clients' },
+    { name: 'Proposals', href: '/admin/proposals', icon: FileSignature, module: 'proposals' },
+    { name: 'Projects', href: '/admin/projects', icon: FolderKanban, module: 'projects' },
+    { name: 'Tasks', href: '/admin/tasks', icon: CheckSquare, module: 'tasks' },
+    { name: 'Invoices', href: '/admin/invoices', icon: Receipt, module: 'invoices' },
+    { name: 'Campaigns', href: '/admin/campaigns', icon: BarChart3, module: 'campaigns' },
+    { name: 'Reports', href: '/admin/reports', icon: PieChart, module: null },
+    { name: 'Services', href: '/admin/services', icon: Briefcase, module: 'services' },
+    { name: 'Team Members', href: '/admin/team', icon: Users, module: 'team' },
+    { name: 'Contacts', href: '/admin/contacts', icon: MessageSquare, module: null },
+    { name: 'Users', href: '/admin/users', icon: Settings, module: 'users' },
+    { name: 'Settings', href: '/admin/settings', icon: Settings, module: null },
   ];
+
+  const navItems = allNavItems.filter(item => {
+    if (item.module === null) {
+      // Dashboard, Contacts, Settings — shown to all or only super admin for Settings
+      if (item.name === 'Settings' || item.name === 'Users') return isSuperAdmin;
+      return true;
+    }
+    return canAccess(item.module);
+  });
 
   const currentPath = usePage().url;
 
@@ -69,10 +103,21 @@ export default function AdminLayout({ children, title }) {
               </div>
             </div>
             <Link
+              href="/admin/notifications"
+              onClick={() => setSidebarOpen(false)}
+              className="flex items-center gap-3 px-4 py-2 mt-2 w-full rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <Bell className="h-4 w-4" />
+              Notifications
+              {unreadCount > 0 && (
+                <span className="ml-auto px-2 py-0.5 text-xs font-medium bg-primary text-primary-foreground rounded-full">{unreadCount}</span>
+              )}
+            </Link>
+            <Link
               href="/logout"
               method="post"
               as="button"
-              className="flex items-center gap-3 px-4 py-2 mt-2 w-full rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-4 py-2 mt-1 w-full rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <LogOut className="h-4 w-4" />
               Logout
