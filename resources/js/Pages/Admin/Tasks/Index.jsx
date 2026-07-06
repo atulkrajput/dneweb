@@ -156,24 +156,6 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
           <p className="text-muted-foreground">Select a project to view its tasks.</p>
         </div>
       )}
-              <option value="">All Sprints</option>
-              <option value="backlog">Backlog</option>
-              {sprints.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} {s.status === 'active' ? '●' : ''}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
-        <button
-          onClick={() => setShowCreate(!showCreate)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-        >
-          <Plus className="h-4 w-4" /> New Task
-        </button>
-      </div>
 
       {/* Create Task Form */}
       {showCreate && currentProject && (
@@ -239,14 +221,6 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
               </button>
             </div>
           </form>
-        </div>
-      )}
-
-      {/* No project selected state */}
-      {!currentProject && (
-        <div className="bg-card border border-border rounded-xl p-12 text-center">
-          <FolderKanban className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-muted-foreground">Select a project to view its tasks.</p>
         </div>
       )}
 
