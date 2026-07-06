@@ -41,8 +41,8 @@ class TeamMemberController extends Controller
             'bio' => 'nullable|string',
             'photo' => 'nullable|string|max:500',
             'photo_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'sort_order' => 'nullable|integer',
-            'is_active' => 'boolean',
+            'sort_order' => 'nullable|numeric',
+            'is_active' => 'nullable',
         ]);
 
         // Handle file upload
@@ -52,6 +52,10 @@ class TeamMemberController extends Controller
         }
 
         unset($validated['photo_file']);
+
+        // Convert types for FormData
+        $validated['is_active'] = filter_var($validated['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $validated['sort_order'] = (int) ($validated['sort_order'] ?? 0);
 
         User::create($validated);
 
@@ -78,8 +82,8 @@ class TeamMemberController extends Controller
             'bio' => 'nullable|string',
             'photo' => 'nullable|string|max:500',
             'photo_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'sort_order' => 'nullable|integer',
-            'is_active' => 'boolean',
+            'sort_order' => 'nullable|numeric',
+            'is_active' => 'nullable',
             'password' => ['nullable', Rules\Password::defaults()],
         ]);
 
@@ -95,13 +99,19 @@ class TeamMemberController extends Controller
 
         unset($validated['photo_file']);
 
+        // Handle password separately
         $password = $validated['password'] ?? null;
         unset($validated['password']);
+
+        // Convert is_active to proper boolean
+        $validated['is_active'] = filter_var($validated['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $validated['sort_order'] = (int) ($validated['sort_order'] ?? 0);
 
         $team_member->update($validated);
 
         if (!empty($password)) {
-            $team_member->update(['password' => $password]);
+            $team_member->password = $password;
+            $team_member->save();
         }
 
         return redirect()->route('admin.team.index')->with('success', 'Team member updated.');

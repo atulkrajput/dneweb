@@ -18,9 +18,16 @@ class TaskController extends Controller
      */
     public function index(Request $request)
     {
-        $projectId = $request->input('project_id');
-        $sprintId = $request->input('sprint_id');
         $projects = Project::active()->with('client:id,company')->orderBy('name')->get(['id', 'name', 'client_id']);
+
+        // Default to latest project if none selected
+        $projectId = $request->input('project_id');
+        if (!$projectId && $projects->isNotEmpty()) {
+            $latestProject = Project::active()->latest()->first();
+            $projectId = $latestProject?->id;
+        }
+
+        $sprintId = $request->input('sprint_id');
 
         $query = Task::with(['assignee:id,name', 'project:id,name', 'sprint:id,name']);
 
@@ -48,20 +55,20 @@ class TaskController extends Controller
 
         $team = User::orderBy('name')->pluck('name', 'id');
 
-        // Get sprints for the filter (scoped by project if selected)
-        $sprintsQuery = Sprint::select('id', 'name', 'status', 'project_id', 'start_date', 'end_date')
-            ->orderByRaw("FIELD(status, 'active', 'planning', 'completed')")
-            ->orderBy('start_date', 'desc');
-
+        // Get sprints scoped to selected project
+        $sprints = [];
         if ($projectId) {
-            $sprintsQuery->where('project_id', $projectId);
+            $sprints = Sprint::select('id', 'name', 'status', 'project_id', 'start_date', 'end_date')
+                ->where('project_id', $projectId)
+                ->orderByRaw("FIELD(status, 'active', 'planning', 'completed')")
+                ->orderBy('start_date', 'desc')
+                ->get();
         }
-
-        $sprints = $sprintsQuery->get();
 
         return Inertia::render('Admin/Tasks/Index', [
             'columns' => $columns,
             'projects' => $projects,
+            'currentProject' => $projectId ? $projects->firstWhere('id', (int) $projectId) : null,
             'team' => $team,
             'sprints' => $sprints,
             'filters' => [

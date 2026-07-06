@@ -8,7 +8,6 @@ use App\Models\Setting;
 use App\Models\LegalPage;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -19,7 +18,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'admin@dneconsultants.com'],
             [
                 'name' => 'Admin',
-                'password' => Hash::make('password'),
+                'password' => 'password',
                 'team_role' => 'super_admin',
                 'email_verified_at' => now(),
             ]
@@ -124,9 +123,9 @@ class DatabaseSeeder extends Seeder
 
         // Team Members
         $team = [
-            ['name' => 'Marcus Chen', 'position' => 'Head of AI & Automation', 'bio' => 'Former enterprise architect specializing in LLM integration and process automation pipelines.', 'sort_order' => 0, 'email' => 'marcus@dneconsultants.com', 'password' => Hash::make('password'), 'team_role' => 'developer'],
-            ['name' => 'Sarah Jenkins', 'position' => 'Lead Product Engineer', 'bio' => 'Full-stack developer with 12+ years building scalable SaaS platforms and custom web applications.', 'sort_order' => 1, 'email' => 'sarah@dneconsultants.com', 'password' => Hash::make('password'), 'team_role' => 'developer'],
-            ['name' => 'David Okafor', 'position' => 'Director of IT Infrastructure', 'bio' => 'Cloud migration expert and cybersecurity specialist managing enterprise-grade networks.', 'sort_order' => 2, 'email' => 'david@dneconsultants.com', 'password' => Hash::make('password'), 'team_role' => 'project_manager'],
+            ['name' => 'Marcus Chen', 'position' => 'Head of AI & Automation', 'bio' => 'Former enterprise architect specializing in LLM integration and process automation pipelines.', 'sort_order' => 0, 'email' => 'marcus@dneconsultants.com', 'password' => 'password', 'team_role' => 'developer'],
+            ['name' => 'Sarah Jenkins', 'position' => 'Lead Product Engineer', 'bio' => 'Full-stack developer with 12+ years building scalable SaaS platforms and custom web applications.', 'sort_order' => 1, 'email' => 'sarah@dneconsultants.com', 'password' => 'password', 'team_role' => 'developer'],
+            ['name' => 'David Okafor', 'position' => 'Director of IT Infrastructure', 'bio' => 'Cloud migration expert and cybersecurity specialist managing enterprise-grade networks.', 'sort_order' => 2, 'email' => 'david@dneconsultants.com', 'password' => 'password', 'team_role' => 'project_manager'],
         ];
 
         foreach ($team as $member) {
