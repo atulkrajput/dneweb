@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
@@ -53,8 +52,6 @@ class TeamMemberController extends Controller
         }
 
         unset($validated['photo_file']);
-
-        $validated['password'] = Hash::make($validated['password']);
 
         User::create($validated);
 
@@ -104,7 +101,7 @@ class TeamMemberController extends Controller
         $team_member->update($validated);
 
         if (!empty($password)) {
-            $team_member->update(['password' => Hash::make($password)]);
+            $team_member->update(['password' => $password]);
         }
 
         return redirect()->route('admin.team.index')->with('success', 'Team member updated.');

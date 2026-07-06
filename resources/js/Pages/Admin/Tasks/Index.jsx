@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Plus, X, Calendar, User, GripVertical, Timer } from 'lucide-react';
+import { Plus, X, Calendar, User, GripVertical, Timer, Edit3 } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 const COLUMN_CONFIG = {
@@ -220,7 +220,12 @@ export default function TasksIndex({ columns, projects, team, sprints, filters }
                       <Link href={`/admin/tasks/${task.id}`} className="text-sm font-medium text-foreground hover:text-primary leading-tight flex-1">
                         {task.title}
                       </Link>
-                      <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                        <Link href={`/admin/tasks/${task.id}`} className="p-1 text-muted-foreground hover:text-primary rounded transition-colors" title="Edit task">
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </Link>
+                        <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      </div>
                     </div>
                     {!filters.project_id && task.project && (
                       <p className="text-xs text-muted-foreground mt-1">{task.project.name}</p>
