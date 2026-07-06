@@ -75,49 +75,87 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
     <AdminLayout title="Tasks">
       <Head title="Tasks" />
 
-      {/* Project Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3 relative">
-          <button
-            onClick={() => setShowProjectPicker(!showProjectPicker)}
-            className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg hover:border-primary/40 transition-colors"
-          >
-            <FolderKanban className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">
-              {currentProject ? currentProject.name : 'Select Project'}
-            </span>
-            {currentProject?.client && (
-              <span className="text-xs text-muted-foreground">({currentProject.client.company})</span>
-            )}
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          </button>
+      {/* Project Header Bar */}
+      {currentProject && (
+        <div className="bg-card border border-border rounded-xl p-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            {/* Project Name + Switch */}
+            <div className="flex items-center gap-3 relative">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <FolderKanban className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-foreground">{currentProject.name}</h2>
+                  <button
+                    onClick={() => setShowProjectPicker(!showProjectPicker)}
+                    className="px-2 py-1 text-xs text-muted-foreground hover:text-primary hover:bg-primary/5 border border-border rounded-md transition-colors"
+                  >
+                    Switch <ChevronDown className="h-3 w-3 inline" />
+                  </button>
+                </div>
+                {currentProject.client && (
+                  <p className="text-xs text-muted-foreground">{currentProject.client.company}</p>
+                )}
+              </div>
 
-          {/* Project Picker Dropdown */}
-          {showProjectPicker && (
-            <div className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
-              {projects.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => switchProject(p.id)}
-                  className={`w-full text-left px-4 py-3 text-sm hover:bg-muted transition-colors first:rounded-t-xl last:rounded-b-xl ${String(p.id) === String(filters.project_id) ? 'bg-primary/5 text-primary font-medium' : 'text-foreground'}`}
-                >
-                  {p.name}
-                  {p.client && <span className="text-xs text-muted-foreground ml-2">({p.client.company})</span>}
-                </button>
-              ))}
-              {projects.length === 0 && (
-                <p className="px-4 py-3 text-sm text-muted-foreground">No active projects</p>
+              {/* Project Picker Dropdown */}
+              {showProjectPicker && (
+                <div className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+                  {projects.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => switchProject(p.id)}
+                      className={`w-full text-left px-4 py-3 text-sm hover:bg-muted transition-colors first:rounded-t-xl last:rounded-b-xl ${String(p.id) === String(filters.project_id) ? 'bg-primary/5 text-primary font-medium' : 'text-foreground'}`}
+                    >
+                      {p.name}
+                      {p.client && <span className="text-xs text-muted-foreground ml-2">({p.client.company})</span>}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
-          )}
 
-          {/* Sprint Filter */}
-          {sprints && sprints.length > 0 && (
-            <select
-              value={filters.sprint_id || ''}
-              onChange={(e) => handleFilterSprint(e.target.value)}
-              className="form-input text-sm"
-            >
+            {/* Filters + Actions */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Sprint Filter */}
+              {sprints && sprints.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sprint</label>
+                  <select
+                    value={filters.sprint_id || ''}
+                    onChange={(e) => handleFilterSprint(e.target.value)}
+                    className="form-input text-sm min-w-[140px]"
+                  >
+                    <option value="">All</option>
+                    <option value="backlog">Backlog</option>
+                    {sprints.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} {s.status === 'active' ? '●' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <button
+                onClick={() => setShowCreate(!showCreate)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+              >
+                <Plus className="h-4 w-4" /> New Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* No project state */}
+      {!currentProject && (
+        <div className="bg-card border border-border rounded-xl p-12 text-center">
+          <FolderKanban className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+          <p className="text-muted-foreground">Select a project to view its tasks.</p>
+        </div>
+      )}
               <option value="">All Sprints</option>
               <option value="backlog">Backlog</option>
               {sprints.map((s) => (
