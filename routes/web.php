@@ -25,7 +25,11 @@ use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductPageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
+
+// Sitemap
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 // Public pages
 Route::get('/', [PageController::class, 'home'])->name('home');
