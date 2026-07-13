@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
+import FlashNotification from '@/Components/FlashNotification';
 
 export default function AdminLayout({ children, title }) {
   const { auth } = usePage().props;
@@ -155,6 +156,8 @@ export default function AdminLayout({ children, title }) {
       {sidebarOpen && (
         <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
+
+      <FlashNotification />
     </div>
   );
 }

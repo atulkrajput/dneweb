@@ -1,6 +1,7 @@
 import React from 'react';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
+import FlashNotification from '@/Components/FlashNotification';
 
 export default function PublicLayout({ children }) {
   return (
@@ -10,6 +11,7 @@ export default function PublicLayout({ children }) {
         {children}
       </main>
       <Footer />
+      <FlashNotification />
     </div>
   );
 }

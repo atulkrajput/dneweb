@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { Facebook, Instagram, Linkedin, Twitter, Mail, MapPin } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Mail, MapPin } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
+import XIcon from '@/Components/icons/XIcon';
 
 export default function Footer() {
   const { settings = {}, footerServices = [] } = usePage().props;
@@ -21,7 +22,7 @@ export default function Footer() {
     { icon: Facebook, href: settings.facebook_url || 'https://facebook.com/dneconsultants', label: 'Facebook' },
     { icon: Instagram, href: settings.instagram_url || 'https://instagram.com/dneconsultants', label: 'Instagram' },
     { icon: Linkedin, href: settings.linkedin_url || 'https://linkedin.com/company/dnetechnologyconsultants-', label: 'LinkedIn' },
-    { icon: Twitter, href: settings.twitter_url || '#', label: 'Twitter' },
+    { icon: XIcon, href: settings.twitter_url || '#', label: 'X' },
   ];
 
   const email = settings.contact_email || 'build@dnetechnology.com';

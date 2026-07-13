@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Mail, MapPin, Clock, Facebook, Instagram, Linkedin, ArrowRight, Loader2 } from 'lucide-react';
-import { Toaster, toast } from 'sonner';
+import Swal from 'sweetalert2';
 import { Button } from '@/Components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { getTrackingData } from '@/lib/tracking';
+import XIcon from '@/Components/icons/XIcon';
 
 export default function Contact({ page }) {
   const seo = page || {};
@@ -43,21 +44,34 @@ export default function Contact({ page }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      toast.error("Please fill in all required fields correctly.");
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Fields',
+        text: 'Please fill in all required fields correctly.',
+        confirmButtonColor: 'hsl(var(--primary))',
+      });
       return;
     }
 
     post('/contact', {
       preserveScroll: true,
       onSuccess: () => {
-        toast.success("Message sent successfully!", {
-          description: "We'll be in touch within 1 business day.",
+        Swal.fire({
+          icon: 'success',
+          title: 'Message Sent!',
+          text: "We'll be in touch within 1 business day.",
+          confirmButtonColor: 'hsl(var(--primary))',
         });
         reset();
         setClientErrors({});
       },
       onError: () => {
-        toast.error("Something went wrong. Please try again.");
+        Swal.fire({
+          icon: 'error',
+          title: 'Something went wrong',
+          text: 'Please try again or email us directly.',
+          confirmButtonColor: 'hsl(var(--primary))',
+        });
       }
     });
   };
@@ -86,8 +100,6 @@ export default function Contact({ page }) {
         <title>{seo.meta_title || 'Contact DNE Consultants | Start Your Project'}</title>
         <meta name="description" content={seo.meta_description || "Get in touch with DNE Consultants. We respond within 1 business day."} />
       </Head>
-
-      <Toaster theme="dark" position="bottom-right" />
 
       {/* HERO */}
       <section className="relative pt-16 pb-12 lg:pt-20 lg:pb-16 overflow-hidden border-b border-border/40">
@@ -186,6 +198,7 @@ export default function Contact({ page }) {
                     { icon: Facebook, href: settings.facebook_url || 'https://facebook.com/dneconsultants', label: 'Facebook' },
                     { icon: Instagram, href: settings.instagram_url || 'https://instagram.com/dneconsultants', label: 'Instagram' },
                     { icon: Linkedin, href: settings.linkedin_url || 'https://linkedin.com/company/dnetechnologyconsultants-', label: 'LinkedIn' },
+                    { icon: XIcon, href: settings.twitter_url || '#', label: 'X' },
                   ].map((social) => (
                     <a key={social.label} href={social.href} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-300 hover:scale-110 shadow-sm" aria-label={social.label}>
                       <social.icon className="h-5 w-5" />
