@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ContactAdminNotification;
+use App\Mail\ContactThankYou;
 use App\Models\Contact;
 use App\Models\Lead;
 use App\Models\User;
 use App\Notifications\NewLeadNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ContactFormController extends Controller
 {
@@ -78,8 +82,19 @@ class ContactFormController extends Controller
             'utm_campaign' => $tracking['utm_campaign'] ?? null,
         ]);
 
-        // Notify all admin users of new lead
+        // Notify all admin users of new lead (database notification)
         User::all()->each(fn ($user) => $user->notify(new NewLeadNotification($lead)));
+
+        // Send email notifications via Resend
+        try {
+            // Thank you email to the user
+            Mail::to($contact->email)->send(new ContactThankYou($contact));
+
+            // Admin notification email
+            Mail::to('letsbuild@dneconsultants.com')->send(new ContactAdminNotification($contact));
+        } catch (\Exception $e) {
+            Log::error('Failed to send contact form emails: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Message sent successfully!');
     }
