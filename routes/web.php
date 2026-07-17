@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\LeadController;
 use App\Http\Controllers\Admin\LegalPageController as AdminLegalPageController;
+use App\Http\Controllers\Admin\MaintenanceController;
 use App\Http\Controllers\Admin\NoteController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\PartnerController;
@@ -131,6 +132,12 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     // Legal Pages
     Route::resource('legal-pages', AdminLegalPageController::class)->parameters(['legal-pages' => 'legal_page']);
+
+    // Maintenance (super admin only)
+    Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
+    Route::post('/maintenance/clear-cache', [MaintenanceController::class, 'clearCache'])->name('maintenance.clearCache');
+    Route::post('/maintenance/clear-log', [MaintenanceController::class, 'clearLog'])->name('maintenance.clearLog');
+    Route::get('/maintenance/download-log', [MaintenanceController::class, 'downloadLog'])->name('maintenance.downloadLog');
 });
 
 // Profile (from Breeze)

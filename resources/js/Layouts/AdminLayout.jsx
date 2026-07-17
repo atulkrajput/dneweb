@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun, Wrench } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import FlashNotification from '@/Components/FlashNotification';
 
@@ -42,11 +42,12 @@ export default function AdminLayout({ children, title }) {
     { name: 'Team', href: '/admin/team', icon: Users, module: 'team' },
     { name: 'Contacts', href: '/admin/contacts', icon: MessageSquare, module: null },
     { name: 'Settings', href: '/admin/settings', icon: Settings, module: null },
+    { name: 'Maintenance', href: '/admin/maintenance', icon: Wrench, module: null },
   ];
 
   const navItems = allNavItems.filter(item => {
     if (item.module === null) {
-      if (item.name === 'Settings') return isSuperAdmin;
+      if (item.name === 'Settings' || item.name === 'Maintenance') return isSuperAdmin;
       return true;
     }
     return canAccess(item.module);
