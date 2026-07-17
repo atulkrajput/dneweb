@@ -26,6 +26,7 @@ export default function TeamMemberForm({ member, roles }) {
     photo_file: null,
     sort_order: member?.sort_order || 0,
     is_active: member?.is_active ?? true,
+    send_welcome_email: false,
   });
 
   const handleFileChange = (e) => {
@@ -58,6 +59,10 @@ export default function TeamMemberForm({ member, roles }) {
     formData.append('photo', data.photo || '');
     formData.append('sort_order', data.sort_order);
     formData.append('is_active', data.is_active ? '1' : '0');
+
+    if (!isEditing) {
+      formData.append('send_welcome_email', data.send_welcome_email ? '1' : '0');
+    }
 
     if (data.photo_file) {
       formData.append('photo_file', data.photo_file);
@@ -115,6 +120,16 @@ export default function TeamMemberForm({ member, roles }) {
               {errors.team_role && <p className="text-sm text-destructive mt-1">{errors.team_role}</p>}
             </div>
           </div>
+
+          {!isEditing && (
+            <div className="pt-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={data.send_welcome_email} onChange={(e) => setData('send_welcome_email', e.target.checked)} className="rounded border-input text-primary focus:ring-primary" />
+                <span className="text-sm text-foreground">Send welcome email with login credentials</span>
+              </label>
+              <p className="text-xs text-muted-foreground mt-1 ml-6">The member will receive an email with their login details.</p>
+            </div>
+          )}
         </div>
 
         {/* Profile Info */}

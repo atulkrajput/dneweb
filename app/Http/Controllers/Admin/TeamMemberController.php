@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TeamWelcomeEmail;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
@@ -43,7 +46,11 @@ class TeamMemberController extends Controller
             'photo_file' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'sort_order' => 'nullable|numeric',
             'is_active' => 'nullable',
+            'send_welcome_email' => 'nullable',
         ]);
+
+        $plainPassword = $validated['password'];
+        $sendWelcomeEmail = filter_var($validated['send_welcome_email'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
         // Handle file upload
         if ($request->hasFile('photo_file')) {
@@ -51,13 +58,22 @@ class TeamMemberController extends Controller
             $validated['photo'] = '/storage/' . $path;
         }
 
-        unset($validated['photo_file']);
+        unset($validated['photo_file'], $validated['send_welcome_email']);
 
         // Convert types for FormData
         $validated['is_active'] = filter_var($validated['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN);
         $validated['sort_order'] = (int) ($validated['sort_order'] ?? 0);
 
-        User::create($validated);
+        $user = User::create($validated);
+
+        // Send welcome email if requested
+        if ($sendWelcomeEmail) {
+            try {
+                Mail::to($user->email)->send(new TeamWelcomeEmail($user, $plainPassword));
+            } catch (\Exception $e) {
+                Log::error('Failed to send team welcome email: ' . $e->getMessage());
+            }
+        }
 
         return redirect()->route('admin.team.index')->with('success', 'Team member created.');
     }
