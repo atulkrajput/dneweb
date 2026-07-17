@@ -111,6 +111,42 @@ export default function LeadShow({ lead, services, internalNotes }) {
       qualified: (
         <div className="flex flex-wrap gap-3">
           <button
+            onClick={() => handleStatusChange('proposal_sent')}
+            disabled={statusProcessing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 disabled:opacity-50 transition-colors"
+          >
+            <CheckCircle className="h-4 w-4" /> Proposal Sent
+          </button>
+          <button
+            onClick={() => handleStatusChange('lost', 'Are you sure you want to mark this lead as lost?')}
+            disabled={statusProcessing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            <XCircle className="h-4 w-4" /> Lost
+          </button>
+        </div>
+      ),
+      proposal_sent: (
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => handleStatusChange('negotiation')}
+            disabled={statusProcessing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-lg text-sm font-medium hover:bg-cyan-700 disabled:opacity-50 transition-colors"
+          >
+            <ThumbsUp className="h-4 w-4" /> Negotiation
+          </button>
+          <button
+            onClick={() => handleStatusChange('lost', 'Are you sure you want to mark this lead as lost?')}
+            disabled={statusProcessing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            <XCircle className="h-4 w-4" /> Lost
+          </button>
+        </div>
+      ),
+      negotiation: (
+        <div className="flex flex-wrap gap-3">
+          <button
             onClick={() => handleStatusChange('won')}
             disabled={statusProcessing}
             className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
