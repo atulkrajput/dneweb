@@ -26,11 +26,8 @@ export default function Maintenance({ logSize, logLastModified }) {
       <Head title="Maintenance" />
 
       <div className="space-y-6">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Maintenance</h1>
-          <p className="text-sm text-muted-foreground mt-1">System maintenance tools for cache and log management.</p>
-        </div>
+        {/* Page Description */}
+        <p className="text-sm text-muted-foreground">System maintenance tools for cache and log management.</p>
 
         {/* Cache Management */}
         <div className="bg-card border border-border rounded-xl p-6">
