@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { ArrowLeft, Trash2, Clock, User, Edit3, Save, X, UserPlus } from 'lucide-react';
+import { ArrowLeft, Trash2, Clock, User, Edit3, Save, X, UserPlus, CheckCircle, XCircle, ThumbsUp, Trophy } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import NotesSection from '@/Components/NotesSection';
 
@@ -34,6 +34,7 @@ const ACTIVITY_ICONS = {
 
 export default function LeadShow({ lead, services, internalNotes }) {
   const [editing, setEditing] = useState(false);
+  const [statusProcessing, setStatusProcessing] = useState(false);
 
   const { data, setData, put, processing, errors } = useForm({
     name: lead.name,
@@ -57,6 +58,91 @@ export default function LeadShow({ lead, services, internalNotes }) {
     if (confirm('Are you sure you want to delete this lead?')) {
       router.delete(`/admin/leads/${lead.id}`);
     }
+  };
+
+  const handleStatusChange = (newStatus, confirmMessage) => {
+    if (confirmMessage && !confirm(confirmMessage)) return;
+    setStatusProcessing(true);
+    router.patch(`/admin/leads/${lead.id}/status`, { status: newStatus }, {
+      onFinish: () => setStatusProcessing(false),
+    });
+  };
+
+  const StatusActions = () => {
+    if (editing) return null;
+
+    const actions = {
+      new: (
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => handleStatusChange('contacted')}
+            disabled={statusProcessing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+          >
+            <CheckCircle className="h-4 w-4" /> Approve & Contact
+          </button>
+          <button
+            onClick={() => handleStatusChange('lost', 'Are you sure you want to reject this lead?')}
+            disabled={statusProcessing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            <XCircle className="h-4 w-4" /> Reject
+          </button>
+        </div>
+      ),
+      contacted: (
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => handleStatusChange('qualified')}
+            disabled={statusProcessing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
+          >
+            <ThumbsUp className="h-4 w-4" /> Qualified
+          </button>
+          <button
+            onClick={() => handleStatusChange('lost', 'Are you sure you want to mark this lead as lost?')}
+            disabled={statusProcessing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            <XCircle className="h-4 w-4" /> Lost
+          </button>
+        </div>
+      ),
+      qualified: (
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => handleStatusChange('won')}
+            disabled={statusProcessing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+          >
+            <Trophy className="h-4 w-4" /> Won
+          </button>
+          <button
+            onClick={() => handleStatusChange('lost', 'Are you sure you want to mark this lead as lost?')}
+            disabled={statusProcessing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            <XCircle className="h-4 w-4" /> Lost
+          </button>
+        </div>
+      ),
+    };
+
+    if (!actions[lead.status]) return null;
+
+    return (
+      <div className="bg-card border border-border rounded-xl p-4 mb-6">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${STATUS_COLORS[lead.status]}`}>
+              {STATUS_LABELS[lead.status]}
+            </span>
+            <span className="text-sm text-muted-foreground">→ Move to:</span>
+          </div>
+          {actions[lead.status]}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -97,6 +183,8 @@ export default function LeadShow({ lead, services, internalNotes }) {
             </button>
           </div>
         </div>
+
+        <StatusActions />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Details */}

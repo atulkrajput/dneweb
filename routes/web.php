@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     // Leads
     Route::resource('leads', LeadController::class)->except(['edit']);
     Route::post('/leads/{lead}/convert', [ClientController::class, 'convertFromLead'])->name('leads.convert');
+    Route::patch('/leads/{lead}/status', [LeadController::class, 'updateStatus'])->name('leads.status');
 
     // Clients
     Route::resource('clients', ClientController::class)->except(['edit']);

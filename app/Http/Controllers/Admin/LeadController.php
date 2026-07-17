@@ -119,4 +119,48 @@ class LeadController extends Controller
 
         return redirect()->route('admin.leads.index')->with('success', 'Lead deleted.');
     }
+
+    public function updateStatus(Request $request, Lead $lead)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:' . implode(',', Lead::STATUSES),
+        ]);
+
+        // Enforce valid transitions
+        $allowed = $this->getAllowedTransitions($lead->status);
+        if (!in_array($validated['status'], $allowed)) {
+            return back()->with('error', 'Invalid status transition.');
+        }
+
+        $oldStatus = $lead->status;
+        $lead->update(['status' => $validated['status']]);
+
+        $lead->logActivity('status_changed', "Status changed from {$oldStatus} to {$validated['status']}.", [
+            'old_status' => $oldStatus,
+            'new_status' => $validated['status'],
+        ]);
+
+        $statusLabels = [
+            'contacted' => 'Lead approved and moved to Contacted.',
+            'qualified' => 'Lead qualified successfully.',
+            'won' => 'Lead marked as Won!',
+            'lost' => 'Lead marked as Lost.',
+        ];
+
+        $message = $statusLabels[$validated['status']] ?? 'Lead status updated.';
+
+        return back()->with('success', $message);
+    }
+
+    private function getAllowedTransitions(string $currentStatus): array
+    {
+        return match ($currentStatus) {
+            'new' => ['contacted', 'lost'],
+            'contacted' => ['qualified', 'lost'],
+            'qualified' => ['proposal_sent', 'won', 'lost'],
+            'proposal_sent' => ['negotiation', 'won', 'lost'],
+            'negotiation' => ['won', 'lost'],
+            default => [],
+        };
+    }
 }
