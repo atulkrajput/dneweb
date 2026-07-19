@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Trash2, CheckCircle, Target, Building2 } from 'lucide-react';
+import { ArrowLeft, Trash2, CheckCircle, Target, Building2, Send } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 const STATUS_LABELS = { draft: 'Draft', sent: 'Sent', accepted: 'Accepted', rejected: 'Rejected' };
@@ -12,10 +12,18 @@ const STATUS_COLORS = {
 };
 
 export default function ProposalShow({ proposal }) {
+  const [sending, setSending] = useState(false);
   const fmt = (val) => '$' + Number(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const handleDelete = () => { if (confirm('Delete this proposal?')) router.delete(`/admin/proposals/${proposal.id}`); };
   const handleAccept = () => { if (confirm('Accept this proposal? A project will be created automatically.')) router.post(`/admin/proposals/${proposal.id}/accept`); };
+  const handleSend = () => {
+    if (!confirm('Send this proposal via email to the linked lead/client?')) return;
+    setSending(true);
+    router.post(`/admin/proposals/${proposal.id}/send`, {}, {
+      onFinish: () => setSending(false),
+    });
+  };
 
   return (
     <AdminLayout title="Proposal Details">
@@ -27,6 +35,11 @@ export default function ProposalShow({ proposal }) {
             <ArrowLeft className="h-4 w-4" /> Back to Proposals
           </Link>
           <div className="flex items-center gap-2">
+            {proposal.status === 'draft' && (
+              <button onClick={handleSend} disabled={sending} className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 rounded-lg transition-colors font-medium">
+                <Send className="h-4 w-4" /> {sending ? 'Sending...' : 'Send Proposal'}
+              </button>
+            )}
             {proposal.status === 'sent' && (
               <button onClick={handleAccept} className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors font-medium">
                 <CheckCircle className="h-4 w-4" /> Accept & Create Project

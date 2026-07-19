@@ -47,6 +47,11 @@ Route::post('/products/{slug}/interest', [ProductPageController::class, 'storeIn
 // Legal pages (privacy, terms, etc.)
 Route::get('/page/{slug}', [LegalPageController::class, 'show'])->name('legal.show');
 
+// Public proposal acceptance (signed URL from email)
+Route::get('/proposal/{proposal}/accept', [App\Http\Controllers\ProposalAcceptController::class, 'accept'])
+    ->name('proposal.public.accept')
+    ->middleware('signed');
+
 // Admin routes
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -111,6 +116,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     // Proposals
     Route::resource('proposals', ProposalController::class)->except(['edit']);
     Route::post('/proposals/{proposal}/accept', [ProposalController::class, 'accept'])->name('proposals.accept');
+    Route::post('/proposals/{proposal}/send', [ProposalController::class, 'send'])->name('proposals.send');
 
     // Notes (polymorphic)
     Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');

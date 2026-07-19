@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ProposalEmail;
 use App\Models\Client;
 use App\Models\Lead;
 use App\Models\Project;
@@ -11,6 +12,8 @@ use App\Models\Service;
 use App\Models\User;
 use App\Notifications\ProposalAcceptedNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class ProposalController extends Controller
@@ -150,6 +153,56 @@ class ProposalController extends Controller
     {
         $proposal->delete();
         return redirect()->route('admin.proposals.index')->with('success', 'Proposal deleted.');
+    }
+
+    /**
+     * Send proposal email to the lead/client and update status to 'sent'.
+     */
+    public function send(Proposal $proposal)
+    {
+        $proposal->load(['lead', 'client']);
+
+        // Determine recipient email
+        $recipientEmail = null;
+        $recipientName = null;
+
+        if ($proposal->lead) {
+            $recipientEmail = $proposal->lead->email;
+            $recipientName = $proposal->lead->name;
+        } elseif ($proposal->client) {
+            $recipientEmail = $proposal->client->email;
+            $recipientName = $proposal->client->company;
+        }
+
+        if (!$recipientEmail) {
+            return back()->with('error', 'No recipient email found. Please link a lead or client with an email address.');
+        }
+
+        try {
+            Mail::to($recipientEmail)->send(new ProposalEmail($proposal));
+
+            // Update status to sent
+            $proposal->update(['status' => Proposal::STATUS_SENT]);
+
+            // Log activity on lead if linked
+            if ($proposal->lead_id) {
+                $lead = Lead::find($proposal->lead_id);
+                if ($lead) {
+                    $lead->logActivity('proposal_sent', "Proposal {$proposal->number} sent to {$recipientEmail}.", [
+                        'proposal_id' => $proposal->id,
+                    ]);
+                    // Auto-update lead status to proposal_sent if still earlier
+                    if (in_array($lead->status, ['new', 'contacted', 'qualified'])) {
+                        $lead->update(['status' => 'proposal_sent']);
+                    }
+                }
+            }
+
+            return back()->with('success', "Proposal sent to {$recipientName} ({$recipientEmail}).");
+        } catch (\Exception $e) {
+            Log::error('Failed to send proposal email: ' . $e->getMessage());
+            return back()->with('error', 'Failed to send email. Please try again.');
+        }
     }
 
     /**
