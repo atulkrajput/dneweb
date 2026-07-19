@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\ClientController;
-use App\Http\Controllers\Admin\ContactController as AdminContactController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\LeadController;
@@ -75,11 +74,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     // Products
     Route::delete('/products/interests/{interest}', [ProductController::class, 'destroyInterest'])->name('products.interests.destroy');
     Route::resource('products', ProductController::class);
-
-    // Contacts
-    Route::get('/contacts', [AdminContactController::class, 'index'])->name('contacts.index');
-    Route::get('/contacts/{contact}', [AdminContactController::class, 'show'])->name('contacts.show');
-    Route::delete('/contacts/{contact}', [AdminContactController::class, 'destroy'])->name('contacts.destroy');
 
     // Leads
     Route::resource('leads', LeadController::class)->except(['edit']);

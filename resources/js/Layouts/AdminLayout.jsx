@@ -40,7 +40,6 @@ export default function AdminLayout({ children, title }) {
     { name: 'Reports', href: '/admin/reports', icon: PieChart, module: null },
     { name: 'Services', href: '/admin/services', icon: Briefcase, module: 'services' },
     { name: 'Team', href: '/admin/team', icon: Users, module: 'team' },
-    { name: 'Contacts', href: '/admin/contacts', icon: MessageSquare, module: null },
     { name: 'Settings', href: '/admin/settings', icon: Settings, module: null },
     { name: 'Maintenance', href: '/admin/maintenance', icon: Wrench, module: null },
   ];

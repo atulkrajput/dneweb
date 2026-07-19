@@ -379,8 +379,7 @@ export default function LeadShow({ lead, services, internalNotes }) {
                   {lead.contact && (
                     <div className="pt-4 border-t border-border">
                       <p className="text-xs text-muted-foreground">
-                        Linked to contact submission #{lead.contact.id} •{' '}
-                        <Link href={`/admin/contacts/${lead.contact.id}`} className="text-primary hover:text-primary/80">View Contact →</Link>
+                        Linked to contact form submission #{lead.contact.id}
                       </p>
                     </div>
                   )}
