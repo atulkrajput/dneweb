@@ -51,7 +51,9 @@ class ProposalController extends Controller
 
     public function create(Request $request)
     {
-        $leads = Lead::open()->orderBy('name')->get(['id', 'name', 'company']);
+        $leads = Lead::whereIn('status', ['contacted', 'qualified', 'proposal_sent'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'company']);
         $clients = Client::active()->orderBy('company')->pluck('company', 'id');
         $services = Service::active()->ordered()->pluck('title', 'slug');
         $nextNumber = Proposal::generateNumber();
