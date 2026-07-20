@@ -52,6 +52,7 @@ class HandleInertiaRequests extends Middleware
                 'header_scripts' => $settings['header_scripts'] ?? '',
                 'footer_scripts' => $settings['footer_scripts'] ?? '',
             ],
+            'recaptchaSiteKey' => config('services.recaptcha.site_key'),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

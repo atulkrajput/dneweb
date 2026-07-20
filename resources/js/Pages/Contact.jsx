@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, useForm, usePage, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Mail, MapPin, Clock, Facebook, Instagram, Linkedin, ArrowRight, Loader2 } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -10,7 +10,18 @@ import XIcon from '@/Components/icons/XIcon';
 
 export default function Contact({ page }) {
   const seo = page || {};
-  const { settings = {} } = usePage().props;
+  const { settings = {}, recaptchaSiteKey } = usePage().props;
+
+  // Load reCAPTCHA v3 script
+  useEffect(() => {
+    if (!recaptchaSiteKey) return;
+    if (document.querySelector(`script[src*="recaptcha"]`)) return;
+
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
+    script.async = true;
+    document.head.appendChild(script);
+  }, [recaptchaSiteKey]);
 
   const { data, setData, post, processing, errors, reset, transform } = useForm({
     full_name: '',
@@ -18,6 +29,7 @@ export default function Contact({ page }) {
     company: '',
     inquiry_type: '',
     message: '',
+    recaptcha_token: '',
   });
 
   // Transform data before submission to include tracking
@@ -53,27 +65,79 @@ export default function Contact({ page }) {
       return;
     }
 
-    post('/contact', {
-      preserveScroll: true,
-      onSuccess: () => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Message Sent!',
-          text: "We'll be in touch within 1 business day.",
-          confirmButtonColor: 'hsl(var(--primary))',
-        });
-        reset();
-        setClientErrors({});
-      },
-      onError: () => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Something went wrong',
-          text: 'Please try again or email us directly.',
-          confirmButtonColor: 'hsl(var(--primary))',
-        });
-      }
-    });
+    const doSubmit = (token) => {
+      setData('recaptcha_token', token || '');
+    };
+
+    if (recaptchaSiteKey && window.grecaptcha) {
+      window.grecaptcha.ready(() => {
+        window.grecaptcha.execute(recaptchaSiteKey, { action: 'contact_form' })
+          .then((token) => {
+            // Manually submit with token via router
+            const payload = {
+              ...data,
+              recaptcha_token: token,
+              tracking: getTrackingData(),
+            };
+            router.post('/contact', payload, {
+              preserveScroll: true,
+              onSuccess: () => {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Message Sent!',
+                  text: "We'll be in touch within 1 business day.",
+                  confirmButtonColor: 'hsl(var(--primary))',
+                });
+                reset();
+                setClientErrors({});
+              },
+              onError: (errors) => {
+                if (errors.recaptcha_token) {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Verification Failed',
+                    text: 'Human verification failed. Please try again.',
+                    confirmButtonColor: 'hsl(var(--primary))',
+                  });
+                } else {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Something went wrong',
+                    text: 'Please try again or email us directly.',
+                    confirmButtonColor: 'hsl(var(--primary))',
+                  });
+                }
+              }
+            });
+          })
+          .catch(() => {
+            // If reCAPTCHA fails, submit without token
+            post('/contact', {
+              preserveScroll: true,
+              onSuccess: () => {
+                Swal.fire({ icon: 'success', title: 'Message Sent!', text: "We'll be in touch within 1 business day.", confirmButtonColor: 'hsl(var(--primary))' });
+                reset();
+                setClientErrors({});
+              },
+              onError: () => {
+                Swal.fire({ icon: 'error', title: 'Something went wrong', text: 'Please try again or email us directly.', confirmButtonColor: 'hsl(var(--primary))' });
+              }
+            });
+          });
+      });
+    } else {
+      post('/contact', {
+        preserveScroll: true,
+        onSuccess: () => {
+          Swal.fire({ icon: 'success', title: 'Message Sent!', text: "We'll be in touch within 1 business day.", confirmButtonColor: 'hsl(var(--primary))' });
+          reset();
+          setClientErrors({});
+        },
+        onError: () => {
+          Swal.fire({ icon: 'error', title: 'Something went wrong', text: 'Please try again or email us directly.', confirmButtonColor: 'hsl(var(--primary))' });
+        }
+      });
+    }
   };
 
   const handleChange = (e) => {

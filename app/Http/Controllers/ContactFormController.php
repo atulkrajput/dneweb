@@ -9,6 +9,7 @@ use App\Models\Lead;
 use App\Models\User;
 use App\Notifications\NewLeadNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -16,6 +17,30 @@ class ContactFormController extends Controller
 {
     public function store(Request $request)
     {
+        // Verify reCAPTCHA if configured
+        $recaptchaSecret = config('services.recaptcha.secret_key');
+        if ($recaptchaSecret) {
+            $request->validate([
+                'recaptcha_token' => 'required|string',
+            ], [
+                'recaptcha_token.required' => 'Human verification failed. Please try again.',
+            ]);
+
+            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => $recaptchaSecret,
+                'response' => $request->input('recaptcha_token'),
+                'remoteip' => $request->ip(),
+            ]);
+
+            $result = $response->json();
+
+            if (!($result['success'] ?? false) || ($result['score'] ?? 0) < 0.5) {
+                return back()->withErrors([
+                    'recaptcha_token' => 'Human verification failed. Please try again.',
+                ]);
+            }
+        }
+
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
