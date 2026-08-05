@@ -13,6 +13,7 @@ import {
 import { Button } from '@/Components/ui/button';
 import { Card } from '@/Components/ui/card';
 import PublicLayout from '@/Layouts/PublicLayout';
+import TechNetworkAnimation from '@/Components/TechNetworkAnimation';
 
 const iconMap = { Bot, Layers, MonitorSmartphone, Server };
 
@@ -63,9 +64,10 @@ export default function Home({ page, capabilities, stats, servicesPreview }) {
       {/* HERO */}
       <section className="relative min-h-[90dvh] flex items-center overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-background" />
-          <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[120px] mix-blend-screen opacity-60 animate-pulse" style={{ animationDuration: '8s' }} />
-          <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[100px] mix-blend-screen opacity-50" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-secondary/30" />
+          {/* Subtle radial glow behind globe area */}
+          <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-primary/[0.04] dark:bg-primary/[0.07] rounded-full blur-[100px]" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/[0.03] dark:bg-blue-500/[0.05] rounded-full blur-[80px]" />
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 w-full">
@@ -94,27 +96,7 @@ export default function Home({ page, capabilities, stats, servicesPreview }) {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, delay: 0.2 }} className="hidden lg:flex justify-center items-center">
-              <div className="relative w-full max-w-lg aspect-square">
-                <div className="absolute inset-0 border border-primary/20 rounded-full animate-[spin_60s_linear_infinite]" />
-                <div className="absolute inset-8 border border-border rounded-full animate-[spin_40s_linear_infinite_reverse]" />
-                <div className="absolute inset-16 border border-primary/10 rounded-full border-dashed animate-[spin_30s_linear_infinite]" />
-                <motion.div animate={{ y: [-10, 10, -10] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative bg-card/80 backdrop-blur-sm border border-primary/30 p-8 rounded-2xl shadow-2xl shadow-primary/10">
-                    <Activity className="w-20 h-20 text-primary mb-4" />
-                    <div className="h-2 w-32 bg-primary/20 rounded-full mb-3 overflow-hidden">
-                      <motion.div animate={{ x: [-100, 100] }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="h-full bg-primary w-1/2 rounded-full" />
-                    </div>
-                    <div className="h-2 w-24 bg-border rounded-full mb-3" />
-                    <div className="h-2 w-28 bg-border rounded-full" />
-                  </div>
-                </motion.div>
-                <motion.div animate={{ y: [10, -10, 10], x: [5, -5, 5] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute top-1/4 right-10 bg-card p-4 rounded-xl border border-border shadow-lg">
-                  <Bot className="w-6 h-6 text-primary" />
-                </motion.div>
-                <motion.div animate={{ y: [-15, 15, -15], x: [-10, 10, -10] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-1/4 left-10 bg-card p-4 rounded-xl border border-border shadow-lg">
-                  <ShieldCheck className="w-6 h-6 text-primary" />
-                </motion.div>
-              </div>
+              <TechNetworkAnimation />
             </motion.div>
           </div>
         </div>
