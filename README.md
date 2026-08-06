@@ -14,6 +14,19 @@ Production-ready company website with a full-featured admin panel (CRM, project 
 - **Email:** Resend API (transactional emails with branded templates)
 - **Captcha:** Google reCAPTCHA v3 (invisible bot protection)
 
+## Homepage Hero Animation
+
+The landing page features an interactive tech-network globe animation built with SVG + Framer Motion:
+
+- **3D wireframe globe** at the center with rotating meridians, latitude lines, and orbiting data particles
+- **8 floating tech nodes** (AI, Automation, Cloud, Web, Security, Data, Code, Compute) arranged in a circle around the globe
+- **Twinkling star field** background for a modern space/tech aesthetic
+- **"DNE — Connecting Your Ecosystem"** text centered inside the globe
+- Fully responsive and works in both **light and dark mode** using CSS custom properties
+- No canvas — pure SVG + HTML for reliable cross-browser centering and scaling
+
+The animation component lives at `resources/js/Components/TechNetworkAnimation.jsx`.
+
 ## Quick Start
 
 ```bash
@@ -222,7 +235,7 @@ All emails use branded HTML templates with:
 
 | Route | Page |
 |-------|------|
-| `/` | Homepage — hero, capabilities, stats, services preview, CTA |
+| `/` | Homepage — tech-network globe animation, capabilities, stats, services preview, CTA |
 | `/services` | Services — detailed service sections with checklists |
 | `/about` | About — story, values, team, stats |
 | `/contact` | Contact — form with reCAPTCHA, info, process steps |
