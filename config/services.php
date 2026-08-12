@@ -40,4 +40,12 @@ return [
         ],
     ],
 
+    'facebook' => [
+        'pixel_id' => env('FACEBOOK_PIXEL_ID'),
+        'access_token' => env('FACEBOOK_CONVERSIONS_API_TOKEN'),
+        'dataset_id' => env('FACEBOOK_DATASET_ID'),
+        'webhook_verify_token' => env('FACEBOOK_WEBHOOK_VERIFY_TOKEN'),
+        'api_version' => env('FACEBOOK_API_VERSION', 'v21.0'),
+    ],
+
 ];

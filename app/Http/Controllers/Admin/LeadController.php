@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Lead;
 use App\Models\Service;
+use App\Services\FacebookConversionsApi;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -140,6 +141,9 @@ class LeadController extends Controller
             'new_status' => $validated['status'],
         ]);
 
+        // Send CRM event to Facebook Conversions API
+        $this->sendFacebookConversionEvent($lead, $validated['status']);
+
         $statusLabels = [
             'contacted' => 'Lead approved and moved to Contacted.',
             'qualified' => 'Lead qualified successfully.',
@@ -150,6 +154,29 @@ class LeadController extends Controller
         $message = $statusLabels[$validated['status']] ?? 'Lead status updated.';
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Send a conversion event to Facebook when a lead changes status.
+     */
+    private function sendFacebookConversionEvent(Lead $lead, string $newStatus): void
+    {
+        $eventName = FacebookConversionsApi::mapStatusToEventName($newStatus);
+
+        if (!$eventName) {
+            return;
+        }
+
+        try {
+            $fbApi = new FacebookConversionsApi();
+            $fbApi->sendLeadEvent($lead, $eventName);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send Facebook conversion event', [
+                'lead_id' => $lead->id,
+                'status' => $newStatus,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function getAllowedTransitions(string $currentStatus): array
