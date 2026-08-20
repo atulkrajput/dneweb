@@ -16,4 +16,19 @@ export default defineConfig({
             '@': path.resolve(__dirname, 'resources/js'),
         },
     },
+    build: {
+        // Enable CSS code splitting
+        cssCodeSplit: true,
+        // Optimize chunk size
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    // Separate heavy vendor libraries so they cache independently
+                    'vendor-motion': ['framer-motion'],
+                },
+            },
+        },
+        // Increase warning threshold (we know about large chunks)
+        chunkSizeWarningLimit: 500,
+    },
 });

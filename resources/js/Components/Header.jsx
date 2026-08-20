@@ -31,7 +31,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 py-[3px] items-center justify-between">
           <Link href="/" className="flex items-center transition-opacity duration-200 hover:opacity-80">
-            <img src={logoSrc} alt="DNE Consultants" className="h-[50px] w-auto" />
+            <img src={logoSrc} alt="DNE Consultants" className="h-[50px] w-auto" width="89" height="50" />
           </Link>
 
           <nav className="hidden md:flex items-center space-x-1">

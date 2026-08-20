@@ -35,7 +35,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           <div className="lg:col-span-1">
             <Link href="/" className="inline-block mb-6">
-              <img src={logoSrc} alt="DNE Consultants" className="h-8 w-auto" />
+              <img src={logoSrc} alt="DNE Consultants" className="h-8 w-auto" width="57" height="32" loading="lazy" />
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
               {tagline}

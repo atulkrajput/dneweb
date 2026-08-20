@@ -5,7 +5,12 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout';
 
-function ServiceSection({ id, tag, title, subtitle, description, checklist, callout, image, buttonText, buttonLink, reverse }) {
+function ServiceSection({ id, tag, title, subtitle, description, checklist, callout, image, buttonText, buttonLink, reverse, isFirst }) {
+  // Append Unsplash optimization params if it's an Unsplash URL without them
+  const optimizedImage = image && image.includes('unsplash.com') && !image.includes('?')
+    ? `${image}?w=800&q=70&auto=format`
+    : image;
+
   return (
     <section id={`service-${id}`} className={`section-padding ${reverse ? 'bg-secondary' : 'bg-background'} overflow-hidden`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,7 +19,15 @@ function ServiceSection({ id, tag, title, subtitle, description, checklist, call
             <div className="aspect-[4/3] lg:aspect-square relative rounded-2xl overflow-hidden shadow-2xl">
               <div className="absolute inset-0 bg-background/20 z-10 mix-blend-multiply" />
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent z-10" />
-              <img src={image} alt={`${title} representation`} className="w-full h-full object-cover" />
+              <img
+                src={optimizedImage}
+                alt={`${title} representation`}
+                className="w-full h-full object-cover"
+                loading={isFirst ? "eager" : "lazy"}
+                decoding="async"
+                width="800"
+                height="800"
+              />
             </div>
             <div className={`absolute -z-10 top-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary/5 rounded-full blur-[100px] ${reverse ? '-right-1/4' : '-left-1/4'}`} />
           </motion.div>
@@ -116,8 +129,8 @@ export default function Services({ page, services }) {
       </section>
 
       {/* SERVICE SECTIONS */}
-      {servicesData.map((service) => (
-        <ServiceSection key={service.id} {...service} />
+      {servicesData.map((service, index) => (
+        <ServiceSection key={service.id} {...service} isFirst={index === 0} />
       ))}
 
       {/* BOTTOM CTA */}

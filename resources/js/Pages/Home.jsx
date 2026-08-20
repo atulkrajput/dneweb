@@ -103,7 +103,7 @@ export default function Home({ page, capabilities, stats, servicesPreview }) {
       </section>
 
       {/* WHAT WE DO */}
-      <section className="section-padding bg-secondary">
+      <section className="section-padding bg-secondary content-defer">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={staggerContainer}>
             <motion.div variants={itemVariant} className="max-w-3xl mb-16">
@@ -132,7 +132,7 @@ export default function Home({ page, capabilities, stats, servicesPreview }) {
       </section>
 
       {/* WHY DNE */}
-      <section className="section-padding bg-background border-y border-border/40">
+      <section className="section-padding bg-background border-y border-border/40 content-defer">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.6 }}>
@@ -160,7 +160,7 @@ export default function Home({ page, capabilities, stats, servicesPreview }) {
       </section>
 
       {/* SERVICE PREVIEW CARDS */}
-      <section className="section-padding bg-secondary">
+      <section className="section-padding bg-secondary content-defer">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.5 }} className="mb-16">
             <span className="eyebrow">Our Services</span>
@@ -184,7 +184,7 @@ export default function Home({ page, capabilities, stats, servicesPreview }) {
       </section>
 
       {/* BOTTOM CTA */}
-      <section className="bg-primary py-24 relative overflow-hidden">
+      <section className="bg-primary py-24 relative overflow-hidden content-defer">
         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>

@@ -51,7 +51,16 @@ export default function About({ page, team, values, stats, testimonials, partner
       {/* HERO */}
       <section className="relative min-h-[80dvh] flex items-center justify-center overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1582014244066-dea9298becb2" alt="Abstract geometric architecture" className="w-full h-full object-cover opacity-20 mix-blend-luminosity" />
+          <img
+            src="https://images.unsplash.com/photo-1582014244066-dea9298becb2?w=1200&q=60&auto=format"
+            alt=""
+            className="w-full h-full object-cover opacity-20 mix-blend-luminosity"
+            loading="eager"
+            fetchPriority="low"
+            width="1200"
+            height="800"
+            decoding="async"
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/90 to-background" />
         </div>
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20 pb-12">

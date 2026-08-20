@@ -2,11 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { Mail, MapPin, Clock, Facebook, Instagram, Linkedin, ArrowRight, Loader2 } from 'lucide-react';
-import Swal from 'sweetalert2';
 import { Button } from '@/Components/ui/button';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { getTrackingData } from '@/lib/tracking';
 import XIcon from '@/Components/icons/XIcon';
+
+// Lazy-load SweetAlert2 — only needed on form submission, not initial render
+const showAlert = async (options) => {
+  const { default: Swal } = await import('sweetalert2');
+  return Swal.fire(options);
+};
 
 export default function Contact({ page }) {
   const seo = page || {};
@@ -56,7 +61,7 @@ export default function Contact({ page }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validateForm()) {
-      Swal.fire({
+      showAlert({
         icon: 'warning',
         title: 'Missing Fields',
         text: 'Please fill in all required fields correctly.',
@@ -82,7 +87,7 @@ export default function Contact({ page }) {
             router.post('/contact', payload, {
               preserveScroll: true,
               onSuccess: () => {
-                Swal.fire({
+                showAlert({
                   icon: 'success',
                   title: 'Message Sent!',
                   text: "We'll be in touch within 1 business day.",
@@ -93,14 +98,14 @@ export default function Contact({ page }) {
               },
               onError: (errors) => {
                 if (errors.recaptcha_token) {
-                  Swal.fire({
+                  showAlert({
                     icon: 'error',
                     title: 'Verification Failed',
                     text: 'Human verification failed. Please try again.',
                     confirmButtonColor: 'hsl(var(--primary))',
                   });
                 } else {
-                  Swal.fire({
+                  showAlert({
                     icon: 'error',
                     title: 'Something went wrong',
                     text: 'Please try again or email us directly.',
@@ -115,12 +120,12 @@ export default function Contact({ page }) {
             post('/contact', {
               preserveScroll: true,
               onSuccess: () => {
-                Swal.fire({ icon: 'success', title: 'Message Sent!', text: "We'll be in touch within 1 business day.", confirmButtonColor: 'hsl(var(--primary))' });
+                showAlert({ icon: 'success', title: 'Message Sent!', text: "We'll be in touch within 1 business day.", confirmButtonColor: 'hsl(var(--primary))' });
                 reset();
                 setClientErrors({});
               },
               onError: () => {
-                Swal.fire({ icon: 'error', title: 'Something went wrong', text: 'Please try again or email us directly.', confirmButtonColor: 'hsl(var(--primary))' });
+                showAlert({ icon: 'error', title: 'Something went wrong', text: 'Please try again or email us directly.', confirmButtonColor: 'hsl(var(--primary))' });
               }
             });
           });
@@ -129,12 +134,12 @@ export default function Contact({ page }) {
       post('/contact', {
         preserveScroll: true,
         onSuccess: () => {
-          Swal.fire({ icon: 'success', title: 'Message Sent!', text: "We'll be in touch within 1 business day.", confirmButtonColor: 'hsl(var(--primary))' });
+          showAlert({ icon: 'success', title: 'Message Sent!', text: "We'll be in touch within 1 business day.", confirmButtonColor: 'hsl(var(--primary))' });
           reset();
           setClientErrors({});
         },
         onError: () => {
-          Swal.fire({ icon: 'error', title: 'Something went wrong', text: 'Please try again or email us directly.', confirmButtonColor: 'hsl(var(--primary))' });
+          showAlert({ icon: 'error', title: 'Something went wrong', text: 'Please try again or email us directly.', confirmButtonColor: 'hsl(var(--primary))' });
         }
       });
     }
@@ -168,7 +173,16 @@ export default function Contact({ page }) {
       {/* HERO */}
       <section className="relative pt-16 pb-12 lg:pt-20 lg:pb-16 overflow-hidden border-b border-border/40">
         <div className="absolute inset-0 z-0">
-          <img src="https://images.unsplash.com/photo-1606822096762-8805b2db0878" alt="Workspace Background" className="w-full h-full object-cover opacity-[0.05] mix-blend-screen grayscale" />
+          <img
+            src="https://images.unsplash.com/photo-1606822096762-8805b2db0878?w=1200&q=60&auto=format"
+            alt=""
+            className="w-full h-full object-cover opacity-[0.05] mix-blend-screen grayscale"
+            loading="eager"
+            fetchPriority="low"
+            width="1200"
+            height="800"
+            decoding="async"
+          />
           <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background to-background" />
         </div>
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
