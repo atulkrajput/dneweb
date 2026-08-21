@@ -16,6 +16,7 @@ export default function Header() {
     { name: 'About DNE', path: '/about' },
     { name: 'Services', path: '/services' },
     { name: 'Products', path: '/products' },
+    { name: 'Insights', path: '/insights' },
     { name: 'Contact', path: '/contact' },
   ];
 

@@ -43,7 +43,7 @@ class InsightsPageController extends Controller
                     }
                 })
                 ->ordered()
-                ->limit(3)
+                ->limit(6)
                 ->get();
         }
 
@@ -51,7 +51,7 @@ class InsightsPageController extends Controller
             $related = Insight::published()
                 ->where('id', '!=', $insight->id)
                 ->ordered()
-                ->limit(3)
+                ->limit(6)
                 ->get();
         }
 

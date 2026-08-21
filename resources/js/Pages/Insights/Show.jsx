@@ -1,8 +1,115 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, Eye, Tag, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye, Tag, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import PublicLayout from '@/Layouts/PublicLayout';
+
+function RelatedInsightsSlider({ relatedInsights }) {
+  const scrollRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = scrollRef.current;
+    if (el) el.addEventListener('scroll', checkScroll);
+    return () => el?.removeEventListener('scroll', checkScroll);
+  }, []);
+
+  const scroll = (direction) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const scrollAmount = 340;
+    el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  };
+
+  return (
+    <section className="py-12 md:py-16 bg-muted/30 border-t border-border/40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-2xl font-bold text-foreground">Related Insights</h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!canScrollLeft}
+              className="p-2 rounded-full border border-border bg-card text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!canScrollRight}
+              className="p-2 rounded-full border border-border bg-card text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        <div
+          ref={scrollRef}
+          className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 snap-x snap-mandatory -mx-4 px-4"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {relatedInsights.map((related) => (
+            <Link
+              key={related.id}
+              href={`/insights/${related.slug}`}
+              className="group block flex-shrink-0 w-[300px] md:w-[340px] snap-start"
+            >
+              <div className="bg-card border border-border rounded-xl overflow-hidden h-full transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:-translate-y-1">
+                <div className="aspect-[16/10] overflow-hidden bg-muted">
+                  {related.featured_image ? (
+                    <img src={related.featured_image} alt={related.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                      <span className="text-3xl font-bold text-primary/20">{related.title[0]}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-5">
+                  {related.tags && related.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {related.tags.slice(0, 2).map((tag, i) => (
+                        <span key={i} className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                  <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">
+                    {related.title}
+                  </h4>
+                  {related.small_description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2">{related.small_description}</p>
+                  )}
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+                    {related.published_at && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(related.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    )}
+                    <span className="inline-flex items-center gap-1 text-primary text-xs font-medium group-hover:gap-2 transition-all">
+                      Read <ArrowRight className="h-3 w-3" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default function InsightShow({ insight, relatedInsights }) {
   const getYoutubeEmbedUrl = (url) => {
@@ -155,41 +262,9 @@ export default function InsightShow({ insight, relatedInsights }) {
           </section>
         )}
 
-        {/* Related Insights */}
+        {/* Related Insights Slider */}
         {relatedInsights && relatedInsights.length > 0 && (
-          <section className="py-12 md:py-16 bg-muted/30 border-t border-border/40">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h3 className="text-2xl font-bold text-foreground mb-8">Related Insights</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {relatedInsights.map((related) => (
-                  <Link key={related.id} href={`/insights/${related.slug}`} className="group block">
-                    <div className="bg-card border border-border rounded-xl overflow-hidden transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:-translate-y-1">
-                      <div className="aspect-[16/10] overflow-hidden bg-muted">
-                        {related.featured_image ? (
-                          <img src={related.featured_image} alt={related.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
-                            <span className="text-3xl font-bold text-primary/20">{related.title[0]}</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="p-5">
-                        <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">
-                          {related.title}
-                        </h4>
-                        {related.small_description && (
-                          <p className="text-xs text-muted-foreground line-clamp-2">{related.small_description}</p>
-                        )}
-                        <span className="inline-flex items-center gap-1 text-primary text-xs font-medium mt-3 group-hover:gap-2 transition-all">
-                          Read More <ArrowRight className="h-3 w-3" />
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
+          <RelatedInsightsSlider relatedInsights={relatedInsights} />
         )}
       </article>
     </PublicLayout>
