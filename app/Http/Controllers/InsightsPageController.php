@@ -27,7 +27,10 @@ class InsightsPageController extends Controller
 
     public function show(string $slug)
     {
-        $insight = Insight::where('slug', $slug)->where('is_published', true)->firstOrFail();
+        $insight = Insight::with('author:id,name,position,photo')
+            ->where('slug', $slug)
+            ->where('is_published', true)
+            ->firstOrFail();
 
         // Increment view counter
         $insight->increment('views');
@@ -72,6 +75,11 @@ class InsightsPageController extends Controller
                 'meta_keywords' => $insight->meta_keywords,
                 'published_at' => $insight->published_at?->toISOString(),
                 'views' => $insight->views,
+                'author' => $insight->author ? [
+                    'name' => $insight->author->name,
+                    'position' => $insight->author->position,
+                    'photo' => $insight->author->photo,
+                ] : null,
             ],
             'relatedInsights' => $related->map(fn ($i) => [
                 'id' => $i->id,

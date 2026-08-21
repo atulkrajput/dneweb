@@ -4,7 +4,7 @@ import { Upload, X, Image, AlertCircle, Video, Youtube } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import InsightRichTextEditor from '@/Components/InsightRichTextEditor';
 
-export default function InsightForm({ insight }) {
+export default function InsightForm({ insight, teamMembers }) {
   const isEditing = !!insight;
   const [featuredPreview, setFeaturedPreview] = useState(insight?.featured_image || null);
   const [otherPreviews, setOtherPreviews] = useState(insight?.other_images || []);
@@ -32,6 +32,7 @@ export default function InsightForm({ insight }) {
     is_published: insight?.is_published ?? false,
     published_at: insight?.published_at ? insight.published_at.split('T')[0] : '',
     sort_order: insight?.sort_order || 0,
+    author_id: insight?.author_id || '',
   });
 
   const errors = { ...formErrors, ...pageErrors };
@@ -155,6 +156,7 @@ export default function InsightForm({ insight }) {
     formData.append('is_published', data.is_published ? '1' : '0');
     formData.append('published_at', data.published_at || '');
     formData.append('sort_order', data.sort_order);
+    formData.append('author_id', data.author_id || '');
 
     // Tags
     data.tags.forEach((tag, i) => {
@@ -239,6 +241,20 @@ export default function InsightForm({ insight }) {
             <textarea value={data.small_description} onChange={(e) => setData('small_description', e.target.value)} className={`form-input resize-y ${errors.small_description ? 'border-destructive' : ''}`} rows={3} placeholder="Brief description shown in listings (max 500 chars)" maxLength={500} />
             <p className="text-xs text-muted-foreground mt-1">{data.small_description.length}/500 characters</p>
             {errors.small_description && <p className="text-sm text-destructive mt-1">{errors.small_description}</p>}
+          </div>
+
+          {/* Author / Writer */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">Written By</label>
+            <select value={data.author_id} onChange={(e) => setData('author_id', e.target.value)} className="form-input">
+              <option value="">Select Author</option>
+              {(teamMembers || []).map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}{member.position ? ` — ${member.position}` : ''}
+                </option>
+              ))}
+            </select>
+            {errors.author_id && <p className="text-sm text-destructive mt-1">{errors.author_id}</p>}
           </div>
 
           {/* Tags */}

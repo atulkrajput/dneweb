@@ -67,6 +67,25 @@ export default function InsightShow({ insight }) {
             <p className="text-muted-foreground">{insight.small_description}</p>
           )}
 
+          {/* Author */}
+          {insight.author && (
+            <div className="flex items-center gap-3 pt-2">
+              {insight.author.photo ? (
+                <img src={insight.author.photo} alt={insight.author.name} className="w-10 h-10 rounded-full object-cover border border-border" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-sm font-bold text-primary">{insight.author.name?.[0]}</span>
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-medium text-foreground">{insight.author.name}</p>
+                {insight.author.position && (
+                  <p className="text-xs text-muted-foreground">{insight.author.position}</p>
+                )}
+              </div>
+            </div>
+          )}
+
           {insight.tags && insight.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {insight.tags.map((tag, i) => (

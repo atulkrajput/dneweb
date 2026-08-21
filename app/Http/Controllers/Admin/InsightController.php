@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Insight;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -14,13 +15,15 @@ class InsightController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Insights/Index', [
-            'insights' => Insight::latest()->get(),
+            'insights' => Insight::with('author:id,name,position,photo')->latest()->get(),
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Admin/Insights/Form');
+        return Inertia::render('Admin/Insights/Form', [
+            'teamMembers' => User::active()->ordered()->get(['id', 'name', 'position', 'photo']),
+        ]);
     }
 
     public function store(Request $request)
@@ -49,6 +52,7 @@ class InsightController extends Controller
             'is_published' => 'boolean',
             'published_at' => 'nullable|date',
             'sort_order' => 'nullable|integer',
+            'author_id' => 'nullable|exists:users,id',
         ]);
 
         // Handle featured image upload
@@ -100,14 +104,15 @@ class InsightController extends Controller
     public function show(Insight $insight)
     {
         return Inertia::render('Admin/Insights/Show', [
-            'insight' => $insight,
+            'insight' => $insight->load('author:id,name,position,photo'),
         ]);
     }
 
     public function edit(Insight $insight)
     {
         return Inertia::render('Admin/Insights/Form', [
-            'insight' => $insight,
+            'insight' => $insight->load('author:id,name,position,photo'),
+            'teamMembers' => User::active()->ordered()->get(['id', 'name', 'position', 'photo']),
         ]);
     }
 
@@ -138,6 +143,7 @@ class InsightController extends Controller
             'is_published' => 'boolean',
             'published_at' => 'nullable|date',
             'sort_order' => 'nullable|integer',
+            'author_id' => 'nullable|exists:users,id',
         ]);
 
         // Handle featured image upload

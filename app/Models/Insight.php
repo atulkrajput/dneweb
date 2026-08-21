@@ -24,6 +24,7 @@ class Insight extends Model
         'published_at',
         'views',
         'sort_order',
+        'author_id',
     ];
 
     protected $casts = [
@@ -49,6 +50,11 @@ class Insight extends Model
             'meta_description' => $metaDescription,
             'meta_keywords' => $metaKeywords,
         ];
+    }
+
+    public function author()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'author_id');
     }
 
     public function scopePublished($query)
