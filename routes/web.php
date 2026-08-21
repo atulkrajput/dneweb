@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\InsightController;
 use App\Http\Controllers\Admin\LeadController;
 use App\Http\Controllers\Admin\LegalPageController as AdminLegalPageController;
 use App\Http\Controllers\Admin\MaintenanceController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\TeamMemberController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\ContactFormController;
+use App\Http\Controllers\InsightsPageController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductPageController;
@@ -42,6 +44,10 @@ Route::post('/contact', [ContactFormController::class, 'store'])->name('contact.
 Route::get('/products', [ProductPageController::class, 'index'])->name('products.index');
 Route::get('/products/{slug}', [ProductPageController::class, 'show'])->name('products.show');
 Route::post('/products/{slug}/interest', [ProductPageController::class, 'storeInterest'])->name('products.interest');
+
+// Insights (Blog)
+Route::get('/insights', [InsightsPageController::class, 'index'])->name('insights.index');
+Route::get('/insights/{slug}', [InsightsPageController::class, 'show'])->name('insights.show');
 
 // Legal pages (privacy, terms, etc.)
 Route::get('/page/{slug}', [LegalPageController::class, 'show'])->name('legal.show');
@@ -130,6 +136,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/reports/revenue', [ReportController::class, 'revenue'])->name('reports.revenue');
     Route::get('/reports/projects', [ReportController::class, 'projects'])->name('reports.projects');
     Route::get('/reports/productivity', [ReportController::class, 'productivity'])->name('reports.productivity');
+
+    // Insights (Blog)
+    Route::post('/insights/upload-image', [InsightController::class, 'uploadImage'])->name('insights.uploadImage');
+    Route::resource('insights', InsightController::class);
 
     // Legal Pages
     Route::resource('legal-pages', AdminLegalPageController::class)->parameters(['legal-pages' => 'legal_page']);

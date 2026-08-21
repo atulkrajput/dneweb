@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun, Wrench } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun, Wrench, Lightbulb } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import FlashNotification from '@/Components/FlashNotification';
 
@@ -38,6 +38,7 @@ export default function AdminLayout({ children, title }) {
     { name: 'Invoices', href: '/admin/invoices', icon: Receipt, module: 'invoices' },
     { name: 'Campaigns', href: '/admin/campaigns', icon: BarChart3, module: 'campaigns' },
     { name: 'Reports', href: '/admin/reports', icon: PieChart, module: null },
+    { name: 'Insights', href: '/admin/insights', icon: Lightbulb, module: null },
     { name: 'Services', href: '/admin/services', icon: Briefcase, module: 'services' },
     { name: 'Team', href: '/admin/team', icon: Users, module: 'team' },
     { name: 'Settings', href: '/admin/settings', icon: Settings, module: null },
