@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\InsightController;
+use App\Http\Controllers\Admin\ApiKeyController;
 use App\Http\Controllers\Admin\LeadController;
 use App\Http\Controllers\Admin\LegalPageController as AdminLegalPageController;
 use App\Http\Controllers\Admin\MaintenanceController;
@@ -149,6 +150,13 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::post('/maintenance/clear-cache', [MaintenanceController::class, 'clearCache'])->name('maintenance.clearCache');
     Route::post('/maintenance/clear-log', [MaintenanceController::class, 'clearLog'])->name('maintenance.clearLog');
     Route::get('/maintenance/download-log', [MaintenanceController::class, 'downloadLog'])->name('maintenance.downloadLog');
+
+    // API Keys Management
+    Route::get('/api-keys', [ApiKeyController::class, 'index'])->name('api-keys.index');
+    Route::post('/api-keys', [ApiKeyController::class, 'store'])->name('api-keys.store');
+    Route::post('/api-keys/{apiKey}/toggle', [ApiKeyController::class, 'toggleStatus'])->name('api-keys.toggle');
+    Route::post('/api-keys/{apiKey}/regenerate', [ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
+    Route::delete('/api-keys/{apiKey}', [ApiKeyController::class, 'destroy'])->name('api-keys.destroy');
 });
 
 // Profile (from Breeze)

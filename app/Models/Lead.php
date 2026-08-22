@@ -22,6 +22,8 @@ class Lead extends Model
         'interested_service',
         'notes',
         'status',
+        'source',
+        'source_website',
         // Tracking fields
         'landing_url',
         'referrer',

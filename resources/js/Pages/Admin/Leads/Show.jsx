@@ -329,10 +329,16 @@ export default function LeadShow({ lead, services, internalNotes }) {
                   )}
 
                   {/* Campaign Tracking Data */}
-                  {(lead.utm_source || lead.utm_campaign || lead.landing_url || lead.referrer) && (
+                  {(lead.source || lead.source_website || lead.utm_source || lead.utm_campaign || lead.landing_url || lead.referrer) && (
                     <div className="pt-4 border-t border-border">
-                      <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Campaign Data</h3>
+                      <h3 className="text-xs text-muted-foreground uppercase tracking-wider mb-3">Source & Campaign Data</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                        {lead.source_website && (
+                          <div><span className="text-muted-foreground">Source Website:</span> <span className="text-primary font-medium ml-1">{lead.source_website}</span></div>
+                        )}
+                        {lead.source && (
+                          <div><span className="text-muted-foreground">Lead Source:</span> <span className="text-foreground ml-1">{lead.source}</span></div>
+                        )}
                         {lead.utm_source && (
                           <div><span className="text-muted-foreground">Source:</span> <span className="text-foreground ml-1">{lead.utm_source}</span></div>
                         )}

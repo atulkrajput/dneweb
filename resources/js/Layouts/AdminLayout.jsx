@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun, Wrench, Lightbulb } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, Briefcase, MessageSquare, Menu, X, LogOut, FileText, Package, ChevronDown, Star, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun, Wrench, Lightbulb, Key } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import FlashNotification from '@/Components/FlashNotification';
 
@@ -42,12 +42,13 @@ export default function AdminLayout({ children, title }) {
     { name: 'Services', href: '/admin/services', icon: Briefcase, module: 'services' },
     { name: 'Team', href: '/admin/team', icon: Users, module: 'team' },
     { name: 'Settings', href: '/admin/settings', icon: Settings, module: null },
+    { name: 'API Management', href: '/admin/api-keys', icon: Key, module: null },
     { name: 'Maintenance', href: '/admin/maintenance', icon: Wrench, module: null },
   ];
 
   const navItems = allNavItems.filter(item => {
     if (item.module === null) {
-      if (item.name === 'Settings' || item.name === 'Maintenance') return isSuperAdmin;
+      if (item.name === 'Settings' || item.name === 'Maintenance' || item.name === 'API Management') return isSuperAdmin;
       return true;
     }
     return canAccess(item.module);
