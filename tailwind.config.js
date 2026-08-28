@@ -1,6 +1,7 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 import animate from 'tailwindcss-animate';
+import typography from '@tailwindcss/typography';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -78,8 +79,27 @@ export default {
                 "accordion-down": "accordion-down 0.2s ease-out",
                 "accordion-up": "accordion-up 0.2s ease-out",
             },
+            typography: {
+                DEFAULT: {
+                    css: {
+                        // Let rich-text content fill its container instead of the
+                        // default 65ch measure, so it matches surrounding media widths.
+                        maxWidth: "none",
+                        color: "hsl(var(--muted-foreground))",
+                        p: { maxWidth: "none" },
+                        "h1, h2, h3, h4, h5, h6": { color: "hsl(var(--foreground))" },
+                        strong: { color: "hsl(var(--foreground))" },
+                        a: { color: "hsl(var(--primary))" },
+                        blockquote: { color: "hsl(var(--muted-foreground))" },
+                        code: { color: "hsl(var(--foreground))" },
+                        hr: { borderColor: "hsl(var(--border))" },
+                        "ul > li::marker": { color: "hsl(var(--muted-foreground))" },
+                        "ol > li::marker": { color: "hsl(var(--muted-foreground))" },
+                    },
+                },
+            },
         },
     },
 
-    plugins: [forms, animate],
+    plugins: [forms, animate, typography],
 };

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Insight;
 use App\Models\LegalPage;
 use App\Models\Product;
-use App\Models\Service;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
@@ -19,6 +19,7 @@ class SitemapController extends Controller
         $urls[] = ['loc' => url('/about'), 'priority' => '0.8', 'changefreq' => 'monthly'];
         $urls[] = ['loc' => url('/contact'), 'priority' => '0.8', 'changefreq' => 'monthly'];
         $urls[] = ['loc' => url('/products'), 'priority' => '0.8', 'changefreq' => 'weekly'];
+        $urls[] = ['loc' => url('/insights'), 'priority' => '0.8', 'changefreq' => 'weekly'];
 
         // Products
         $products = Product::active()->ordered()->get();
@@ -26,6 +27,17 @@ class SitemapController extends Controller
             $urls[] = [
                 'loc' => url("/products/{$product->slug}"),
                 'lastmod' => $product->updated_at->toW3cString(),
+                'priority' => '0.7',
+                'changefreq' => 'weekly',
+            ];
+        }
+
+        // Insights (blog articles)
+        $insights = Insight::published()->ordered()->get();
+        foreach ($insights as $insight) {
+            $urls[] = [
+                'loc' => url("/insights/{$insight->slug}"),
+                'lastmod' => $insight->updated_at?->toW3cString(),
                 'priority' => '0.7',
                 'changefreq' => 'weekly',
             ];

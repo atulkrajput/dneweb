@@ -200,7 +200,7 @@ export default function InsightShow({ insight, relatedInsights }) {
         {/* Featured Image */}
         {insight.featured_image && (
           <section className="py-8">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               <motion.img
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -229,7 +229,7 @@ export default function InsightShow({ insight, relatedInsights }) {
         {/* Other Images Gallery */}
         {insight.other_images && insight.other_images.length > 0 && (
           <section className="py-8">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
               <h3 className="text-xl font-semibold text-foreground mb-6">Gallery</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {insight.other_images.map((img, i) => (
