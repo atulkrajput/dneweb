@@ -7,6 +7,7 @@ use App\Models\LegalPage;
 use App\Models\Product;
 use App\Models\Service;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * Builds JSON-LD structured data (schema.org) for public routes.
@@ -51,7 +52,7 @@ class SeoSchema
 
         try {
             $pageDoc = match ($routeName) {
-                'home' => $this->webPage('Home', url('/')),
+                'home' => $this->webPage('Home', $this->siteUrl('/')),
                 'about' => $this->aboutPage(),
                 'contact' => $this->contactPage(),
                 'services' => $this->servicesCollection(),
@@ -71,7 +72,15 @@ class SeoSchema
             // sitewide Organization/WebSite still render.
         }
 
-        return array_values(array_filter($documents));
+        foreach ($documents as &$document) {
+            unset($document['@context']);
+        }
+        unset($document);
+
+        return [[
+            '@context' => 'https://schema.org',
+            '@graph' => array_values(array_filter($documents)),
+        ]];
     }
 
     // ---------------------------------------------------------------------
@@ -90,10 +99,10 @@ class SeoSchema
         $org = [
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
-            '@id' => url('/#organization'),
+            '@id' => $this->siteUrl('/#organization'),
             'name' => config('app.name', 'DNE Consultants'),
-            'url' => url('/'),
-            'logo' => url('/logo.png'),
+            'url' => $this->siteUrl('/'),
+            'logo' => $this->siteUrl('/logo.png'),
             'description' => 'DNE Consultants delivers AI automation, SaaS development, web & mobile apps, and managed IT services.',
         ];
 
@@ -118,10 +127,10 @@ class SeoSchema
         return [
             '@context' => 'https://schema.org',
             '@type' => 'WebSite',
-            '@id' => url('/#website'),
+            '@id' => $this->siteUrl('/#website'),
             'name' => config('app.name', 'DNE Consultants'),
-            'url' => url('/'),
-            'publisher' => ['@id' => url('/#organization')],
+            'url' => $this->siteUrl('/'),
+            'publisher' => ['@id' => $this->siteUrl('/#organization')],
         ];
     }
 
@@ -136,21 +145,21 @@ class SeoSchema
             '@type' => 'WebPage',
             'name' => $name,
             'url' => $url,
-            'isPartOf' => ['@id' => url('/#website')],
-            'publisher' => ['@id' => url('/#organization')],
+            'isPartOf' => ['@id' => $this->siteUrl('/#website')],
+            'publisher' => ['@id' => $this->siteUrl('/#organization')],
         ];
     }
 
     protected function aboutPage(): array
     {
-        return array_merge($this->webPage('About DNE Consultants', url('/about')), [
+        return array_merge($this->webPage('About DNE Consultants', $this->siteUrl('/about')), [
             '@type' => 'AboutPage',
         ]);
     }
 
     protected function contactPage(): array
     {
-        return array_merge($this->webPage('Contact DNE Consultants', url('/contact')), [
+        return array_merge($this->webPage('Contact DNE Consultants', $this->siteUrl('/contact')), [
             '@type' => 'ContactPage',
         ]);
     }
@@ -167,8 +176,8 @@ class SeoSchema
                     '@type' => 'Service',
                     'name' => $service->title,
                     'description' => (string) ($service->subtitle ?? ''),
-                    'provider' => ['@id' => url('/#organization')],
-                    'url' => url('/services'),
+                    'provider' => ['@id' => $this->siteUrl('/#organization')],
+                    'url' => $this->siteUrl('/services'),
                 ],
             ];
         })->all();
@@ -177,15 +186,15 @@ class SeoSchema
             '@context' => 'https://schema.org',
             '@type' => 'CollectionPage',
             'name' => 'Services',
-            'url' => url('/services'),
-            'isPartOf' => ['@id' => url('/#website')],
+            'url' => $this->siteUrl('/services'),
+            'isPartOf' => ['@id' => $this->siteUrl('/#website')],
             'mainEntity' => [
                 '@type' => 'ItemList',
                 'itemListElement' => $items,
             ],
             'breadcrumb' => $this->breadcrumb([
-                ['Home', url('/')],
-                ['Services', url('/services')],
+                ['Home', $this->siteUrl('/')],
+                ['Services', $this->siteUrl('/services')],
             ]),
         ];
     }
@@ -199,7 +208,7 @@ class SeoSchema
                 '@type' => 'ListItem',
                 'position' => $index + 1,
                 'name' => $product->name,
-                'url' => url('/products/' . $product->slug),
+                'url' => $this->siteUrl('/products/' . $product->slug),
             ];
         })->all();
 
@@ -207,15 +216,15 @@ class SeoSchema
             '@context' => 'https://schema.org',
             '@type' => 'CollectionPage',
             'name' => 'Products',
-            'url' => url('/products'),
-            'isPartOf' => ['@id' => url('/#website')],
+            'url' => $this->siteUrl('/products'),
+            'isPartOf' => ['@id' => $this->siteUrl('/#website')],
             'mainEntity' => [
                 '@type' => 'ItemList',
                 'itemListElement' => $items,
             ],
             'breadcrumb' => $this->breadcrumb([
-                ['Home', url('/')],
-                ['Products', url('/products')],
+                ['Home', $this->siteUrl('/')],
+                ['Products', $this->siteUrl('/products')],
             ]),
         ];
     }
@@ -226,12 +235,12 @@ class SeoSchema
             '@context' => 'https://schema.org',
             '@type' => 'Blog',
             'name' => 'DNE Insights',
-            'url' => url('/insights'),
-            'isPartOf' => ['@id' => url('/#website')],
-            'publisher' => ['@id' => url('/#organization')],
+            'url' => $this->siteUrl('/insights'),
+            'isPartOf' => ['@id' => $this->siteUrl('/#website')],
+            'publisher' => ['@id' => $this->siteUrl('/#organization')],
             'breadcrumb' => $this->breadcrumb([
-                ['Home', url('/')],
-                ['Insights', url('/insights')],
+                ['Home', $this->siteUrl('/')],
+                ['Insights', $this->siteUrl('/insights')],
             ]),
         ];
     }
@@ -252,15 +261,15 @@ class SeoSchema
             '@type' => 'Product',
             'name' => $product->name,
             'description' => strip_tags((string) ($product->summary ?? $product->description ?? '')),
-            'url' => url('/products/' . $product->slug),
+            'url' => $this->siteUrl('/products/' . $product->slug),
             'brand' => [
                 '@type' => 'Brand',
                 'name' => config('app.name', 'DNE Consultants'),
             ],
             'breadcrumb' => $this->breadcrumb([
-                ['Home', url('/')],
-                ['Products', url('/products')],
-                [$product->name, url('/products/' . $product->slug)],
+                ['Home', $this->siteUrl('/')],
+                ['Products', $this->siteUrl('/products')],
+                [$product->name, $this->siteUrl('/products/' . $product->slug)],
             ]),
         ];
 
@@ -286,22 +295,51 @@ class SeoSchema
             return null;
         }
 
+        $description = $insight->meta_description
+            ?: $insight->small_description
+            ?: $insight->detail_description
+            ?: $insight->title;
+        $description = Str::limit(trim(strip_tags((string) $description)), 160, '');
+        $image = $insight->featured_image
+            ? $this->absoluteUrl($insight->featured_image)
+            : $this->siteUrl('/logo.png');
+        $authorName = $insight->author?->name ?: config('app.name', 'DNE Consultants');
+        $tags = is_array($insight->tags) ? array_values(array_filter($insight->tags)) : [];
+
         $doc = [
             '@context' => 'https://schema.org',
             '@type' => 'BlogPosting',
+            '@id' => $this->siteUrl('/insights/' . $insight->slug . '#article'),
             'headline' => $insight->title,
-            'description' => strip_tags((string) ($insight->meta_description ?? $insight->small_description ?? '')),
-            'url' => url('/insights/' . $insight->slug),
+            'description' => $description !== '' ? $description : $insight->title,
+            'image' => [$image],
+            'url' => $this->siteUrl('/insights/' . $insight->slug),
+            'inLanguage' => str_replace('-', '_', app()->getLocale()),
+            'articleSection' => $tags[0] ?? 'Technology',
+            'keywords' => $tags,
             'mainEntityOfPage' => [
                 '@type' => 'WebPage',
-                '@id' => url('/insights/' . $insight->slug),
+                '@id' => $this->siteUrl('/insights/' . $insight->slug),
             ],
-            'publisher' => ['@id' => url('/#organization')],
-            'isPartOf' => ['@id' => url('/#website')],
+            'author' => [
+                '@type' => 'Person',
+                'name' => $authorName,
+            ],
+            'publisher' => [
+                '@type' => 'Organization',
+                '@id' => $this->siteUrl('/#organization'),
+                'name' => config('app.name', 'DNE Consultants'),
+                'url' => $this->siteUrl('/'),
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    'url' => $this->siteUrl('/logo.png'),
+                ],
+            ],
+            'isPartOf' => ['@id' => $this->siteUrl('/#website')],
             'breadcrumb' => $this->breadcrumb([
-                ['Home', url('/')],
-                ['Insights', url('/insights')],
-                [$insight->title, url('/insights/' . $insight->slug)],
+                ['Home', $this->siteUrl('/')],
+                ['Insights', $this->siteUrl('/insights')],
+                [$insight->title, $this->siteUrl('/insights/' . $insight->slug)],
             ]),
         ];
 
@@ -310,15 +348,6 @@ class SeoSchema
         }
         if ($insight->updated_at) {
             $doc['dateModified'] = $insight->updated_at->toIso8601String();
-        }
-        if ($insight->featured_image) {
-            $doc['image'] = $this->absoluteUrl($insight->featured_image);
-        }
-        if ($insight->author?->name) {
-            $doc['author'] = [
-                '@type' => 'Person',
-                'name' => $insight->author->name,
-            ];
         }
 
         return $doc;
@@ -335,10 +364,10 @@ class SeoSchema
             return null;
         }
 
-        return array_merge($this->webPage($legal->title, url('/legal/' . $legal->slug)), [
+        return array_merge($this->webPage($legal->title, $this->siteUrl('/legal/' . $legal->slug)), [
             'breadcrumb' => $this->breadcrumb([
-                ['Home', url('/')],
-                [$legal->title, url('/legal/' . $legal->slug)],
+                ['Home', $this->siteUrl('/')],
+                [$legal->title, $this->siteUrl('/legal/' . $legal->slug)],
             ]),
         ]);
     }
@@ -366,6 +395,18 @@ class SeoSchema
     }
 
     /**
+     * Build an absolute URL on the configured canonical origin.
+     */
+    protected function siteUrl(string $path = '/'): string
+    {
+        $base = rtrim(config('seo.canonical_url'), '/');
+
+        return $path === '/' || $path === ''
+            ? $base . '/'
+            : $base . '/' . ltrim($path, '/');
+    }
+
+    /**
      * Turn a possibly-relative stored path into an absolute URL for schema image fields.
      */
     protected function absoluteUrl(string $path): string
@@ -376,10 +417,10 @@ class SeoSchema
 
         // Absolute site paths (e.g. "/storage/..." or "/images/...") — just prefix host.
         if (str_starts_with($path, '/')) {
-            return url($path);
+            return $this->siteUrl($path);
         }
 
         // Bare storage-relative path (e.g. "insights/hero.jpg").
-        return url('/storage/' . ltrim($path, '/'));
+        return $this->siteUrl('/storage/' . ltrim($path, '/'));
     }
 }

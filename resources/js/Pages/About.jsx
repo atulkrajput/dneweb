@@ -43,9 +43,7 @@ export default function About({ page, team, values, stats, testimonials, partner
 
   return (
     <PublicLayout>
-      <Head title={seo.meta_title || 'About DNE Consultants | AI & Technology Partner'}>
-        <meta name="description" content={seo.meta_description || "DNE Consultants is an execution-first technology partner specialising in AI, automation, software, and IT."} />
-      </Head>
+      <Head title={seo.meta_title || 'About DNE Consultants | AI & Technology Partner'} />
 
       {/* HERO */}
       <section className="relative min-h-[80dvh] flex items-center justify-center overflow-hidden border-b border-border/40">

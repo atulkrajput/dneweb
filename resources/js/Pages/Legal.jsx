@@ -5,9 +5,7 @@ import PublicLayout from '@/Layouts/PublicLayout';
 export default function Legal({ page }) {
   return (
     <PublicLayout>
-      <Head title={page.meta_title || page.title}>
-        {page.meta_description && <meta name="description" content={page.meta_description} />}
-      </Head>
+      <Head title={page.meta_title || page.title} />
 
       <section className="section-padding bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

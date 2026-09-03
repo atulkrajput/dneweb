@@ -7,6 +7,7 @@ use App\Models\LegalPage;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\Setting;
+use App\Support\SeoMeta;
 use App\Support\SeoSchema;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -57,13 +58,84 @@ class HandleInertiaRequests extends Middleware
                 'footer_scripts' => $settings['footer_scripts'] ?? '',
             ],
             'recaptchaSiteKey' => config('services.recaptcha.site_key'),
+            'canonicalUrl' => $this->canonicalUrl($request),
+            'seoMeta' => (new SeoMeta)->forRequest($request),
             'seoFallback' => $this->resolveSeoFallback($request),
+            'seoLinks' => $this->resolveSeoLinks($request),
             'structuredData' => (new SeoSchema($settings))->forRequest($request),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
             ],
         ];
+    }
+
+    /**
+     * Build a crawlable internal-link set for the non-JS fallback markup.
+     *
+     * Header/Footer links are React-rendered, so crawlers that do not execute
+     * JavaScript would otherwise see no incoming or outgoing internal links.
+     */
+    protected function resolveSeoLinks(Request $request): array
+    {
+        if (! $request->isMethod('GET') || $request->is('admin', 'admin/*', 'profile*', 'proposal/*')) {
+            return [];
+        }
+
+        $base = rtrim(config('seo.canonical_url'), '/');
+        $links = [
+            ['label' => 'Home', 'url' => $base . '/'],
+            ['label' => 'About DNE Consultants', 'url' => $base . '/about'],
+            ['label' => 'Services', 'url' => $base . '/services'],
+            ['label' => 'Products', 'url' => $base . '/products'],
+            ['label' => 'Insights', 'url' => $base . '/insights'],
+            ['label' => 'Contact', 'url' => $base . '/contact'],
+        ];
+
+        try {
+            foreach (Product::active()->ordered()->get(['name', 'slug']) as $product) {
+                $links[] = ['label' => $product->name, 'url' => $base . '/products/' . $product->slug];
+            }
+
+            foreach (Insight::published()->ordered()->get(['title', 'slug']) as $insight) {
+                $links[] = ['label' => $insight->title, 'url' => $base . '/insights/' . $insight->slug];
+            }
+
+            foreach (LegalPage::where('is_active', true)->orderBy('title')->get(['title', 'slug']) as $legal) {
+                $links[] = ['label' => $legal->title, 'url' => $base . '/legal/' . $legal->slug];
+            }
+        } catch (\Throwable $e) {
+            // Keep the primary navigation available if optional content is unavailable.
+        }
+
+        return $links;
+    }
+
+    /**
+     * Build a query-free canonical URL on the configured production origin.
+     *
+     * Query strings are intentionally excluded so tracking parameters and
+     * signed/request-specific URLs do not create separate canonical pages.
+     */
+    protected function canonicalUrl(Request $request): ?string
+    {
+        if (! $request->isMethod('GET') || $request->is(
+            'admin',
+            'admin/*',
+            'profile*',
+            'login',
+            'register',
+            'forgot-password',
+            'reset-password*',
+            'verify-email*'
+        )) {
+            return null;
+        }
+
+        $path = $request->getPathInfo();
+
+        return rtrim(config('seo.canonical_url'), '/')
+            . ($path === '/' ? '/' : '/' . ltrim($path, '/'));
     }
 
     /**

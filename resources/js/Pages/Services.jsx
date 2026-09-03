@@ -99,9 +99,7 @@ export default function Services({ page, services }) {
 
   return (
     <PublicLayout>
-      <Head title={seo.meta_title || 'AI, Automation & Software Development Services | DNE Consultants'}>
-        <meta name="description" content={seo.meta_description || "Explore DNE's services — AI automation, SaaS products, web & mobile development, and managed IT."} />
-      </Head>
+      <Head title={seo.meta_title || 'AI, Automation & Software Development Services | DNE Consultants'} />
 
       {/* HERO */}
       <section className="relative pt-10 pb-12 md:pt-12 md:pb-14 overflow-hidden border-b border-border/40">

@@ -72,9 +72,7 @@ export default function Home({ page, capabilities, stats, servicesPreview }) {
 
   return (
     <PublicLayout>
-      <Head title={seo.meta_title || 'AI Automation & Technology Solutions | DNE Consultants'}>
-        <meta name="description" content={seo.meta_description || 'DNE Consultants delivers AI automation, SaaS development, web & mobile apps, and managed IT services. One team. Full accountability. Real results.'} />
-      </Head>
+      <Head title={seo.meta_title || 'AI Automation & Technology Solutions | DNE Consultants'} />
 
       {/* HERO */}
       <section className="relative min-h-[90dvh] flex items-center overflow-hidden border-b border-border/40">

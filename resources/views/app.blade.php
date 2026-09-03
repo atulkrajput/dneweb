@@ -10,12 +10,36 @@
         <link rel="dns-prefetch" href="https://images.unsplash.com">
         <link rel="dns-prefetch" href="https://www.google.com">
 
+        @if(!empty($page['props']['seoMeta'] ?? []))
+        <title inertia>{{ $page['props']['seoMeta']['title'] }}</title>
+        <meta name="description" content="{{ $page['props']['seoMeta']['description'] }}" inertia="description">
+        <meta property="og:type" content="{{ ($page['props']['seoMeta']['type'] ?? 'website') === 'article' ? 'article' : 'website' }}" inertia="og:type">
+        <meta property="og:title" content="{{ $page['props']['seoMeta']['title'] }}" inertia="og:title">
+        <meta property="og:description" content="{{ $page['props']['seoMeta']['description'] }}" inertia="og:description">
+        <meta property="og:url" content="{{ $page['props']['seoMeta']['canonical'] }}" inertia="og:url">
+        <meta property="og:site_name" content="{{ $page['props']['seoMeta']['siteName'] }}" inertia="og:site_name">
+        <meta property="og:locale" content="{{ $page['props']['seoMeta']['locale'] }}" inertia="og:locale">
+        <meta property="og:image" content="{{ $page['props']['seoMeta']['image'] }}" inertia="og:image">
+        <meta property="og:image:alt" content="{{ $page['props']['seoMeta']['imageAlt'] }}" inertia="og:image:alt">
+        <meta name="twitter:card" content="{{ $page['props']['seoMeta']['twitterCard'] }}" inertia="twitter:card">
+        <meta name="twitter:title" content="{{ $page['props']['seoMeta']['title'] }}" inertia="twitter:title">
+        <meta name="twitter:description" content="{{ $page['props']['seoMeta']['description'] }}" inertia="twitter:description">
+        <meta name="twitter:url" content="{{ $page['props']['seoMeta']['canonical'] }}" inertia="twitter:url">
+        <meta name="twitter:image" content="{{ $page['props']['seoMeta']['image'] }}" inertia="twitter:image">
+        <meta name="twitter:image:alt" content="{{ $page['props']['seoMeta']['imageAlt'] }}" inertia="twitter:image:alt">
+        @if(($page['props']['seoMeta']['type'] ?? '') === 'article' && !empty($page['props']['seoMeta']['publishedTime']))
+        <meta property="article:published_time" content="{{ $page['props']['seoMeta']['publishedTime'] }}" inertia="article:published_time">
+        @endif
+        @if(($page['props']['seoMeta']['type'] ?? '') === 'article' && !empty($page['props']['seoMeta']['modifiedTime']))
+        <meta property="article:modified_time" content="{{ $page['props']['seoMeta']['modifiedTime'] }}" inertia="article:modified_time">
+        @endif
+        @else
         <title inertia>{{ config('app.name', 'DNE Consultants') }}</title>
+        @endif
 
-        {{-- Server-rendered keywords for crawlers (this app has no Inertia SSR, so the
-             initial HTML must carry the meta). Marked `inertia` so the client Head
-             manager takes ownership and keeps it correct across SPA navigation.
-             Per-URL value resolved in HandleInertiaRequests::resolveSeoFallback(). --}}
+        @if(!empty($page['props']['canonicalUrl'] ?? ''))
+        <link rel="canonical" href="{{ $page['props']['canonicalUrl'] }}" inertia="canonical">
+        @endif
         @if(!empty($page['props']['seoFallback']['keywords'] ?? ''))
         <meta name="keywords" content="{{ $page['props']['seoFallback']['keywords'] }}" inertia="keywords">
         @endif
@@ -24,13 +48,6 @@
         <link rel="icon" type="image/x-icon" href="/favicon.ico">
         <link rel="icon" type="image/png" sizes="192x192" href="/icon.png">
         <link rel="apple-touch-icon" href="/icon.png">
-
-        <!-- Open Graph Defaults -->
-        <meta property="og:type" content="website">
-        <meta property="og:site_name" content="{{ config('app.name', 'DNE Consultants') }}">
-        <meta property="og:image" content="{{ url('/logo.png') }}">
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:image" content="{{ url('/logo.png') }}">
 
         {{-- Structured data (JSON-LD) for Google Search. Server-rendered so crawlers
              see it despite the app having no Inertia SSR. Resolved per route in
@@ -145,6 +162,15 @@
                 <h1>{{ $page['props']['seoFallback']['h1'] }}</h1>
                 @if(!empty($page['props']['seoFallback']['intro'] ?? ''))
                 <p>{{ $page['props']['seoFallback']['intro'] }}</p>
+                @endif
+                @if(!empty($page['props']['seoLinks'] ?? []))
+                <nav aria-label="Site navigation">
+                    <ul>
+                        @foreach($page['props']['seoLinks'] as $seoLink)
+                        <li><a href="{{ $seoLink['url'] }}">{{ $seoLink['label'] }}</a></li>
+                        @endforeach
+                    </ul>
+                </nav>
                 @endif
             </div>
             @endif
