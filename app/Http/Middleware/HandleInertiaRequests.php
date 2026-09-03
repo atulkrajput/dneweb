@@ -7,6 +7,7 @@ use App\Models\LegalPage;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\Setting;
+use App\Support\SeoSchema;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -57,6 +58,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'recaptchaSiteKey' => config('services.recaptcha.site_key'),
             'seoFallback' => $this->resolveSeoFallback($request),
+            'structuredData' => (new SeoSchema($settings))->forRequest($request),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

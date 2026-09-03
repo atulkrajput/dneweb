@@ -32,6 +32,14 @@
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:image" content="{{ url('/logo.png') }}">
 
+        {{-- Structured data (JSON-LD) for Google Search. Server-rendered so crawlers
+             see it despite the app having no Inertia SSR. Resolved per route in
+             App\Support\SeoSchema (Organization, WebSite, Article, Product, etc.).
+             JSON_HEX_TAG/AMP/APOS/QUOT prevent breaking out of the <script> element. --}}
+        @foreach(($page['props']['structuredData'] ?? []) as $ldDocument)
+        <script type="application/ld+json">{!! json_encode($ldDocument, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+        @endforeach
+
         <!-- Fonts: preconnect + non-blocking load (eliminates render-blocking @import chain) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
