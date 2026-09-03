@@ -37,7 +37,7 @@ export default function LegalPagesIndex({ pages }) {
                 <tr key={page.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4 text-sm font-medium text-foreground">{page.title}</td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">
-                    <code className="text-xs bg-muted px-2 py-1 rounded">/page/{page.slug}</code>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">/legal/{page.slug}</code>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full ${page.is_active ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
@@ -46,7 +46,7 @@ export default function LegalPagesIndex({ pages }) {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">
-                    <a href={`/page/${page.slug}`} target="_blank" rel="noopener" className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Preview">
+                    <a href={`/legal/${page.slug}`} target="_blank" rel="noopener" className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Preview">
                       <Eye className="h-4 w-4" />
                     </a>
                     <Link href={`/admin/legal-pages/${page.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors">

@@ -5,8 +5,7 @@ import PublicLayout from '@/Layouts/PublicLayout';
 export default function Legal({ page }) {
   return (
     <PublicLayout>
-      <Head>
-        <title>{page.meta_title || page.title}</title>
+      <Head title={page.meta_title || page.title}>
         {page.meta_description && <meta name="description" content={page.meta_description} />}
       </Head>
 

@@ -12,6 +12,14 @@
 
         <title inertia>{{ config('app.name', 'DNE Consultants') }}</title>
 
+        {{-- Server-rendered keywords for crawlers (this app has no Inertia SSR, so the
+             initial HTML must carry the meta). Marked `inertia` so the client Head
+             manager takes ownership and keeps it correct across SPA navigation.
+             Per-URL value resolved in HandleInertiaRequests::resolveSeoFallback(). --}}
+        @if(!empty($page['props']['seoFallback']['keywords'] ?? ''))
+        <meta name="keywords" content="{{ $page['props']['seoFallback']['keywords'] }}" inertia="keywords">
+        @endif
+
         <!-- Favicon & App Icons -->
         <link rel="icon" type="image/x-icon" href="/favicon.ico">
         <link rel="icon" type="image/png" sizes="192x192" href="/icon.png">
@@ -116,7 +124,23 @@
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $page['props']['tracking']['gtm_id'] }}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         @endif
 
-        @inertia
+        {{--
+            Inertia root element, rendered manually so we can include a
+            server-rendered SEO fallback (H1 + intro) for non-JS crawlers.
+            This app has no Inertia SSR, so without this the raw HTML has no <h1>.
+            React's createRoot(#app).render() replaces these children on hydration,
+            so real users never see this fallback.
+        --}}
+        <div id="app" data-page="{{ json_encode($page) }}">
+            @if(!empty($page['props']['seoFallback']['h1'] ?? ''))
+            <div data-seo-fallback>
+                <h1>{{ $page['props']['seoFallback']['h1'] }}</h1>
+                @if(!empty($page['props']['seoFallback']['intro'] ?? ''))
+                <p>{{ $page['props']['seoFallback']['intro'] }}</p>
+                @endif
+            </div>
+            @endif
+        </div>
 
         {{-- Custom Footer Scripts --}}
         {!! $page['props']['tracking']['footer_scripts'] ?? '' !!}

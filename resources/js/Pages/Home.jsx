@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
@@ -19,6 +19,22 @@ const iconMap = { Bot, Layers, MonitorSmartphone, Server };
 
 export default function Home({ page, capabilities, stats, servicesPreview }) {
   const seo = page || {};
+
+  // The hero animation mounts ~50 infinitely-animating framer-motion nodes, which
+  // is real main-thread work. Defer mounting it until the browser is idle so it
+  // doesn't compete with hydration/interactivity during initial load (lowers TBT).
+  // It's decorative and desktop-only (hidden lg:flex), so a brief delay is invisible.
+  const [showHeroAnimation, setShowHeroAnimation] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const start = () => setShowHeroAnimation(true);
+    if ('requestIdleCallback' in window) {
+      const id = window.requestIdleCallback(start, { timeout: 2000 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+    const t = setTimeout(start, 600);
+    return () => clearTimeout(t);
+  }, []);
 
   const defaultCapabilities = [
     { title: 'AI & Automation', description: 'We deploy intelligent automation that handles the repetitive, accelerates the complex, and gives your team their time back.', icon: 'Bot' },
@@ -56,8 +72,7 @@ export default function Home({ page, capabilities, stats, servicesPreview }) {
 
   return (
     <PublicLayout>
-      <Head>
-        <title>{seo.meta_title || 'AI Automation & Technology Solutions | DNE Consultants'}</title>
+      <Head title={seo.meta_title || 'AI Automation & Technology Solutions | DNE Consultants'}>
         <meta name="description" content={seo.meta_description || 'DNE Consultants delivers AI automation, SaaS development, web & mobile apps, and managed IT services. One team. Full accountability. Real results.'} />
       </Head>
 
@@ -96,7 +111,9 @@ export default function Home({ page, capabilities, stats, servicesPreview }) {
             </motion.div>
 
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.9, delay: 0.2 }} className="hidden lg:flex justify-center items-center">
-              <TechNetworkAnimation />
+              {showHeroAnimation
+                ? <TechNetworkAnimation />
+                : <div className="w-full aspect-square max-w-[500px] mx-auto" aria-hidden="true" />}
             </motion.div>
           </div>
         </div>

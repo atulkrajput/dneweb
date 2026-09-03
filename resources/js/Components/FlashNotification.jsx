@@ -1,45 +1,34 @@
 import { useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
-import Swal from 'sweetalert2';
+
+// sweetalert2 is large and only needed when a flash message is actually present.
+// Import it dynamically so it stays out of the initial/shared bundle (reduces TBT).
+const toast = async (options) => {
+  const { default: Swal } = await import('sweetalert2');
+  return Swal.fire({
+    timerProgressBar: true,
+    showConfirmButton: false,
+    toast: true,
+    position: 'top-end',
+    background: 'var(--color-card)',
+    color: 'var(--color-foreground)',
+    customClass: {
+      popup: 'rounded-xl border border-border shadow-lg',
+    },
+    ...options,
+  });
+};
 
 export default function FlashNotification() {
   const { flash } = usePage().props;
 
   useEffect(() => {
     if (flash?.success) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Success',
-        text: flash.success,
-        timer: 3000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        toast: true,
-        position: 'top-end',
-        background: 'var(--color-card)',
-        color: 'var(--color-foreground)',
-        customClass: {
-          popup: 'rounded-xl border border-border shadow-lg',
-        },
-      });
+      toast({ icon: 'success', title: 'Success', text: flash.success, timer: 3000 });
     }
 
     if (flash?.error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: flash.error,
-        timer: 4000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-        toast: true,
-        position: 'top-end',
-        background: 'var(--color-card)',
-        color: 'var(--color-foreground)',
-        customClass: {
-          popup: 'rounded-xl border border-border shadow-lg',
-        },
-      });
+      toast({ icon: 'error', title: 'Error', text: flash.error, timer: 4000 });
     }
   }, [flash?.success, flash?.error]);
 

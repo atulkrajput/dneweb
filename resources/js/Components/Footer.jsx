@@ -115,10 +115,10 @@ export default function Footer() {
               © {new Date().getFullYear()} DNE Technology Consultants. All rights reserved.
             </p>
             <div className="flex space-x-6">
-              <Link href="/page/privacy-policy" className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200">
+              <Link href="/legal/privacy-policy" className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200">
                 Privacy Policy
               </Link>
-              <Link href="/page/terms-of-service" className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200">
+              <Link href="/legal/terms-of-service" className="text-sm text-muted-foreground hover:text-primary transition-colors duration-200">
                 Terms of Service
               </Link>
             </div>

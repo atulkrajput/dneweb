@@ -122,10 +122,8 @@ export default function InsightShow({ insight, relatedInsights }) {
 
   return (
     <PublicLayout>
-      <Head>
-        <title>{insight.meta_title || insight.title}</title>
+      <Head title={insight.meta_title || insight.title}>
         <meta name="description" content={insight.meta_description || insight.small_description || ''} />
-        {insight.meta_keywords && <meta name="keywords" content={insight.meta_keywords} />}
         <meta property="og:title" content={insight.meta_title || insight.title} />
         <meta property="og:description" content={insight.meta_description || insight.small_description || ''} />
         {insight.featured_image && <meta property="og:image" content={insight.featured_image} />}

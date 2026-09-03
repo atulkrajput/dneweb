@@ -51,7 +51,12 @@ Route::get('/insights', [InsightsPageController::class, 'index'])->name('insight
 Route::get('/insights/{slug}', [InsightsPageController::class, 'show'])->name('insights.show');
 
 // Legal pages (privacy, terms, etc.)
-Route::get('/page/{slug}', [LegalPageController::class, 'show'])->name('legal.show');
+Route::get('/legal/{slug}', [LegalPageController::class, 'show'])->name('legal.show');
+
+// 301 redirect from the old, non-descriptive /page/{slug} URL to /legal/{slug} (preserves SEO)
+Route::get('/page/{slug}', function (string $slug) {
+    return redirect()->route('legal.show', ['slug' => $slug], 301);
+});
 
 // Public proposal acceptance (signed URL from email)
 Route::get('/proposal/{proposal}/accept', [App\Http\Controllers\ProposalAcceptController::class, 'accept'])

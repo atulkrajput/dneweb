@@ -165,8 +165,7 @@ export default function Contact({ page }) {
 
   return (
     <PublicLayout>
-      <Head>
-        <title>{seo.meta_title || 'Contact DNE Consultants | Start Your Project'}</title>
+      <Head title={seo.meta_title || 'Contact DNE Consultants | Start Your Project'}>
         <meta name="description" content={seo.meta_description || "Get in touch with DNE Consultants. We respond within 1 business day."} />
       </Head>
 

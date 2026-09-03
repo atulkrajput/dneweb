@@ -47,7 +47,7 @@ class SitemapController extends Controller
         $legalPages = LegalPage::where('is_active', true)->get();
         foreach ($legalPages as $page) {
             $urls[] = [
-                'loc' => url("/page/{$page->slug}"),
+                'loc' => url("/legal/{$page->slug}"),
                 'lastmod' => $page->updated_at->toW3cString(),
                 'priority' => '0.3',
                 'changefreq' => 'yearly',

@@ -1,15 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/Components/ui/sheet';
 import ThemeToggle from '@/Components/ThemeToggle';
 import { useTheme } from '@/hooks/useTheme';
 
+// The mobile drawer pulls in the Radix dialog primitive. Load it in its own
+// chunk and only after the menu is first opened, so it never blocks initial load.
+const MobileMenu = lazy(() => import('@/Components/MobileMenu'));
+
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  // Once the menu has been opened at least once, keep the component mounted so
+  // the open/close animation stays smooth on subsequent toggles.
+  const [menuMounted, setMenuMounted] = useState(false);
   const { url } = usePage();
   const { theme } = useTheme();
+
+  const openMenu = () => {
+    setMenuMounted(true);
+    setIsOpen(true);
+  };
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -63,40 +74,26 @@ export default function Header() {
 
           <div className="flex items-center gap-2 md:hidden">
             <ThemeToggle />
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-foreground hover:bg-muted">
-                  {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-card border-border">
-                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                <nav className="flex flex-col space-y-4 mt-8">
-                  {navItems.map((item) => (
-                    <Link
-                      key={item.path}
-                      href={item.path}
-                      onClick={() => setIsOpen(false)}
-                      className={`px-4 py-3 text-base font-medium rounded-lg transition-all duration-200 ${
-                        isActive(item.path)
-                          ? 'text-primary bg-primary/10'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
-                  <div className="pt-4 border-t border-border mt-4">
-                    <Link href="/contact#contact-form" onClick={() => setIsOpen(false)}>
-                      <Button className="w-full btn-primary py-6 text-base">
-                        Let's Build
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                </nav>
-              </SheetContent>
-            </Sheet>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-foreground hover:bg-muted"
+              aria-label="Open navigation menu"
+              aria-expanded={isOpen}
+              onClick={() => (isOpen ? setIsOpen(false) : openMenu())}
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+            {menuMounted && (
+              <Suspense fallback={null}>
+                <MobileMenu
+                  open={isOpen}
+                  onOpenChange={setIsOpen}
+                  navItems={navItems}
+                  isActive={isActive}
+                />
+              </Suspense>
+            )}
           </div>
         </div>
       </div>

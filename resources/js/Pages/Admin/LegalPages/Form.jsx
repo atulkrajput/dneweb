@@ -40,7 +40,7 @@ export default function LegalPageForm({ page }) {
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">URL Slug *</label>
               <div className="flex items-center">
-                <span className="text-sm text-muted-foreground mr-2">/page/</span>
+                <span className="text-sm text-muted-foreground mr-2">/legal/</span>
                 <input type="text" value={data.slug} onChange={(e) => setData('slug', e.target.value)} className="form-input" placeholder="privacy-policy" />
               </div>
               {errors.slug && <p className="text-sm text-destructive mt-1">{errors.slug}</p>}
