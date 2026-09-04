@@ -41,7 +41,7 @@ class SeoMeta
             'home' => [
                 'slug' => 'home',
                 'title' => 'AI Automation & Technology Solutions | DNE Consultants',
-                'description' => 'DNE Consultants delivers AI automation, SaaS development, web and mobile apps, and managed IT services. One team. Full accountability. Real results.',
+                'description' => 'DNE Consultants delivers AI automation, SaaS products, web and mobile apps, and managed IT services that help businesses work smarter and scale securely.',
                 'imageAlt' => 'DNE Consultants technology solutions',
                 'type' => 'website',
             ],
@@ -69,7 +69,7 @@ class SeoMeta
             'products.index' => [
                 'slug' => 'products',
                 'title' => 'SaaS Products & AI Solutions | DNE Consultants',
-                'description' => 'Explore SaaS platforms and AI-powered products designed, built, and maintained by DNE Consultants.',
+                'description' => 'Explore SaaS platforms and AI-powered products built by DNE Consultants to automate operations, improve customer experiences, and help businesses scale.',
                 'imageAlt' => 'DNE Consultants SaaS products and AI solutions',
                 'type' => 'website',
             ],
@@ -89,7 +89,15 @@ class SeoMeta
 
                 if ($page) {
                     $entry['title'] = $page->meta_title ?: $entry['title'];
-                    $entry['description'] = $page->meta_description ?: $entry['description'];
+
+                    $storedDescription = trim(strip_tags((string) $page->meta_description));
+                    $useStoredDescription = $storedDescription !== ''
+                        && (! in_array($entry['slug'], ['home', 'products'], true)
+                            || mb_strlen($storedDescription) >= 150);
+
+                    $entry['description'] = $useStoredDescription
+                        ? $storedDescription
+                        : $entry['description'];
                     $entry['image'] = $page->og_image ?: null;
                 }
 
@@ -154,9 +162,20 @@ class SeoMeta
             return null;
         }
 
+        $defaultDescriptions = [
+            'terms-of-service' => 'Read the DNE Consultants Terms of Service covering website use, software services, project agreements, intellectual property, and user responsibilities.',
+            'privacy-policy' => 'Learn how DNE Consultants collects, uses, stores, and protects personal information when you visit our website, contact our team, or use our services.',
+        ];
+        $storedDescription = trim(strip_tags((string) $page->meta_description));
+        $description = $storedDescription;
+
+        if ($description === '' || (isset($defaultDescriptions[$slug]) && mb_strlen($description) < 150)) {
+            $description = $defaultDescriptions[$slug] ?? $page->title . ' from DNE Consultants.';
+        }
+
         return $this->complete([
             'title' => $page->meta_title ?: $page->title . ' | DNE Consultants',
-            'description' => $page->meta_description ?: $page->title . ' from DNE Consultants.',
+            'description' => $description,
             'imageAlt' => $page->title,
             'type' => 'website',
         ], $path);
