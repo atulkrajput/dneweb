@@ -4,6 +4,41 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        {{-- Keep the SEO fallback hidden from users while the client page loads.
+             React uses createRoot and replaces #app children after the page resolves. --}}
+        <style>
+            #app-loading {
+                position: fixed;
+                inset: 0;
+                z-index: 2147483647;
+                display: grid;
+                place-items: center;
+                background: #ffffff;
+                color: #f97316;
+            }
+
+            html.dark #app-loading {
+                background: #131a2b;
+            }
+
+            #app-loading-spinner {
+                width: 2rem;
+                height: 2rem;
+                border: 3px solid currentColor;
+                border-right-color: transparent;
+                border-radius: 9999px;
+                animation: app-loading-spin 0.75s linear infinite;
+            }
+
+            @keyframes app-loading-spin {
+                to { transform: rotate(360deg); }
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #app-loading-spinner { animation: none; }
+            }
+        </style>
+
         <!-- DNS prefetch for third-party domains (speeds up external resource loading) -->
         <link rel="dns-prefetch" href="https://www.googletagmanager.com">
         <link rel="dns-prefetch" href="https://connect.facebook.net">
@@ -140,7 +175,7 @@
         <!-- Scripts -->
         @routes
         @viteReactRefresh
-        @vite(['resources/js/app.jsx', "resources/js/Pages/{$page['component']}.jsx"])
+        @vite(['resources/js/app.jsx'])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
@@ -157,6 +192,10 @@
             so real users never see this fallback.
         --}}
         <div id="app" data-page="{{ json_encode($page) }}">
+            <div id="app-loading" aria-hidden="true">
+                <div id="app-loading-spinner"></div>
+            </div>
+
             @if(!empty($page['props']['seoFallback']['h1'] ?? ''))
             <div data-seo-fallback>
                 <h1>{{ $page['props']['seoFallback']['h1'] }}</h1>
@@ -175,6 +214,9 @@
             </div>
             @endif
         </div>
+
+        {{-- Without JavaScript, keep the crawlable SEO fallback visible. --}}
+        <noscript><style>#app-loading { display: none !important; }</style></noscript>
 
         {{-- Custom Footer Scripts --}}
         {!! $page['props']['tracking']['footer_scripts'] ?? '' !!}
