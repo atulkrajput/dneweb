@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TaskAssignedEmail;
 use App\Models\Project;
 use App\Models\Sprint;
 use App\Models\Task;
 use App\Models\TaskComment;
 use App\Models\User;
+use App\Notifications\TaskAssignedNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class TaskController extends Controller
@@ -95,6 +99,10 @@ class TaskController extends Controller
 
         $task = Task::create($validated);
 
+        if ($task->assignee_id) {
+            $this->notifyAssignee($task);
+        }
+
         return back()->with('success', 'Task created.');
     }
 
@@ -131,7 +139,14 @@ class TaskController extends Controller
             'checklist' => 'nullable|array',
         ]);
 
+        $previousAssigneeId = $task->assignee_id;
+
         $task->update($validated);
+
+        // Only notify when the assignee actually changed to a new person.
+        if ($task->assignee_id && $task->assignee_id !== $previousAssigneeId) {
+            $this->notifyAssignee($task);
+        }
 
         return back()->with('success', 'Task updated.');
     }
@@ -156,6 +171,36 @@ class TaskController extends Controller
         $task->delete();
 
         return back()->with('success', 'Task deleted.');
+    }
+
+    /**
+     * Notify a task's assignee via email and an in-app (database) notification.
+     */
+    protected function notifyAssignee(Task $task): void
+    {
+        $task->loadMissing(['assignee', 'project', 'sprint']);
+
+        $assignee = $task->assignee;
+
+        if (!$assignee) {
+            return;
+        }
+
+        // In-app bell notification.
+        try {
+            $assignee->notify(new TaskAssignedNotification($task));
+        } catch (\Exception $e) {
+            Log::error('Failed to create task assigned notification: ' . $e->getMessage());
+        }
+
+        // Email notification.
+        if ($assignee->email) {
+            try {
+                Mail::to($assignee->email)->send(new TaskAssignedEmail($task, $assignee));
+            } catch (\Exception $e) {
+                Log::error('Failed to send task assigned email: ' . $e->getMessage());
+            }
+        }
     }
 
     /**

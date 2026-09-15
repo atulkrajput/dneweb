@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Project;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class DeadlineTomorrowNotification extends Notification
@@ -14,7 +15,7 @@ class DeadlineTomorrowNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     public function toArray(object $notifiable): array
@@ -26,5 +27,16 @@ class DeadlineTomorrowNotification extends Notification
             'project_id' => $this->project->id,
             'url' => "/admin/projects/{$this->project->id}",
         ];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject('Deadline Tomorrow: ' . $this->project->name)
+            ->view('emails.notifications.deadline-tomorrow', [
+                'project' => $this->project,
+                'recipient' => $notifiable,
+                'url' => config('app.url') . '/admin/projects/' . $this->project->id,
+            ]);
     }
 }
