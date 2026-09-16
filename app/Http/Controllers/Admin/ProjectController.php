@@ -21,6 +21,16 @@ class ProjectController extends Controller
                 $q->where('status', '!=', 'done');
             }]);
 
+        // Non-managers only see projects they are assigned to (assigned_team may
+        // store the id as an int or a string, so match both).
+        $user = $request->user();
+        if (!$user->managesAllProjects()) {
+            $query->where(function ($q) use ($user) {
+                $q->whereJsonContains('assigned_team', (int) $user->id)
+                  ->orWhereJsonContains('assigned_team', (string) $user->id);
+            });
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
@@ -57,6 +67,8 @@ class ProjectController extends Controller
 
     public function create(Request $request)
     {
+        $this->authorize('create', Project::class);
+
         $clients = Client::active()->orderBy('company')->pluck('company', 'id');
         $team = User::orderBy('name')->pluck('name', 'id');
 
@@ -69,6 +81,8 @@ class ProjectController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Project::class);
+
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'name' => 'required|string|max:255',
@@ -91,6 +105,8 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
+        $this->authorize('view', $project);
+
         $project->load('client');
         $internalNotes = $project->notes()->with('user')->get();
         $clients = Client::active()->orderBy('company')->pluck('company', 'id');
@@ -118,6 +134,8 @@ class ProjectController extends Controller
 
     public function update(Request $request, Project $project)
     {
+        $this->authorize('update', $project);
+
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'name' => 'required|string|max:255',
@@ -147,6 +165,8 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
+        $this->authorize('delete', $project);
+
         $project->delete();
 
         return redirect()->route('admin.projects.index')->with('success', 'Project deleted.');

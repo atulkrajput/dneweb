@@ -14,7 +14,13 @@ class ProjectPolicy
 
     public function view(User $user, Project $project): bool
     {
-        return $this->viewAny($user);
+        // Managers and super admins see every project.
+        if ($user->managesAllProjects()) {
+            return true;
+        }
+
+        // Other allowed roles (developers) only see projects they're assigned to.
+        return $this->viewAny($user) && $user->ownsProject($project);
     }
 
     public function create(User $user): bool

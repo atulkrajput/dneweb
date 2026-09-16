@@ -99,8 +99,20 @@ class User extends Authenticatable
             'campaigns' => [self::ROLE_SALES],
             'team' => [self::ROLE_PROJECT_MANAGER],
             'settings' => [],
+
+            // Content & marketing modules — available to sales + project managers.
+            'services' => [self::ROLE_SALES, self::ROLE_PROJECT_MANAGER],
+            'testimonials' => [self::ROLE_SALES, self::ROLE_PROJECT_MANAGER],
+            'partners' => [self::ROLE_SALES, self::ROLE_PROJECT_MANAGER],
+            'products' => [self::ROLE_SALES, self::ROLE_PROJECT_MANAGER],
+            'insights' => [self::ROLE_SALES, self::ROLE_PROJECT_MANAGER],
+            'legal-pages' => [self::ROLE_PROJECT_MANAGER],
+
+            // Reporting — visible to managers and accountants.
+            'reports' => [self::ROLE_PROJECT_MANAGER, self::ROLE_ACCOUNTANT],
         ];
 
+        // Modules with no explicit entry are restricted to super admins only.
         $allowedRoles = $access[$module] ?? [];
         return in_array($this->team_role, $allowedRoles);
     }
@@ -118,6 +130,30 @@ class User extends Authenticatable
     public function assignedTasks()
     {
         return $this->hasMany(Task::class, 'assignee_id');
+    }
+
+    /**
+     * Whether this user manages everything within the projects/tasks modules
+     * (i.e. is not scoped down to only their own assigned records).
+     */
+    public function managesAllProjects(): bool
+    {
+        return $this->hasRole([self::ROLE_SUPER_ADMIN, self::ROLE_PROJECT_MANAGER]);
+    }
+
+    /**
+     * Whether this user is a member of the given project's assigned_team.
+     */
+    public function ownsProject(\App\Models\Project $project): bool
+    {
+        $team = $project->assigned_team ?? [];
+
+        if (!is_array($team)) {
+            return false;
+        }
+
+        // assigned_team may hold ints or numeric strings.
+        return in_array((int) $this->id, array_map('intval', $team), true);
     }
 
     /**

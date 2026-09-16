@@ -78,7 +78,10 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
 
   const handleDelete = () => {
     if (confirm('Delete this task?')) {
-      router.delete(`/admin/tasks/${task.id}`);
+      router.delete(`/admin/tasks/${task.id}`, {
+        preserveScroll: false,
+        onSuccess: () => router.visit('/admin/tasks'),
+      });
     }
   };
 
@@ -161,9 +164,11 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                 <Edit3 className="h-4 w-4" /> Edit
               </button>
             )}
-            <button onClick={handleDelete} className="flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors">
-              <Trash2 className="h-4 w-4" /> Delete
-            </button>
+            {isAssignee && (
+              <button onClick={handleDelete} className="flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors">
+                <Trash2 className="h-4 w-4" /> Delete
+              </button>
+            )}
           </div>
         </div>
 

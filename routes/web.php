@@ -67,104 +67,142 @@ Route::get('/proposal/{proposal}/accept', [App\Http\Controllers\ProposalAcceptCo
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Settings
-    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+    // Settings (super admin only — no role map entry)
+    Route::middleware('module:settings')->group(function () {
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
+    });
 
     // Services
-    Route::resource('services', ServiceController::class);
+    Route::middleware('module:services')->group(function () {
+        Route::resource('services', ServiceController::class);
+    });
 
     // Team Members (unified with users)
-    Route::resource('team', TeamMemberController::class)->parameters(['team' => 'team_member']);
+    Route::middleware('module:team')->group(function () {
+        Route::resource('team', TeamMemberController::class)->parameters(['team' => 'team_member']);
+    });
 
     // Testimonials
-    Route::resource('testimonials', TestimonialController::class);
+    Route::middleware('module:testimonials')->group(function () {
+        Route::resource('testimonials', TestimonialController::class);
+    });
 
     // Partners
-    Route::resource('partners', PartnerController::class);
+    Route::middleware('module:partners')->group(function () {
+        Route::resource('partners', PartnerController::class);
+    });
 
     // Products
-    Route::delete('/products/interests/{interest}', [ProductController::class, 'destroyInterest'])->name('products.interests.destroy');
-    Route::resource('products', ProductController::class);
+    Route::middleware('module:products')->group(function () {
+        Route::delete('/products/interests/{interest}', [ProductController::class, 'destroyInterest'])->name('products.interests.destroy');
+        Route::resource('products', ProductController::class);
+    });
 
     // Leads
-    Route::resource('leads', LeadController::class)->except(['edit']);
-    Route::post('/leads/{lead}/convert', [ClientController::class, 'convertFromLead'])->name('leads.convert');
-    Route::patch('/leads/{lead}/status', [LeadController::class, 'updateStatus'])->name('leads.status');
+    Route::middleware('module:leads')->group(function () {
+        Route::resource('leads', LeadController::class)->except(['edit']);
+        Route::post('/leads/{lead}/convert', [ClientController::class, 'convertFromLead'])->name('leads.convert');
+        Route::patch('/leads/{lead}/status', [LeadController::class, 'updateStatus'])->name('leads.status');
+    });
 
     // Clients
-    Route::resource('clients', ClientController::class)->except(['edit']);
+    Route::middleware('module:clients')->group(function () {
+        Route::resource('clients', ClientController::class)->except(['edit']);
+    });
 
     // Projects
-    Route::resource('projects', ProjectController::class)->except(['edit']);
+    Route::middleware('module:projects')->group(function () {
+        Route::resource('projects', ProjectController::class)->except(['edit']);
+    });
 
     // Tasks
-    Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
-    Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
-    Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
-    Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
-    Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
-    Route::post('/tasks/{task}/transition', [TaskController::class, 'transition'])->name('tasks.transition');
-    Route::patch('/tasks/{task}/sprint', [TaskController::class, 'changeSprint'])->name('tasks.sprint');
-    Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
-    Route::post('/tasks/{task}/comments', [TaskController::class, 'addComment'])->name('tasks.comments.store');
-    Route::post('/tasks/{task}/remind-reviewer', [TaskController::class, 'remindReviewer'])->name('tasks.remind-reviewer');
+    Route::middleware('module:tasks')->group(function () {
+        Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+        Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+        Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+        Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+        Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
+        Route::post('/tasks/{task}/transition', [TaskController::class, 'transition'])->name('tasks.transition');
+        Route::patch('/tasks/{task}/sprint', [TaskController::class, 'changeSprint'])->name('tasks.sprint');
+        Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+        Route::post('/tasks/{task}/comments', [TaskController::class, 'addComment'])->name('tasks.comments.store');
+        Route::post('/tasks/{task}/remind-reviewer', [TaskController::class, 'remindReviewer'])->name('tasks.remind-reviewer');
+    });
 
     // Sprints (project-scoped)
-    Route::get('/projects/{project}/sprints', [SprintController::class, 'index'])->name('sprints.index');
-    Route::post('/projects/{project}/sprints', [SprintController::class, 'store'])->name('sprints.store');
-    Route::put('/sprints/{sprint}', [SprintController::class, 'update'])->name('sprints.update');
-    Route::delete('/sprints/{sprint}', [SprintController::class, 'destroy'])->name('sprints.destroy');
-    Route::post('/sprints/{sprint}/start', [SprintController::class, 'start'])->name('sprints.start');
-    Route::post('/sprints/{sprint}/complete', [SprintController::class, 'complete'])->name('sprints.complete');
+    Route::middleware('module:projects')->group(function () {
+        Route::get('/projects/{project}/sprints', [SprintController::class, 'index'])->name('sprints.index');
+        Route::post('/projects/{project}/sprints', [SprintController::class, 'store'])->name('sprints.store');
+        Route::put('/sprints/{sprint}', [SprintController::class, 'update'])->name('sprints.update');
+        Route::delete('/sprints/{sprint}', [SprintController::class, 'destroy'])->name('sprints.destroy');
+        Route::post('/sprints/{sprint}/start', [SprintController::class, 'start'])->name('sprints.start');
+        Route::post('/sprints/{sprint}/complete', [SprintController::class, 'complete'])->name('sprints.complete');
+    });
 
     // Invoices
-    Route::resource('invoices', InvoiceController::class)->except(['edit']);
-    Route::post('/invoices/{invoice}/payments', [InvoiceController::class, 'addPayment'])->name('invoices.payments.store');
+    Route::middleware('module:invoices')->group(function () {
+        Route::resource('invoices', InvoiceController::class)->except(['edit']);
+        Route::post('/invoices/{invoice}/payments', [InvoiceController::class, 'addPayment'])->name('invoices.payments.store');
+    });
 
     // Proposals
-    Route::resource('proposals', ProposalController::class)->except(['edit']);
-    Route::post('/proposals/{proposal}/accept', [ProposalController::class, 'accept'])->name('proposals.accept');
-    Route::post('/proposals/{proposal}/send', [ProposalController::class, 'send'])->name('proposals.send');
+    Route::middleware('module:proposals')->group(function () {
+        Route::resource('proposals', ProposalController::class)->except(['edit']);
+        Route::post('/proposals/{proposal}/accept', [ProposalController::class, 'accept'])->name('proposals.accept');
+        Route::post('/proposals/{proposal}/send', [ProposalController::class, 'send'])->name('proposals.send');
+    });
 
-    // Notes (polymorphic)
+    // Notes (polymorphic) — available to any admin; per-record checks live in the controller.
     Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');
     Route::delete('/notes/{note}', [NoteController::class, 'destroy'])->name('notes.destroy');
 
-    // Notifications
+    // Notifications — personal to the logged-in user.
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.markAllRead');
 
     // Campaign Analytics
-    Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
+    Route::middleware('module:campaigns')->group(function () {
+        Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
+    });
 
     // Reports
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reports/leads', [ReportController::class, 'leads'])->name('reports.leads');
-    Route::get('/reports/revenue', [ReportController::class, 'revenue'])->name('reports.revenue');
-    Route::get('/reports/projects', [ReportController::class, 'projects'])->name('reports.projects');
-    Route::get('/reports/productivity', [ReportController::class, 'productivity'])->name('reports.productivity');
+    Route::middleware('module:reports')->group(function () {
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/leads', [ReportController::class, 'leads'])->name('reports.leads');
+        Route::get('/reports/revenue', [ReportController::class, 'revenue'])->name('reports.revenue');
+        Route::get('/reports/projects', [ReportController::class, 'projects'])->name('reports.projects');
+        Route::get('/reports/productivity', [ReportController::class, 'productivity'])->name('reports.productivity');
+    });
 
     // Insights (Blog)
-    Route::post('/insights/upload-image', [InsightController::class, 'uploadImage'])->name('insights.uploadImage');
-    Route::resource('insights', InsightController::class);
+    Route::middleware('module:insights')->group(function () {
+        Route::post('/insights/upload-image', [InsightController::class, 'uploadImage'])->name('insights.uploadImage');
+        Route::resource('insights', InsightController::class);
+    });
 
     // Legal Pages
-    Route::resource('legal-pages', AdminLegalPageController::class)->parameters(['legal-pages' => 'legal_page']);
+    Route::middleware('module:legal-pages')->group(function () {
+        Route::resource('legal-pages', AdminLegalPageController::class)->parameters(['legal-pages' => 'legal_page']);
+    });
 
-    // Maintenance (super admin only)
-    Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
-    Route::post('/maintenance/clear-cache', [MaintenanceController::class, 'clearCache'])->name('maintenance.clearCache');
-    Route::post('/maintenance/clear-log', [MaintenanceController::class, 'clearLog'])->name('maintenance.clearLog');
-    Route::get('/maintenance/download-log', [MaintenanceController::class, 'downloadLog'])->name('maintenance.downloadLog');
+    // Maintenance (super admin only — no role map entry)
+    Route::middleware('module:maintenance')->group(function () {
+        Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance.index');
+        Route::post('/maintenance/clear-cache', [MaintenanceController::class, 'clearCache'])->name('maintenance.clearCache');
+        Route::post('/maintenance/clear-log', [MaintenanceController::class, 'clearLog'])->name('maintenance.clearLog');
+        Route::get('/maintenance/download-log', [MaintenanceController::class, 'downloadLog'])->name('maintenance.downloadLog');
+    });
 
-    // API Keys Management
-    Route::get('/api-keys', [ApiKeyController::class, 'index'])->name('api-keys.index');
-    Route::post('/api-keys', [ApiKeyController::class, 'store'])->name('api-keys.store');
-    Route::post('/api-keys/{apiKey}/toggle', [ApiKeyController::class, 'toggleStatus'])->name('api-keys.toggle');
-    Route::post('/api-keys/{apiKey}/regenerate', [ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
-    Route::delete('/api-keys/{apiKey}', [ApiKeyController::class, 'destroy'])->name('api-keys.destroy');
+    // API Keys Management (super admin only — no role map entry)
+    Route::middleware('module:api-keys')->group(function () {
+        Route::get('/api-keys', [ApiKeyController::class, 'index'])->name('api-keys.index');
+        Route::post('/api-keys', [ApiKeyController::class, 'store'])->name('api-keys.store');
+        Route::post('/api-keys/{apiKey}/toggle', [ApiKeyController::class, 'toggleStatus'])->name('api-keys.toggle');
+        Route::post('/api-keys/{apiKey}/regenerate', [ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
+        Route::delete('/api-keys/{apiKey}', [ApiKeyController::class, 'destroy'])->name('api-keys.destroy');
+    });
 });
 
 // Profile (from Breeze)

@@ -7,11 +7,13 @@ use App\Models\Invoice;
 use App\Models\Lead;
 use App\Models\Project;
 use App\Models\Proposal;
+use App\Models\Task;
 use App\Policies\ClientPolicy;
 use App\Policies\InvoicePolicy;
 use App\Policies\LeadPolicy;
 use App\Policies\ProjectPolicy;
 use App\Policies\ProposalPolicy;
+use App\Policies\TaskPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -39,6 +41,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Project::class, ProjectPolicy::class);
         Gate::policy(Proposal::class, ProposalPolicy::class);
         Gate::policy(Invoice::class, InvoicePolicy::class);
+        Gate::policy(Task::class, TaskPolicy::class);
 
         // Super admin bypasses all gates
         Gate::before(function ($user, $ability) {

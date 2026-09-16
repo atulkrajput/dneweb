@@ -41,6 +41,15 @@ class TaskController extends Controller
 
         $query = Task::with(['assignee:id,name', 'reviewer:id,name', 'project:id,name', 'sprint:id,name']);
 
+        // Non-managers only see tasks they are the assignee or reviewer of.
+        $user = $request->user();
+        if (!$user->managesAllProjects()) {
+            $query->where(function ($q) use ($user) {
+                $q->where('assignee_id', $user->id)
+                  ->orWhere('reviewer_id', $user->id);
+            });
+        }
+
         if ($projectId) {
             $query->where('project_id', $projectId);
         }
@@ -120,6 +129,8 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Task::class);
+
         $validated = $request->validate([
             'project_id' => 'required|exists:projects,id',
             'sprint_id' => 'nullable|exists:sprints,id',
@@ -155,6 +166,8 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
+        $this->authorize('view', $task);
+
         $task->load(['project.client', 'assignee', 'reviewer', 'sprint', 'comments.user']);
         $internalNotes = $task->notes()->with('user')->get();
         $team = User::orderBy('name')->pluck('name', 'id');
@@ -173,6 +186,8 @@ class TaskController extends Controller
 
     public function update(Request $request, Task $task)
     {
+        $this->authorize('update', $task);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:20000',
@@ -297,6 +312,8 @@ class TaskController extends Controller
      */
     public function changeSprint(Request $request, Task $task)
     {
+        $this->authorize('update', $task);
+
         $validated = $request->validate([
             'sprint_id' => 'nullable|exists:sprints,id',
         ]);
@@ -308,13 +325,21 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
+        // Only the task's assignee may delete it.
+        abort_unless($task->assignee_id && $task->assignee_id === auth()->id(), 403, 'Only the task assignee can delete this task.');
+
+        $projectId = $task->project_id;
+
         foreach ($task->attachments ?? [] as $attachment) {
             $this->deleteAttachmentFile($attachment['path'] ?? null);
         }
 
         $task->delete();
 
-        return back()->with('success', 'Task deleted.');
+        // Redirect to the board (the task's own page no longer exists).
+        return redirect()
+            ->route('admin.tasks.index', ['project_id' => $projectId])
+            ->with('success', 'Task deleted.');
     }
 
     /**
@@ -422,6 +447,8 @@ class TaskController extends Controller
      */
     public function remindReviewer(Task $task)
     {
+        $this->authorize('view', $task);
+
         if (!$task->reviewer_id) {
             return back()->with('error', 'No reviewer assigned to this task.');
         }
@@ -436,6 +463,8 @@ class TaskController extends Controller
      */
     public function addComment(Request $request, Task $task)
     {
+        $this->authorize('view', $task);
+
         $validated = $request->validate([
             'body' => 'required|string|max:2000',
         ]);
