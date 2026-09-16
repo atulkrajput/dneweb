@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { ArrowLeft, Trash2, Edit3, Save, X, MessageSquare, Calendar, Clock, User, Timer } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit3, Save, X, MessageSquare, Calendar, Clock, User, Timer, Paperclip, Download } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import NotesSection from '@/Components/NotesSection';
+import RichTextEditor from '@/Components/RichTextEditor';
 
 const STATUS_LABELS = {
   todo: 'To Do',
@@ -28,7 +29,8 @@ const PRIORITY_COLORS = {
 export default function TaskShow({ task, team, sprints, internalNotes }) {
   const [editing, setEditing] = useState(false);
 
-  const { data, setData, put, processing, errors } = useForm({
+  const fileInputRef = useRef(null);
+  const { data, setData, processing, errors } = useForm({
     title: task.title,
     description: task.description || '',
     assignee_id: task.assignee_id || '',
@@ -39,13 +41,36 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
     estimated_hours: task.estimated_hours || '',
     actual_hours: task.actual_hours || '',
     checklist: task.checklist || [],
+    attachment_files: [],
+    removed_attachments: [],
   });
 
   const commentForm = useForm({ body: '' });
 
+  // Attachments already stored on the task, minus any marked for removal.
+  const existingAttachments = (task.attachments || []).filter(
+    (a) => !data.removed_attachments.includes(a.path)
+  );
+
+  const addFiles = (fileList) => {
+    setData('attachment_files', [...data.attachment_files, ...Array.from(fileList)]);
+  };
+
+  const removeNewFile = (index) => {
+    setData('attachment_files', data.attachment_files.filter((_, i) => i !== index));
+  };
+
+  const removeExistingAttachment = (path) => {
+    setData('removed_attachments', [...data.removed_attachments, path]);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    put(`/admin/tasks/${task.id}`, {
+    router.post(`/admin/tasks/${task.id}`, {
+      _method: 'put',
+      ...data,
+    }, {
+      forceFormData: true,
       onSuccess: () => setEditing(false),
     });
   };
@@ -114,7 +139,7 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                   </div>
                   <div>
                     <label className="form-label">Description</label>
-                    <textarea value={data.description} onChange={(e) => setData('description', e.target.value)} rows="4" className="form-input resize-y" />
+                    <RichTextEditor content={data.description} onChange={(html) => setData('description', html)} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -181,6 +206,55 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                     <button type="button" onClick={addChecklistItem} className="mt-2 text-sm text-primary hover:text-primary/80">+ Add item</button>
                   </div>
 
+                  {/* Attachments */}
+                  <div>
+                    <label className="form-label">Attachments</label>
+                    {existingAttachments.length > 0 && (
+                      <ul className="space-y-1 mb-2">
+                        {existingAttachments.map((a, i) => (
+                          <li key={i} className="flex items-center justify-between gap-2 text-sm bg-muted/50 rounded-md px-3 py-1.5">
+                            <a href={a.path} target="_blank" rel="noreferrer" className="truncate flex items-center gap-2 text-foreground hover:text-primary">
+                              <Paperclip className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                              {a.name}
+                            </a>
+                            <button type="button" onClick={() => removeExistingAttachment(a.path)} className="text-muted-foreground hover:text-destructive flex-shrink-0">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      onChange={(e) => addFiles(e.target.files)}
+                      className="hidden"
+                      id="task-edit-attachments"
+                    />
+                    <label
+                      htmlFor="task-edit-attachments"
+                      className="inline-flex items-center gap-2 px-3 py-2 border border-dashed border-border rounded-lg text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 cursor-pointer transition-colors"
+                    >
+                      <Paperclip className="h-4 w-4" /> Add files
+                    </label>
+                    {data.attachment_files.length > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {data.attachment_files.map((file, i) => (
+                          <li key={i} className="flex items-center justify-between gap-2 text-sm bg-primary/5 rounded-md px-3 py-1.5">
+                            <span className="truncate flex items-center gap-2">
+                              <Paperclip className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                              {file.name}
+                            </span>
+                            <button type="button" onClick={() => removeNewFile(i)} className="text-muted-foreground hover:text-destructive flex-shrink-0">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
                     <button type="button" onClick={() => setEditing(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
                       <X className="h-4 w-4" /> Cancel
@@ -209,7 +283,10 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                   {task.description && (
                     <div>
                       <label className="text-xs text-muted-foreground uppercase tracking-wider">Description</label>
-                      <p className="text-foreground mt-2 whitespace-pre-wrap bg-muted/50 p-4 rounded-lg">{task.description}</p>
+                      <div
+                        className="mt-2 bg-muted/50 p-4 rounded-lg prose prose-invert max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground prose-li:text-muted-foreground"
+                        dangerouslySetInnerHTML={{ __html: task.description }}
+                      />
                     </div>
                   )}
 
@@ -225,6 +302,30 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {task.attachments && task.attachments.length > 0 && (
+                    <div>
+                      <label className="text-xs text-muted-foreground uppercase tracking-wider">Attachments</label>
+                      <ul className="mt-2 space-y-1">
+                        {task.attachments.map((a, i) => (
+                          <li key={i}>
+                            <a
+                              href={a.path}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center justify-between gap-2 text-sm bg-muted/50 rounded-md px-3 py-2 text-foreground hover:text-primary hover:bg-muted transition-colors"
+                            >
+                              <span className="truncate flex items-center gap-2">
+                                <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                {a.name}
+                              </span>
+                              <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   )}
                 </div>

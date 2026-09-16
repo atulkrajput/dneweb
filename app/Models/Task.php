@@ -24,11 +24,13 @@ class Task extends Model
         'estimated_hours',
         'actual_hours',
         'checklist',
+        'attachments',
         'sort_order',
     ];
 
     protected $casts = [
         'checklist' => 'array',
+        'attachments' => 'array',
         'due_date' => 'date',
         'estimated_hours' => 'decimal:2',
         'actual_hours' => 'decimal:2',

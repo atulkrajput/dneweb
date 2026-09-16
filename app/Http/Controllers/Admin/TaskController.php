@@ -13,6 +13,7 @@ use App\Notifications\TaskAssignedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class TaskController extends Controller
@@ -32,6 +33,8 @@ class TaskController extends Controller
         }
 
         $sprintId = $request->input('sprint_id');
+        $assigneeId = $request->input('assignee_id');
+        $due = $request->input('due');
 
         $query = Task::with(['assignee:id,name', 'project:id,name', 'sprint:id,name']);
 
@@ -45,6 +48,34 @@ class TaskController extends Controller
             } else {
                 $query->where('sprint_id', $sprintId);
             }
+        }
+
+        if ($assigneeId) {
+            if ($assigneeId === 'unassigned') {
+                $query->whereNull('assignee_id');
+            } else {
+                $query->where('assignee_id', $assigneeId);
+            }
+        }
+
+        // Due-date filter. "done" tasks are excluded from the overdue/upcoming buckets.
+        $today = now()->startOfDay();
+        switch ($due) {
+            case 'overdue':
+                $query->whereNotNull('due_date')
+                    ->whereDate('due_date', '<', $today->toDateString())
+                    ->where('status', '!=', Task::STATUS_DONE);
+                break;
+            case 'today':
+                $query->whereDate('due_date', $today->toDateString());
+                break;
+            case 'week':
+                $query->whereNotNull('due_date')
+                    ->whereBetween('due_date', [$today->toDateString(), $today->copy()->addDays(7)->toDateString()]);
+                break;
+            case 'no_date':
+                $query->whereNull('due_date');
+                break;
         }
 
         $tasks = $query->orderBy('sort_order')->orderBy('created_at', 'desc')->get();
@@ -78,6 +109,8 @@ class TaskController extends Controller
             'filters' => [
                 'project_id' => $projectId,
                 'sprint_id' => $sprintId,
+                'assignee_id' => $assigneeId,
+                'due' => $due,
             ],
         ]);
     }
@@ -88,14 +121,20 @@ class TaskController extends Controller
             'project_id' => 'required|exists:projects,id',
             'sprint_id' => 'nullable|exists:sprints,id',
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:5000',
+            'description' => 'nullable|string|max:20000',
             'assignee_id' => 'nullable|exists:users,id',
             'priority' => 'required|string|in:' . implode(',', Task::PRIORITIES),
             'due_date' => 'nullable|date',
             'status' => 'nullable|string|in:' . implode(',', Task::STATUSES),
             'estimated_hours' => 'nullable|numeric|min:0',
             'checklist' => 'nullable|array',
+            'attachment_files' => 'nullable|array',
+            'attachment_files.*' => 'file|max:10240',
         ]);
+
+        unset($validated['attachment_files']);
+
+        $validated['attachments'] = $this->uploadAttachments($request);
 
         $task = Task::create($validated);
 
@@ -128,7 +167,7 @@ class TaskController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:5000',
+            'description' => 'nullable|string|max:20000',
             'assignee_id' => 'nullable|exists:users,id',
             'sprint_id' => 'nullable|exists:sprints,id',
             'priority' => 'required|string|in:' . implode(',', Task::PRIORITIES),
@@ -137,7 +176,29 @@ class TaskController extends Controller
             'estimated_hours' => 'nullable|numeric|min:0',
             'actual_hours' => 'nullable|numeric|min:0',
             'checklist' => 'nullable|array',
+            'attachment_files' => 'nullable|array',
+            'attachment_files.*' => 'file|max:10240',
+            'removed_attachments' => 'nullable|array',
+            'removed_attachments.*' => 'string',
         ]);
+
+        unset($validated['attachment_files'], $validated['removed_attachments']);
+
+        // Start from existing attachments, drop any the user removed, then add new uploads.
+        $attachments = collect($task->attachments ?? []);
+
+        $removed = collect($request->input('removed_attachments', []));
+        if ($removed->isNotEmpty()) {
+            foreach ($removed as $path) {
+                $this->deleteAttachmentFile(is_array($path) ? ($path['path'] ?? null) : $path);
+            }
+            $attachments = $attachments->reject(function ($item) use ($removed) {
+                return $removed->contains($item['path'] ?? null);
+            });
+        }
+
+        $attachments = $attachments->values()->all();
+        $validated['attachments'] = array_merge($attachments, $this->uploadAttachments($request));
 
         $previousAssigneeId = $task->assignee_id;
 
@@ -168,9 +229,51 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
+        foreach ($task->attachments ?? [] as $attachment) {
+            $this->deleteAttachmentFile($attachment['path'] ?? null);
+        }
+
         $task->delete();
 
         return back()->with('success', 'Task deleted.');
+    }
+
+    /**
+     * Store uploaded attachment files on the public disk and return their metadata.
+     *
+     * @return array<int, array{path: string, name: string, size: int}>
+     */
+    protected function uploadAttachments(Request $request): array
+    {
+        $stored = [];
+
+        foreach ($request->file('attachment_files', []) as $file) {
+            if (!$file || !$file->isValid()) {
+                continue;
+            }
+
+            $path = $file->store('tasks/attachments', 'public');
+
+            $stored[] = [
+                'path' => '/storage/' . $path,
+                'name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+            ];
+        }
+
+        return $stored;
+    }
+
+    /**
+     * Delete a stored attachment file from the public disk.
+     */
+    protected function deleteAttachmentFile(?string $publicPath): void
+    {
+        if (!$publicPath) {
+            return;
+        }
+
+        Storage::disk('public')->delete(str_replace('/storage/', '', $publicPath));
     }
 
     /**

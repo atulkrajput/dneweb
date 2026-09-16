@@ -15,7 +15,11 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Project::with('client:id,company');
+        $query = Project::with('client:id,company')
+            ->withCount('tasks')
+            ->withCount(['tasks as pending_tasks_count' => function ($q) {
+                $q->where('status', '!=', 'done');
+            }]);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);

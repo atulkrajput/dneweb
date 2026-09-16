@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Plus, X, Calendar, User, GripVertical, Timer, Edit3, FolderKanban, ChevronDown } from 'lucide-react';
+import { Plus, X, Calendar, User, GripVertical, Timer, Edit3, FolderKanban, ChevronDown, Paperclip } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import RichTextEditor from '@/Components/RichTextEditor';
 
 const COLUMN_CONFIG = {
   todo: { label: 'To Do', color: 'border-t-blue-500' },
@@ -22,6 +23,7 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
   const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [draggedTask, setDraggedTask] = useState(null);
 
+  const fileInputRef = useRef(null);
   const { data, setData, post, processing, errors, reset } = useForm({
     project_id: filters.project_id || '',
     sprint_id: filters.sprint_id || '',
@@ -32,22 +34,49 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
     due_date: '',
     status: 'todo',
     estimated_hours: '',
+    attachment_files: [],
   });
 
+  const addFiles = (fileList) => {
+    setData('attachment_files', [...data.attachment_files, ...Array.from(fileList)]);
+  };
+
+  const removeFile = (index) => {
+    setData('attachment_files', data.attachment_files.filter((_, i) => i !== index));
+  };
+
+  const applyFilters = (overrides = {}) => {
+    const params = {
+      project_id: filters.project_id || undefined,
+      sprint_id: filters.sprint_id || undefined,
+      assignee_id: filters.assignee_id || undefined,
+      due: filters.due || undefined,
+      ...overrides,
+    };
+    // Drop empty values so the URL stays clean.
+    Object.keys(params).forEach((k) => {
+      if (!params[k]) delete params[k];
+    });
+    router.get('/admin/tasks', params, { preserveState: true });
+  };
+
   const switchProject = (projectId) => {
-    router.get('/admin/tasks', { project_id: projectId }, { preserveState: true });
+    // Switching project resets the sprint filter since sprints are project-scoped.
+    applyFilters({ project_id: projectId, sprint_id: undefined });
     setShowProjectPicker(false);
   };
 
   const handleFilterSprint = (sprintId) => {
-    router.get('/admin/tasks', { project_id: filters.project_id, sprint_id: sprintId || undefined }, { preserveState: true });
+    applyFilters({ sprint_id: sprintId || undefined });
   };
 
   const handleCreateTask = (e) => {
     e.preventDefault();
     post('/admin/tasks', {
+      forceFormData: true,
       onSuccess: () => {
-        reset('title', 'description', 'assignee_id', 'due_date', 'estimated_hours', 'sprint_id');
+        reset('title', 'description', 'assignee_id', 'due_date', 'estimated_hours', 'sprint_id', 'attachment_files');
+        if (fileInputRef.current) fileInputRef.current.value = '';
         setShowCreate(false);
       },
     });
@@ -138,6 +167,38 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
                 </div>
               )}
 
+              {/* Assignee Filter */}
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Assignee</label>
+                <select
+                  value={filters.assignee_id || ''}
+                  onChange={(e) => applyFilters({ assignee_id: e.target.value || undefined })}
+                  className="form-input text-sm min-w-[150px]"
+                >
+                  <option value="">Everyone</option>
+                  <option value="unassigned">Unassigned</option>
+                  {Object.entries(team).map(([id, name]) => (
+                    <option key={id} value={id}>{name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Due Date Filter */}
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Due</label>
+                <select
+                  value={filters.due || ''}
+                  onChange={(e) => applyFilters({ due: e.target.value || undefined })}
+                  className="form-input text-sm min-w-[140px]"
+                >
+                  <option value="">Any time</option>
+                  <option value="overdue">Overdue</option>
+                  <option value="today">Due today</option>
+                  <option value="week">Due in 7 days</option>
+                  <option value="no_date">No due date</option>
+                </select>
+              </div>
+
               <button
                 onClick={() => setShowCreate(!showCreate)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
@@ -213,7 +274,40 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
             </div>
             <div>
               <label className="form-label">Description</label>
-              <textarea value={data.description} onChange={(e) => setData('description', e.target.value)} rows="2" className="form-input resize-y" placeholder="Optional description..." />
+              <RichTextEditor content={data.description} onChange={(html) => setData('description', html)} />
+            </div>
+            <div>
+              <label className="form-label">Attachments</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={(e) => addFiles(e.target.files)}
+                className="hidden"
+                id="task-attachments"
+              />
+              <label
+                htmlFor="task-attachments"
+                className="inline-flex items-center gap-2 px-3 py-2 border border-dashed border-border rounded-lg text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 cursor-pointer transition-colors"
+              >
+                <Paperclip className="h-4 w-4" /> Add files
+              </label>
+              {data.attachment_files.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {data.attachment_files.map((file, i) => (
+                    <li key={i} className="flex items-center justify-between gap-2 text-sm bg-muted/50 rounded-md px-3 py-1.5">
+                      <span className="truncate flex items-center gap-2">
+                        <Paperclip className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        {file.name}
+                      </span>
+                      <button type="button" onClick={() => removeFile(i)} className="text-muted-foreground hover:text-destructive flex-shrink-0">
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {errors['attachment_files.0'] && <p className="mt-1 text-xs text-destructive">Each file must be 10MB or less.</p>}
             </div>
             <div className="flex justify-end">
               <button type="submit" disabled={processing} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
