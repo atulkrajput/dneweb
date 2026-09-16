@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { ArrowLeft, Trash2, Edit3, Save, X, MessageSquare, Calendar, Clock, User, Timer, Paperclip, Download } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit3, Save, X, MessageSquare, Calendar, Clock, User, UserCheck, Timer, Paperclip, Download, Bell, ArrowRightCircle, CheckCircle2 } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import NotesSection from '@/Components/NotesSection';
 import RichTextEditor from '@/Components/RichTextEditor';
@@ -34,6 +34,7 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
     title: task.title,
     description: task.description || '',
     assignee_id: task.assignee_id || '',
+    reviewer_id: task.reviewer_id || '',
     sprint_id: task.sprint_id || '',
     priority: task.priority,
     due_date: task.due_date ? task.due_date.split('T')[0] : '',
@@ -79,6 +80,41 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
     if (confirm('Delete this task?')) {
       router.delete(`/admin/tasks/${task.id}`);
     }
+  };
+
+  const [reminderSending, setReminderSending] = useState(false);
+  const handleRemindReviewer = () => {
+    setReminderSending(true);
+    router.post(`/admin/tasks/${task.id}/remind-reviewer`, {}, {
+      preserveScroll: true,
+      onFinish: () => setReminderSending(false),
+    });
+  };
+
+  // Workflow transitions
+  const [transitioning, setTransitioning] = useState(false);
+  const [reviewReviewerId, setReviewReviewerId] = useState(task.reviewer_id || '');
+  // Which transition dialog is open: 'review' | 'done' | 'back' | null
+  const [transitionDialog, setTransitionDialog] = useState(null);
+  const [transitionComment, setTransitionComment] = useState('');
+
+  const runTransition = (status, extra = {}) => {
+    setTransitioning(true);
+    router.post(`/admin/tasks/${task.id}/transition`, { status, ...extra }, {
+      preserveScroll: true,
+      onFinish: () => {
+        setTransitioning(false);
+        setTransitionDialog(null);
+        setTransitionComment('');
+      },
+    });
+  };
+
+  // Sprint switcher
+  const handleChangeSprint = (sprintId) => {
+    router.patch(`/admin/tasks/${task.id}/sprint`, { sprint_id: sprintId || null }, {
+      preserveScroll: true,
+    });
   };
 
   const handleAddComment = (e) => {
@@ -171,6 +207,17 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                       <select value={data.sprint_id} onChange={(e) => setData('sprint_id', e.target.value)} className="form-input">
                         <option value="">Backlog</option>
                         {(sprints || []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">Reviewer</label>
+                      <select value={data.reviewer_id} onChange={(e) => setData('reviewer_id', e.target.value)} className="form-input">
+                        <option value="">No reviewer</option>
+                        {Object.entries(team)
+                          .filter(([id]) => String(id) !== String(data.assignee_id))
+                          .map(([id, name]) => <option key={id} value={id}>{name}</option>)}
                       </select>
                     </div>
                   </div>
@@ -280,6 +327,133 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                     </p>
                   )}
 
+                  {/* Workflow actions */}
+                  <div className="bg-muted/40 border border-border rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ArrowRightCircle className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-semibold text-foreground">Workflow</span>
+                    </div>
+
+                    {task.status === 'todo' && (
+                      <button
+                        type="button"
+                        disabled={transitioning}
+                        onClick={() => runTransition('in_progress')}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+                      >
+                        <ArrowRightCircle className="h-4 w-4" /> Start work (In Progress)
+                      </button>
+                    )}
+
+                    {task.status === 'in_progress' && (
+                      transitionDialog === 'review' ? (
+                        <div className="space-y-3">
+                          <div>
+                            <label className="form-label">Reviewer <span className="text-primary">*</span></label>
+                            <select
+                              value={reviewReviewerId}
+                              onChange={(e) => setReviewReviewerId(e.target.value)}
+                              className="form-input"
+                            >
+                              <option value="">Select a reviewer</option>
+                              {Object.entries(team)
+                                .filter(([id]) => String(id) !== String(task.assignee_id))
+                                .map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="form-label">Comment (optional)</label>
+                            <textarea value={transitionComment} onChange={(e) => setTransitionComment(e.target.value)} rows="2" className="form-input resize-y" placeholder="Notes for the reviewer..." />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={transitioning || !reviewReviewerId}
+                              onClick={() => runTransition('review', { reviewer_id: reviewReviewerId, comment: transitionComment })}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+                            >
+                              <UserCheck className="h-4 w-4" /> Send for review
+                            </button>
+                            <button type="button" onClick={() => setTransitionDialog(null)} className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground">Cancel</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => { setReviewReviewerId(task.reviewer_id || ''); setTransitionDialog('review'); }}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"
+                        >
+                          <ArrowRightCircle className="h-4 w-4" /> Send for review
+                        </button>
+                      )
+                    )}
+
+                    {task.status === 'review' && (
+                      transitionDialog ? (
+                        <div className="space-y-3">
+                          <label className="form-label">
+                            {transitionDialog === 'done' ? 'Approval comment' : 'Reason for sending back'}
+                            {transitionDialog === 'back' && <span className="text-primary"> *</span>}
+                          </label>
+                          <textarea value={transitionComment} onChange={(e) => setTransitionComment(e.target.value)} rows="2" className="form-input resize-y" placeholder={transitionDialog === 'done' ? 'Looks good...' : 'What needs to change...'} />
+                          <div className="flex items-center gap-2">
+                            {transitionDialog === 'done' ? (
+                              <button
+                                type="button"
+                                disabled={transitioning}
+                                onClick={() => runTransition('done', { comment: transitionComment })}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-600/90 disabled:opacity-50"
+                              >
+                                <CheckCircle2 className="h-4 w-4" /> Confirm done
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={transitioning || !transitionComment.trim()}
+                                onClick={() => runTransition('in_progress', { comment: transitionComment })}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-500/90 disabled:opacity-50"
+                              >
+                                <ArrowLeft className="h-4 w-4" /> Confirm send back
+                              </button>
+                            )}
+                            <button type="button" onClick={() => { setTransitionDialog(null); setTransitionComment(''); }} className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground">Cancel</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setTransitionDialog('back')}
+                            className="inline-flex items-center gap-2 px-4 py-2 border border-border text-foreground rounded-lg text-sm font-medium hover:bg-muted"
+                          >
+                            <ArrowLeft className="h-4 w-4" /> Back to In Progress
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTransitionDialog('done')}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-600/90"
+                          >
+                            <CheckCircle2 className="h-4 w-4" /> Mark as Done
+                          </button>
+                        </div>
+                      )
+                    )}
+
+                    {task.status === 'done' && (
+                      <div className="flex items-center gap-2 text-sm text-green-500">
+                        <CheckCircle2 className="h-4 w-4" /> This task is done.
+                        <button
+                          type="button"
+                          disabled={transitioning}
+                          onClick={() => runTransition('in_progress')}
+                          className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-foreground border border-border rounded-md hover:bg-muted disabled:opacity-50"
+                        >
+                          <ArrowLeft className="h-3.5 w-3.5" /> Reopen
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   {task.description && (
                     <div>
                       <label className="text-xs text-muted-foreground uppercase tracking-wider">Description</label>
@@ -384,6 +558,24 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                   </p>
                 </div>
                 <div>
+                  <label className="text-xs text-muted-foreground uppercase tracking-wider">Reviewer</label>
+                  <p className="text-sm text-foreground mt-1 flex items-center gap-1">
+                    <UserCheck className="h-3 w-3 text-muted-foreground" />
+                    {task.reviewer?.name || 'No reviewer'}
+                  </p>
+                  {task.reviewer && (
+                    <button
+                      type="button"
+                      onClick={handleRemindReviewer}
+                      disabled={reminderSending}
+                      className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 border border-border rounded-md transition-colors disabled:opacity-50"
+                    >
+                      <Bell className="h-3.5 w-3.5" />
+                      {reminderSending ? 'Sending...' : 'Send reminder'}
+                    </button>
+                  )}
+                </div>
+                <div>
                   <label className="text-xs text-muted-foreground uppercase tracking-wider">Due Date</label>
                   <p className={`text-sm mt-1 flex items-center gap-1 ${isOverdue ? 'text-red-400 font-medium' : 'text-foreground'}`}>
                     <Calendar className="h-3 w-3" />
@@ -392,11 +584,21 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground uppercase tracking-wider">Sprint</label>
-                  <p className="text-sm text-foreground mt-1 flex items-center gap-1">
-                    <Timer className="h-3 w-3 text-muted-foreground" />
-                    {task.sprint?.name || 'Backlog'}
-                  </p>
+                  <label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                    <Timer className="h-3 w-3" /> Sprint
+                  </label>
+                  <select
+                    value={task.sprint_id || ''}
+                    onChange={(e) => handleChangeSprint(e.target.value)}
+                    className="form-input text-sm mt-1"
+                  >
+                    <option value="">Backlog</option>
+                    {(sprints || []).map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}{s.status === 'active' ? ' ●' : ''}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground uppercase tracking-wider">Hours</label>

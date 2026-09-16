@@ -18,6 +18,7 @@ class Task extends Model
         'title',
         'description',
         'assignee_id',
+        'reviewer_id',
         'priority',
         'due_date',
         'status',
@@ -63,6 +64,11 @@ class Task extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assignee_id');
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewer_id');
     }
 
     public function comments(): HasMany

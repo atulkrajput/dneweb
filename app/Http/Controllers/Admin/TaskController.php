@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\TaskAssignedEmail;
+use App\Mail\TaskReviewEmail;
 use App\Models\Project;
 use App\Models\Sprint;
 use App\Models\Task;
 use App\Models\TaskComment;
 use App\Models\User;
 use App\Notifications\TaskAssignedNotification;
+use App\Notifications\TaskReviewerAssignedNotification;
+use App\Notifications\TaskReviewReminderNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -123,6 +126,7 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:20000',
             'assignee_id' => 'nullable|exists:users,id',
+            'reviewer_id' => 'nullable|exists:users,id',
             'priority' => 'required|string|in:' . implode(',', Task::PRIORITIES),
             'due_date' => 'nullable|date',
             'status' => 'nullable|string|in:' . implode(',', Task::STATUSES),
@@ -142,12 +146,16 @@ class TaskController extends Controller
             $this->notifyAssignee($task);
         }
 
+        if ($task->reviewer_id) {
+            $this->notifyReviewer($task);
+        }
+
         return back()->with('success', 'Task created.');
     }
 
     public function show(Task $task)
     {
-        $task->load(['project.client', 'assignee', 'sprint', 'comments.user']);
+        $task->load(['project.client', 'assignee', 'reviewer', 'sprint', 'comments.user']);
         $internalNotes = $task->notes()->with('user')->get();
         $team = User::orderBy('name')->pluck('name', 'id');
         $sprints = Sprint::where('project_id', $task->project_id)
@@ -169,6 +177,7 @@ class TaskController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:20000',
             'assignee_id' => 'nullable|exists:users,id',
+            'reviewer_id' => 'nullable|exists:users,id',
             'sprint_id' => 'nullable|exists:sprints,id',
             'priority' => 'required|string|in:' . implode(',', Task::PRIORITIES),
             'due_date' => 'nullable|date',
@@ -201,12 +210,18 @@ class TaskController extends Controller
         $validated['attachments'] = array_merge($attachments, $this->uploadAttachments($request));
 
         $previousAssigneeId = $task->assignee_id;
+        $previousReviewerId = $task->reviewer_id;
 
         $task->update($validated);
 
         // Only notify when the assignee actually changed to a new person.
         if ($task->assignee_id && $task->assignee_id !== $previousAssigneeId) {
             $this->notifyAssignee($task);
+        }
+
+        // Notify the reviewer when a new reviewer is set.
+        if ($task->reviewer_id && $task->reviewer_id !== $previousReviewerId) {
+            $this->notifyReviewer($task);
         }
 
         return back()->with('success', 'Task updated.');
@@ -225,6 +240,67 @@ class TaskController extends Controller
         $task->update($validated);
 
         return back()->with('success', 'Task moved.');
+    }
+
+    /**
+     * Workflow transition from the task details page.
+     * Handles status changes, optionally sets/updates the reviewer (when moving to review),
+     * and records an optional transition comment.
+     */
+    public function transition(Request $request, Task $task)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|in:' . implode(',', Task::STATUSES),
+            'reviewer_id' => 'nullable|exists:users,id',
+            'comment' => 'nullable|string|max:2000',
+        ]);
+
+        $previousReviewerId = $task->reviewer_id;
+        $newStatus = $validated['status'];
+
+        $task->status = $newStatus;
+
+        // When moving to review, a reviewer may be selected/updated at the same time.
+        if (array_key_exists('reviewer_id', $validated) && $validated['reviewer_id']) {
+            $task->reviewer_id = $validated['reviewer_id'];
+        }
+
+        $task->save();
+
+        // Record the transition as a comment for an audit trail.
+        $statusLabel = ucwords(str_replace('_', ' ', $newStatus));
+        $body = "Moved to {$statusLabel}.";
+        if (!empty($validated['comment'])) {
+            $body .= ' ' . $validated['comment'];
+        }
+
+        $task->comments()->create([
+            'user_id' => auth()->id(),
+            'body' => $body,
+        ]);
+
+        // Notify the reviewer when the task enters review or the reviewer changed.
+        if ($newStatus === Task::STATUS_REVIEW && $task->reviewer_id) {
+            if ($task->reviewer_id !== $previousReviewerId || $previousReviewerId === null) {
+                $this->notifyReviewer($task);
+            }
+        }
+
+        return back()->with('success', 'Task moved to ' . $statusLabel . '.');
+    }
+
+    /**
+     * Change the sprint of a task from the task details page.
+     */
+    public function changeSprint(Request $request, Task $task)
+    {
+        $validated = $request->validate([
+            'sprint_id' => 'nullable|exists:sprints,id',
+        ]);
+
+        $task->update(['sprint_id' => $validated['sprint_id'] ?: null]);
+
+        return back()->with('success', 'Sprint updated.');
     }
 
     public function destroy(Task $task)
@@ -304,6 +380,52 @@ class TaskController extends Controller
                 Log::error('Failed to send task assigned email: ' . $e->getMessage());
             }
         }
+    }
+
+    /**
+     * Notify a task's reviewer that they've been asked to review it.
+     */
+    protected function notifyReviewer(Task $task, bool $isReminder = false): void
+    {
+        $task->loadMissing(['reviewer', 'assignee', 'project', 'sprint']);
+
+        $reviewer = $task->reviewer;
+
+        if (!$reviewer) {
+            return;
+        }
+
+        // In-app bell notification.
+        try {
+            $reviewer->notify($isReminder
+                ? new TaskReviewReminderNotification($task)
+                : new TaskReviewerAssignedNotification($task));
+        } catch (\Exception $e) {
+            Log::error('Failed to create task reviewer notification: ' . $e->getMessage());
+        }
+
+        // Email notification.
+        if ($reviewer->email) {
+            try {
+                Mail::to($reviewer->email)->send(new TaskReviewEmail($task, $reviewer, $isReminder));
+            } catch (\Exception $e) {
+                Log::error('Failed to send task review email: ' . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Send a manual reminder to the task's reviewer.
+     */
+    public function remindReviewer(Task $task)
+    {
+        if (!$task->reviewer_id) {
+            return back()->with('error', 'No reviewer assigned to this task.');
+        }
+
+        $this->notifyReviewer($task, true);
+
+        return back()->with('success', 'Reminder sent to the reviewer.');
     }
 
     /**

@@ -30,6 +30,7 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
     title: '',
     description: '',
     assignee_id: '',
+    reviewer_id: '',
     priority: 'medium',
     due_date: '',
     status: 'todo',
@@ -75,7 +76,7 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
     post('/admin/tasks', {
       forceFormData: true,
       onSuccess: () => {
-        reset('title', 'description', 'assignee_id', 'due_date', 'estimated_hours', 'sprint_id', 'attachment_files');
+        reset('title', 'description', 'assignee_id', 'reviewer_id', 'due_date', 'estimated_hours', 'sprint_id', 'attachment_files');
         if (fileInputRef.current) fileInputRef.current.value = '';
         setShowCreate(false);
       },
@@ -244,7 +245,7 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
                 <label className="form-label">Assignee</label>
                 <select value={data.assignee_id} onChange={(e) => setData('assignee_id', e.target.value)} className="form-input">
@@ -252,6 +253,17 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
                   {Object.entries(team).map(([id, name]) => (
                     <option key={id} value={id}>{name}</option>
                   ))}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Reviewer</label>
+                <select value={data.reviewer_id} onChange={(e) => setData('reviewer_id', e.target.value)} className="form-input">
+                  <option value="">No reviewer</option>
+                  {Object.entries(team)
+                    .filter(([id]) => String(id) !== String(data.assignee_id))
+                    .map(([id, name]) => (
+                      <option key={id} value={id}>{name}</option>
+                    ))}
                 </select>
               </div>
               <div>
