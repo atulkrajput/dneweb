@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\ProposalEmail;
+use App\Models\Activity;
 use App\Models\Client;
 use App\Models\Lead;
 use App\Models\Project;
@@ -96,6 +97,9 @@ class ProposalController extends Controller
             'status' => $validated['status'] ?? 'draft',
         ]));
 
+        // Performance: credit the creator.
+        Activity::log('proposal_created', auth()->id(), $proposal);
+
         // Log activity on lead if linked
         if ($proposal->lead_id) {
             $lead = Lead::find($proposal->lead_id);
@@ -183,6 +187,9 @@ class ProposalController extends Controller
 
             // Update status to sent
             $proposal->update(['status' => Proposal::STATUS_SENT]);
+
+            // Performance: credit sending the proposal.
+            Activity::log('proposal_sent', auth()->id(), $proposal);
 
             // Log activity on lead if linked
             if ($proposal->lead_id) {

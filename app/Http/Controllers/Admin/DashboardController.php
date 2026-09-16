@@ -11,12 +11,15 @@ use App\Models\LeadActivity;
 use App\Models\Project;
 use App\Models\Service;
 use App\Models\Task;
+use App\Services\PerformanceService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request, PerformanceService $performance)
     {
         // Pipeline value = total of proposals/leads in negotiation/proposal_sent stages
         $pipelineValue = Lead::whereIn('status', ['qualified', 'proposal_sent', 'negotiation'])->count();
@@ -66,6 +69,13 @@ class DashboardController extends Controller
             ->take(8)
             ->get();
 
+        // Monthly team performance report (scoped by the viewer's role).
+        $month = $request->filled('perf_month')
+            ? Carbon::createFromFormat('Y-m', $request->input('perf_month'))->startOfMonth()
+            : now()->startOfMonth();
+
+        $performanceReport = $performance->monthlyReport($month, $request->user());
+
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
                 'total_leads' => Lead::count(),
@@ -83,6 +93,7 @@ class DashboardController extends Controller
             'revenueChart' => $revenueChart,
             'recentActivity' => $recentActivity,
             'recent_leads' => Lead::latest()->take(5)->get(),
+            'performance' => $performanceReport,
         ]);
     }
 }

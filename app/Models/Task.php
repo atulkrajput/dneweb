@@ -19,6 +19,7 @@ class Task extends Model
         'description',
         'assignee_id',
         'reviewer_id',
+        'created_by',
         'priority',
         'due_date',
         'status',
@@ -69,6 +70,11 @@ class Task extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewer_id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function comments(): HasMany

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Activity;
 use App\Models\Project;
 use App\Models\Sprint;
 use Illuminate\Http\Request;
@@ -36,7 +37,10 @@ class SprintController extends Controller
         $validated['end_date'] = Sprint::calculateEndDate($validated['start_date'], $validated['duration']);
         $validated['status'] = Sprint::STATUS_PLANNING;
 
-        Sprint::create($validated);
+        $sprint = Sprint::create($validated);
+
+        // Performance: credit sprint creation.
+        Activity::log('sprint_created', auth()->id(), $sprint);
 
         return back()->with('success', 'Sprint created.');
     }

@@ -40,7 +40,9 @@ class PartnerController extends Controller
 
         unset($validated['logo_file']);
 
-        Partner::create($validated);
+        $partner = Partner::create($validated);
+
+        \App\Models\Activity::log('content_created', auth()->id(), $partner, ['kind' => 'partner']);
 
         return redirect()->route('admin.partners.index')->with('success', 'Partner created.');
     }

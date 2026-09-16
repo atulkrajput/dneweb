@@ -14,6 +14,7 @@ class Lead extends Model
 
     protected $fillable = [
         'contact_id',
+        'assigned_to',
         'name',
         'company',
         'email',
@@ -82,6 +83,11 @@ class Lead extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(LeadActivity::class)->latest();
+    }
+
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 
     public function logActivity(string $type, string $description, ?array $properties = null, ?int $userId = null): LeadActivity

@@ -74,7 +74,9 @@ class ProductController extends Controller
 
         unset($validated['logo_file'], $validated['icon_file'], $validated['screenshot_files']);
 
-        Product::create($validated);
+        $product = Product::create($validated);
+
+        \App\Models\Activity::log('content_created', auth()->id(), $product, ['kind' => 'product']);
 
         return redirect()->route('admin.products.index')->with('success', 'Product created.');
     }

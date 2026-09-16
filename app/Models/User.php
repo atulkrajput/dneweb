@@ -43,6 +43,7 @@ class User extends Authenticatable
         'photo',
         'sort_order',
         'is_active',
+        'last_login_at',
     ];
 
     /**
@@ -66,6 +67,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -130,6 +132,11 @@ class User extends Authenticatable
     public function assignedTasks()
     {
         return $this->hasMany(Task::class, 'assignee_id');
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(Activity::class);
     }
 
     /**

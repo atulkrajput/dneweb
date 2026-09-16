@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\TaskAssignedEmail;
 use App\Mail\TaskReviewEmail;
+use App\Models\Activity;
 use App\Models\Project;
 use App\Models\Sprint;
 use App\Models\Task;
@@ -150,8 +151,12 @@ class TaskController extends Controller
         unset($validated['attachment_files']);
 
         $validated['attachments'] = $this->uploadAttachments($request);
+        $validated['created_by'] = auth()->id();
 
         $task = Task::create($validated);
+
+        // Performance: credit the creator.
+        Activity::log('task_created', auth()->id(), $task);
 
         if ($task->assignee_id) {
             $this->notifyAssignee($task);
@@ -296,6 +301,19 @@ class TaskController extends Controller
             'user_id' => auth()->id(),
             'body' => $body,
         ]);
+
+        // Performance scoring for the workflow transition.
+        $actorId = auth()->id();
+        if ($newStatus === Task::STATUS_REVIEW) {
+            Activity::log('task_review', $actorId, $task);
+        } elseif ($newStatus === Task::STATUS_DONE) {
+            // Credit the assignee for closing the task.
+            Activity::log('task_closed', $actorId, $task);
+            // If the task was in review and a reviewer approved it, credit the reviewer too.
+            if ($task->reviewer_id) {
+                Activity::log('task_reviewed', (int) $task->reviewer_id, $task);
+            }
+        }
 
         // Notify the reviewer when the task enters review or the reviewer changed.
         if ($newStatus === Task::STATUS_REVIEW && $task->reviewer_id) {
@@ -473,6 +491,9 @@ class TaskController extends Controller
             'user_id' => auth()->id(),
             'body' => $validated['body'],
         ]);
+
+        // Performance: small credit for collaborating via comments.
+        Activity::log('comment_added', auth()->id(), $task);
 
         return back()->with('success', 'Comment added.');
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Activity;
 use App\Models\Note;
 use App\Models\Lead;
 use App\Models\Client;
@@ -36,6 +37,9 @@ class NoteController extends Controller
             'user_id' => auth()->id(),
             'body' => $validated['body'],
         ]);
+
+        // Performance: small credit for adding notes.
+        Activity::log('note_added', auth()->id(), $notable);
 
         return back()->with('success', 'Note added.');
     }

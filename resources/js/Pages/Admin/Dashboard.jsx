@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head, Link } from '@inertiajs/react';
-import { Target, Building2, FolderKanban, DollarSign, TrendingUp, Clock, AlertTriangle, CheckSquare } from 'lucide-react';
+import { Target, Building2, FolderKanban, DollarSign, TrendingUp, Clock, AlertTriangle, CheckSquare, Award, ChevronLeft, ChevronRight } from 'lucide-react';
+import { router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 const STATUS_LABELS = {
@@ -41,8 +42,18 @@ const ACTIVITY_ICONS = {
   converted: '🎉',
 };
 
-export default function Dashboard({ stats, leadFunnel, revenueChart, recentActivity, recent_leads }) {
+export default function Dashboard({ stats, leadFunnel, revenueChart, recentActivity, recent_leads, performance }) {
   const fmt = (val) => '$' + Number(val || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+  // Month navigation for the performance report (YYYY-MM).
+  const shiftMonth = (delta) => {
+    const [y, m] = performance.month.split('-').map(Number);
+    const d = new Date(y, m - 1 + delta, 1);
+    const next = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    router.get('/admin', { perf_month: next }, { preserveScroll: true, preserveState: true });
+  };
+
+  const maxPerfTotal = Math.max(...(performance?.rows || []).map((r) => r.total), 1);
 
   const cards = [
     { label: 'New Leads Today', value: stats.new_leads, icon: Target, color: 'text-blue-400', href: '/admin/leads?status=new' },
@@ -79,11 +90,11 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-xl p-6">
+        {/* Revenue Chart (shrunk to one column) */}
+        <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-foreground">Revenue (Last 6 Months)</h2>
-            <Link href="/admin/invoices" className="text-xs text-primary hover:text-primary/80">View Invoices →</Link>
+            <h2 className="text-sm font-semibold text-foreground">Revenue (6 Mo)</h2>
+            <Link href="/admin/invoices" className="text-xs text-primary hover:text-primary/80">Invoices →</Link>
           </div>
           <div className="flex items-end gap-2 h-40">
             {revenueChart.map((item, i) => {
@@ -132,6 +143,83 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
             })}
           </div>
         </div>
+
+        {/* Team Performance summary (top scorers this month) */}
+        <div className="bg-card border border-border rounded-xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Award className="h-4 w-4 text-primary" /> Performance
+            </h2>
+            <div className="flex items-center gap-1">
+              <button onClick={() => shiftMonth(-1)} className="p-1 text-muted-foreground hover:text-foreground rounded" title="Previous month">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <span className="text-xs text-muted-foreground min-w-[70px] text-center">{performance.monthLabel}</span>
+              <button onClick={() => shiftMonth(1)} className="p-1 text-muted-foreground hover:text-foreground rounded" title="Next month">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          {performance.rows.length > 0 ? (
+            <div className="space-y-3">
+              {performance.rows.slice(0, 6).map((row, i) => (
+                <div key={row.user_id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-foreground flex items-center gap-1.5 truncate">
+                      {i === 0 && row.total > 0 && <span title="Top performer">🏆</span>}
+                      {row.name}
+                    </span>
+                    <span className="text-xs font-semibold text-foreground">{row.total} pts</span>
+                  </div>
+                  <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${(row.total / maxPerfTotal) * 100}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No activity recorded this month.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Performance breakdown table */}
+      <div className="bg-card border border-border rounded-xl p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Award className="h-4 w-4 text-primary" /> Team Performance — {performance.monthLabel}
+          </h2>
+        </div>
+        {performance.rows.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left">
+                  <th className="py-2 pr-4 font-medium text-muted-foreground">Team Member</th>
+                  <th className="py-2 px-3 font-medium text-muted-foreground">Role</th>
+                  {performance.groups.map((g) => (
+                    <th key={g} className="py-2 px-3 font-medium text-muted-foreground text-right">{performance.groupLabels[g]}</th>
+                  ))}
+                  <th className="py-2 pl-3 font-medium text-foreground text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {performance.rows.map((row) => (
+                  <tr key={row.user_id} className="hover:bg-muted/30">
+                    <td className="py-2 pr-4 text-foreground">{row.name}</td>
+                    <td className="py-2 px-3 text-muted-foreground capitalize">{(row.role || '').replace('_', ' ')}</td>
+                    {performance.groups.map((g) => (
+                      <td key={g} className="py-2 px-3 text-right text-muted-foreground">{row.groups[g] || 0}</td>
+                    ))}
+                    <td className="py-2 pl-3 text-right font-semibold text-foreground">{row.total}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No performance activity recorded for {performance.monthLabel}.</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

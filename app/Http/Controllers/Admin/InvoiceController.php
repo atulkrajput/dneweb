@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Activity;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -105,6 +106,9 @@ class InvoiceController extends Controller
             'status' => $validated['status'] ?? 'draft',
             'notes' => $validated['notes'] ?? null,
         ]);
+
+        // Performance: credit invoice creation.
+        Activity::log('invoice_created', auth()->id(), $invoice);
 
         return redirect()->route('admin.invoices.show', $invoice)->with('success', 'Invoice created.');
     }

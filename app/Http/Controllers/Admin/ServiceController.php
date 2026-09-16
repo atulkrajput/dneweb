@@ -48,7 +48,9 @@ class ServiceController extends Controller
 
         unset($validated['image_file']);
 
-        Service::create($validated);
+        $service = Service::create($validated);
+
+        \App\Models\Activity::log('content_created', auth()->id(), $service, ['kind' => 'service']);
 
         return redirect()->route('admin.services.index')->with('success', 'Service created.');
     }

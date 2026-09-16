@@ -14,6 +14,7 @@ class Project extends Model
 
     protected $fillable = [
         'client_id',
+        'created_by',
         'name',
         'description',
         'services',
@@ -61,6 +62,11 @@ class Project extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function tasks(): HasMany

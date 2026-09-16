@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Activity;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\Sprint;
@@ -98,7 +99,12 @@ class ProjectController extends Controller
             'notes' => 'nullable|string|max:5000',
         ]);
 
+        $validated['created_by'] = auth()->id();
+
         $project = Project::create($validated);
+
+        // Performance: credit the creator.
+        Activity::log('project_created', auth()->id(), $project);
 
         return redirect()->route('admin.projects.show', $project)->with('success', 'Project created.');
     }

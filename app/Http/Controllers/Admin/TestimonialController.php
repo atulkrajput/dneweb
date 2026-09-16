@@ -44,7 +44,9 @@ class TestimonialController extends Controller
 
         unset($validated['photo_file']);
 
-        Testimonial::create($validated);
+        $testimonial = Testimonial::create($validated);
+
+        \App\Models\Activity::log('content_created', auth()->id(), $testimonial, ['kind' => 'testimonial']);
 
         return redirect()->route('admin.testimonials.index')->with('success', 'Testimonial created.');
     }

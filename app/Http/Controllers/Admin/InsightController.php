@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Activity;
 use App\Models\Insight;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -96,7 +97,10 @@ class InsightController extends Controller
 
         unset($validated['featured_image_file'], $validated['other_image_files']);
 
-        Insight::create($validated);
+        $insight = Insight::create($validated);
+
+        // Performance: credit the author for writing an insight.
+        Activity::log('insight_created', auth()->id(), $insight);
 
         return redirect()->route('admin.insights.index')->with('success', 'Insight published successfully.');
     }

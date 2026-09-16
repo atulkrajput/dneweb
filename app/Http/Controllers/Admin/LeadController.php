@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Activity;
 use App\Models\Lead;
 use App\Models\Service;
 use App\Services\FacebookConversionsApi;
@@ -64,10 +65,16 @@ class LeadController extends Controller
             'interested_service' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:5000',
             'status' => 'nullable|string|in:' . implode(',', Lead::STATUSES),
+            'assigned_to' => 'nullable|exists:users,id',
         ]);
 
         $lead = Lead::create($validated);
         $lead->logActivity('created', 'Lead was created manually.');
+
+        // Performance: credit whoever the lead was assigned to (the actor doing the assignment).
+        if ($lead->assigned_to) {
+            Activity::log('lead_assigned', auth()->id(), $lead, ['assigned_to' => $lead->assigned_to]);
+        }
 
         return redirect()->route('admin.leads.show', $lead)->with('success', 'Lead created.');
     }
@@ -96,9 +103,11 @@ class LeadController extends Controller
             'interested_service' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:5000',
             'status' => 'required|string|in:' . implode(',', Lead::STATUSES),
+            'assigned_to' => 'nullable|exists:users,id',
         ]);
 
         $oldStatus = $lead->status;
+        $oldAssignee = $lead->assigned_to;
         $lead->update($validated);
 
         // Log status change
@@ -109,6 +118,11 @@ class LeadController extends Controller
             ]);
         } else {
             $lead->logActivity('updated', 'Lead details were updated.');
+        }
+
+        // Performance: credit assignment when it changes to a new person.
+        if ($lead->assigned_to && $lead->assigned_to !== $oldAssignee) {
+            Activity::log('lead_assigned', auth()->id(), $lead, ['assigned_to' => $lead->assigned_to]);
         }
 
         return redirect()->route('admin.leads.show', $lead)->with('success', 'Lead updated.');

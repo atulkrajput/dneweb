@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Activity;
 use App\Models\Client;
 use App\Models\Lead;
 use Illuminate\Http\Request;
@@ -63,6 +64,9 @@ class ClientController extends Controller
         ]);
 
         $client = Client::create($validated);
+
+        // Performance: credit client creation.
+        Activity::log('client_created', auth()->id(), $client);
 
         return redirect()->route('admin.clients.show', $client)->with('success', 'Client created.');
     }
@@ -130,6 +134,9 @@ class ClientController extends Controller
         $lead->logActivity('converted', 'Lead converted to client.', [
             'client_id' => $client->id,
         ]);
+
+        // Performance: credit the converter.
+        Activity::log('lead_converted', auth()->id(), $lead, ['client_id' => $client->id]);
 
         return redirect()->route('admin.clients.show', $client)
             ->with('success', 'Lead converted to client successfully.');
