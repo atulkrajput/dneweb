@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Plus, X, Calendar, User, GripVertical, Timer, Edit3, FolderKanban, ChevronDown, Paperclip } from 'lucide-react';
+import { Plus, X, Calendar, User, UserCheck, GripVertical, Timer, Edit3, FolderKanban, ChevronDown, Paperclip } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import RichTextEditor from '@/Components/RichTextEditor';
 
@@ -389,6 +389,12 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
                             <User className="h-3 w-3" />
                             {task.assignee.name?.split(' ')[0]}
+                          </span>
+                        )}
+                        {task.reviewer && (
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-violet-500/10 text-violet-400" title={`Reviewer: ${task.reviewer.name}`}>
+                            <UserCheck className="h-3 w-3" />
+                            {task.reviewer.name?.split(' ')[0]}
                           </span>
                         )}
                       </div>

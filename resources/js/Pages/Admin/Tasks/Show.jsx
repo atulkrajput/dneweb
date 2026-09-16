@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Trash2, Edit3, Save, X, MessageSquare, Calendar, Clock, User, UserCheck, Timer, Paperclip, Download, Bell, ArrowRightCircle, CheckCircle2 } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import NotesSection from '@/Components/NotesSection';
@@ -141,6 +141,10 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
   };
 
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
+
+  const authUser = usePage().props.auth?.user;
+  // Only the task's assignee can drive the workflow.
+  const isAssignee = authUser && task.assignee_id && String(authUser.id) === String(task.assignee_id);
 
   return (
     <AdminLayout title="Task Details">
@@ -334,7 +338,13 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                       <span className="text-sm font-semibold text-foreground">Workflow</span>
                     </div>
 
-                    {task.status === 'todo' && (
+                    {!isAssignee && (
+                      <p className="text-sm text-muted-foreground">
+                        Only the assignee{task.assignee ? ` (${task.assignee.name})` : ''} can move this task through the workflow.
+                      </p>
+                    )}
+
+                    {isAssignee && task.status === 'todo' && (
                       <button
                         type="button"
                         disabled={transitioning}
@@ -345,7 +355,7 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                       </button>
                     )}
 
-                    {task.status === 'in_progress' && (
+                    {isAssignee && task.status === 'in_progress' && (
                       transitionDialog === 'review' ? (
                         <div className="space-y-3">
                           <div>
@@ -388,7 +398,7 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                       )
                     )}
 
-                    {task.status === 'review' && (
+                    {isAssignee && task.status === 'review' && (
                       transitionDialog ? (
                         <div className="space-y-3">
                           <label className="form-label">
@@ -439,7 +449,7 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                       )
                     )}
 
-                    {task.status === 'done' && (
+                    {isAssignee && task.status === 'done' && (
                       <div className="flex items-center gap-2 text-sm text-green-500">
                         <CheckCircle2 className="h-4 w-4" /> This task is done.
                         <button

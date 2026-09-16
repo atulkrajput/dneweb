@@ -39,7 +39,7 @@ class TaskController extends Controller
         $assigneeId = $request->input('assignee_id');
         $due = $request->input('due');
 
-        $query = Task::with(['assignee:id,name', 'project:id,name', 'sprint:id,name']);
+        $query = Task::with(['assignee:id,name', 'reviewer:id,name', 'project:id,name', 'sprint:id,name']);
 
         if ($projectId) {
             $query->where('project_id', $projectId);
@@ -249,6 +249,9 @@ class TaskController extends Controller
      */
     public function transition(Request $request, Task $task)
     {
+        // Only the task's assignee may drive the workflow.
+        abort_unless($task->assignee_id && $task->assignee_id === auth()->id(), 403, 'Only the task assignee can change the workflow status.');
+
         $validated = $request->validate([
             'status' => 'required|string|in:' . implode(',', Task::STATUSES),
             'reviewer_id' => 'nullable|exists:users,id',
