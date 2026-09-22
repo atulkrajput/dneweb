@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Activity;
 use App\Models\Lead;
 use App\Models\Service;
-use App\Services\FacebookConversionsApi;
+use App\Jobs\SendMetaCapiEventJob;
+use App\Services\MetaCapiService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -116,6 +117,8 @@ class LeadController extends Controller
                 'old_status' => $oldStatus,
                 'new_status' => $validated['status'],
             ]);
+
+            $this->dispatchMetaCapiEvent($lead, $validated['status']);
         } else {
             $lead->logActivity('updated', 'Lead details were updated.');
         }
@@ -155,8 +158,8 @@ class LeadController extends Controller
             'new_status' => $validated['status'],
         ]);
 
-        // Send CRM event to Facebook Conversions API
-        $this->sendFacebookConversionEvent($lead, $validated['status']);
+        // Send CRM stage-change event to Meta Conversions API (async).
+        $this->dispatchMetaCapiEvent($lead, $validated['status']);
 
         $statusLabels = [
             'contacted' => 'Lead approved and moved to Contacted.',
@@ -171,26 +174,18 @@ class LeadController extends Controller
     }
 
     /**
-     * Send a conversion event to Facebook when a lead changes status.
+     * Queue a CRM stage-change event to the Meta Conversions API.
+     * Runs async so the admin UI never blocks on the outbound request.
      */
-    private function sendFacebookConversionEvent(Lead $lead, string $newStatus): void
+    private function dispatchMetaCapiEvent(Lead $lead, string $newStatus): void
     {
-        $eventName = FacebookConversionsApi::mapStatusToEventName($newStatus);
+        $eventName = MetaCapiService::mapStatusToEventName($newStatus);
 
-        if (!$eventName) {
+        if (! $eventName) {
             return;
         }
 
-        try {
-            $fbApi = new FacebookConversionsApi();
-            $fbApi->sendLeadEvent($lead, $eventName);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send Facebook conversion event', [
-                'lead_id' => $lead->id,
-                'status' => $newStatus,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        SendMetaCapiEventJob::dispatch($lead, $eventName);
     }
 
     private function getAllowedTransitions(string $currentStatus): array

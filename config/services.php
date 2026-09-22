@@ -48,4 +48,15 @@ return [
         'api_version' => env('FACEBOOK_API_VERSION', 'v21.0'),
     ],
 
+    /*
+    | Meta Conversions API (CRM offline events).
+    | Uses the dedicated META_* credentials, falling back to the shared
+    | FACEBOOK_* values so both integrations can coexist.
+    */
+    'meta' => [
+        'dataset_id' => env('META_DATASET_ID', env('FACEBOOK_DATASET_ID')),
+        'access_token' => env('META_ACCESS_TOKEN', env('FACEBOOK_CONVERSIONS_API_TOKEN')),
+        'api_version' => env('META_API_VERSION', 'v26.0'),
+    ],
+
 ];
