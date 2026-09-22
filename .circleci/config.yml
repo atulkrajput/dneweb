@@ -132,14 +132,25 @@ jobs:
             cat > /tmp/deploy.sh \<<'SCRIPT'
             set -e
             cd ~/domains/dneconsultants.com/public_html
-            echo ">>> Installing Composer dependencies..."
-            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+            # Hostinger shared hosting disables proc_open, so Composer/Artisan
+            # cannot spawn subprocesses. Run Composer with --no-scripts and use
+            # only Artisan commands that do NOT shell out (avoid `optimize`,
+            # which internally runs package:discover + event:cache).
+            echo ">>> Installing Composer dependencies (no scripts)..."
+            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+            echo ">>> Discovering packages..."
+            php artisan package:discover --ansi || echo "package:discover skipped (proc_open unavailable); runtime discovery will apply."
             echo ">>> Running database migrations..."
             php artisan migrate --force
             echo ">>> Clearing caches..."
-            php artisan optimize:clear
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
+            php artisan cache:clear
             echo ">>> Building optimized cache..."
-            php artisan optimize
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
             if [ ! -L public/storage ]; then
               echo ">>> Creating storage symlink..."
               ln -s ../storage/app/public public/storage
