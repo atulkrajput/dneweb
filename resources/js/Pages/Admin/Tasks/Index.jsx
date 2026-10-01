@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { Plus, X, Calendar, User, UserCheck, GripVertical, Timer, Edit3, FolderKanban, ChevronDown, Paperclip } from 'lucide-react';
+import { Plus, Minus, X, Calendar, User, UserCheck, GripVertical, Timer, Edit3, FolderKanban, ChevronDown, Paperclip } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import RichTextEditor from '@/Components/RichTextEditor';
 
@@ -18,6 +18,15 @@ const PRIORITY_COLORS = {
   urgent: 'bg-red-500/10 text-red-400',
 };
 
+const DEFAULT_ESTIMATED_HOURS = '2';
+
+// Default due date is 2 days from today, formatted as YYYY-MM-DD for the date input.
+const defaultDueDate = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 2);
+  return d.toISOString().split('T')[0];
+};
+
 export default function TasksIndex({ columns, projects, currentProject, team, sprints, filters }) {
   const [showCreate, setShowCreate] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
@@ -26,17 +35,65 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
   const fileInputRef = useRef(null);
   const { data, setData, post, processing, errors, reset } = useForm({
     project_id: filters.project_id || '',
-    sprint_id: filters.sprint_id || '',
+    sprint_id: '',
     title: '',
     description: '',
     assignee_id: '',
-    reviewer_id: '',
     priority: 'medium',
-    due_date: '',
+    due_date: defaultDueDate(),
     status: 'todo',
-    estimated_hours: '',
+    estimated_hours: DEFAULT_ESTIMATED_HOURS,
     attachment_files: [],
   });
+
+  // Inline "New Sprint" creation state.
+  const [showSprintForm, setShowSprintForm] = useState(false);
+  const {
+    data: sprintData,
+    setData: setSprintData,
+    post: postSprint,
+    processing: sprintProcessing,
+    errors: sprintErrors,
+    reset: resetSprint,
+  } = useForm({
+    name: '',
+    duration: 'two_weeks',
+    start_date: new Date().toISOString().split('T')[0],
+    goal: '',
+  });
+
+  const adjustHours = (delta) => {
+    const current = parseFloat(data.estimated_hours) || 0;
+    const next = Math.max(0, Math.round((current + delta) * 2) / 2);
+    setData('estimated_hours', String(next));
+  };
+
+  const handleCreateSprint = (e) => {
+    e.preventDefault();
+    if (!currentProject) return;
+    postSprint(`/admin/projects/${currentProject.id}/sprints`, {
+      preserveScroll: true,
+      onSuccess: () => {
+        resetSprint('name', 'goal');
+        setShowSprintForm(false);
+      },
+    });
+  };
+
+  // Keep the create-form's project in sync with the currently selected project.
+  // Inertia preserves component state across project switches, so the form's
+  // project_id would otherwise stay stuck on the project selected at mount.
+  useEffect(() => {
+    if (String(data.project_id) !== String(filters.project_id || '')) {
+      setData((prev) => ({
+        ...prev,
+        project_id: filters.project_id || '',
+        // Sprint is project-scoped; clear it when the project changes.
+        sprint_id: '',
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.project_id]);
 
   const addFiles = (fileList) => {
     setData('attachment_files', [...data.attachment_files, ...Array.from(fileList)]);
@@ -76,7 +133,13 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
     post('/admin/tasks', {
       forceFormData: true,
       onSuccess: () => {
-        reset('title', 'description', 'assignee_id', 'reviewer_id', 'due_date', 'estimated_hours', 'sprint_id', 'attachment_files');
+        reset('title', 'description', 'assignee_id', 'sprint_id', 'attachment_files');
+        // Restore the prefilled defaults for the next task.
+        setData((prev) => ({
+          ...prev,
+          due_date: defaultDueDate(),
+          estimated_hours: DEFAULT_ESTIMATED_HOURS,
+        }));
         if (fileInputRef.current) fileInputRef.current.value = '';
         setShowCreate(false);
       },
@@ -104,6 +167,19 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
   return (
     <AdminLayout title="Tasks">
       <Head title="Tasks" />
+
+      {/* Top action bar */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-bold text-foreground">Tasks</h1>
+        {currentProject && (
+          <button
+            onClick={() => setShowCreate(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="h-4 w-4" /> New Task
+          </button>
+        )}
+      </div>
 
       {/* Project Header Bar */}
       {currentProject && (
@@ -236,7 +312,16 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
                 {errors.title && <p className="mt-1 text-xs text-destructive">{errors.title}</p>}
               </div>
               <div>
-                <label className="form-label">Sprint</label>
+                <div className="flex items-center justify-between">
+                  <label className="form-label">Sprint</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowSprintForm(!showSprintForm)}
+                    className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    <Plus className="h-3 w-3" /> New Sprint
+                  </button>
+                </div>
                 <select value={data.sprint_id} onChange={(e) => setData('sprint_id', e.target.value)} className="form-input">
                   <option value="">Backlog</option>
                   {sprints.filter(s => s.status !== 'completed').map((s) => (
@@ -245,7 +330,69 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+
+            {/* Inline New Sprint creation */}
+            {showSprintForm && (
+              <div className="border border-dashed border-primary/40 rounded-lg p-4 bg-primary/5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-foreground">Create Sprint</h4>
+                  <button type="button" onClick={() => setShowSprintForm(false)} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="form-label">Name <span className="text-primary">*</span></label>
+                    <input
+                      type="text"
+                      value={sprintData.name}
+                      onChange={(e) => setSprintData('name', e.target.value)}
+                      className={`form-input ${sprintErrors.name ? 'border-destructive' : ''}`}
+                      placeholder="Sprint name"
+                    />
+                    {sprintErrors.name && <p className="mt-1 text-xs text-destructive">{sprintErrors.name}</p>}
+                  </div>
+                  <div>
+                    <label className="form-label">Duration</label>
+                    <select value={sprintData.duration} onChange={(e) => setSprintData('duration', e.target.value)} className="form-input">
+                      <option value="week">1 Week</option>
+                      <option value="two_weeks">2 Weeks</option>
+                      <option value="month">1 Month</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Start Date</label>
+                    <input
+                      type="date"
+                      value={sprintData.start_date}
+                      onChange={(e) => setSprintData('start_date', e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="form-label">Goal</label>
+                  <input
+                    type="text"
+                    value={sprintData.goal}
+                    onChange={(e) => setSprintData('goal', e.target.value)}
+                    className="form-input"
+                    placeholder="Optional sprint goal"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleCreateSprint}
+                    disabled={sprintProcessing}
+                    className="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {sprintProcessing ? 'Creating...' : 'Create Sprint'}
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="form-label">Assignee</label>
                 <select value={data.assignee_id} onChange={(e) => setData('assignee_id', e.target.value)} className="form-input">
@@ -253,17 +400,6 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
                   {Object.entries(team).map(([id, name]) => (
                     <option key={id} value={id}>{name}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <label className="form-label">Reviewer</label>
-                <select value={data.reviewer_id} onChange={(e) => setData('reviewer_id', e.target.value)} className="form-input">
-                  <option value="">No reviewer</option>
-                  {Object.entries(team)
-                    .filter(([id]) => String(id) !== String(data.assignee_id))
-                    .map(([id, name]) => (
-                      <option key={id} value={id}>{name}</option>
-                    ))}
                 </select>
               </div>
               <div>
@@ -281,7 +417,33 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
               </div>
               <div>
                 <label className="form-label">Est. Hours</label>
-                <input type="number" step="0.5" value={data.estimated_hours} onChange={(e) => setData('estimated_hours', e.target.value)} className="form-input" placeholder="0" />
+                <div className="flex items-stretch">
+                  <button
+                    type="button"
+                    onClick={() => adjustHours(-0.5)}
+                    className="px-3 flex items-center justify-center border border-border rounded-l-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    aria-label="Decrease hours"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    value={data.estimated_hours}
+                    onChange={(e) => setData('estimated_hours', e.target.value)}
+                    className="form-input rounded-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder="0"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => adjustHours(0.5)}
+                    className="px-3 flex items-center justify-center border border-border rounded-r-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    aria-label="Increase hours"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
             <div>

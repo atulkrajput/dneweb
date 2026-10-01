@@ -29,12 +29,29 @@ class TaskController extends Controller
     {
         $projects = Project::active()->with('client:id,company')->orderBy('name')->get(['id', 'name', 'client_id']);
 
-        // Default to latest project if none selected
+        // Resolve the active project. Priority:
+        //   1. Explicit project_id in the request (user just switched).
+        //   2. Last selected project remembered in the session.
+        //   3. The most recently created active project.
         $projectId = $request->input('project_id');
+
+        if ($projectId) {
+            // Remember the explicit selection for next time.
+            $request->session()->put('tasks.last_project_id', (int) $projectId);
+        } elseif ($rememberedId = $request->session()->get('tasks.last_project_id')) {
+            // Only reuse the remembered project if it still exists and is active.
+            if ($projects->firstWhere('id', (int) $rememberedId)) {
+                $projectId = $rememberedId;
+            }
+        }
+
         if (!$projectId && $projects->isNotEmpty()) {
             $latestProject = Project::active()->latest()->first();
             $projectId = $latestProject?->id;
         }
+
+        // Ensure the resolved project is cast to an int for consistent comparisons.
+        $projectId = $projectId ? (int) $projectId : null;
 
         $sprintId = $request->input('sprint_id');
         $assigneeId = $request->input('assignee_id');

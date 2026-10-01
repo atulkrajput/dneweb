@@ -40,7 +40,7 @@
     </table>
 
     @if ($task->description)
-        <p style="margin-top: 20px;">{{ $task->description }}</p>
+        <div style="margin-top: 20px;">{!! $task->description !!}</div>
     @endif
 
     <p style="text-align: center; margin: 32px 0;">
