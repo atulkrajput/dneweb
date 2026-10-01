@@ -4,6 +4,7 @@ import { ArrowLeft, Trash2, Edit3, Save, X, MessageSquare, Calendar, Clock, User
 import AdminLayout from '@/Layouts/AdminLayout';
 import NotesSection from '@/Components/NotesSection';
 import RichTextEditor from '@/Components/RichTextEditor';
+import AiImproveButton from '@/Components/AiImproveButton';
 
 const STATUS_LABELS = {
   todo: 'To Do',
@@ -180,10 +181,30 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="form-label">Title <span className="text-primary">*</span></label>
-                    <input type="text" value={data.title} onChange={(e) => setData('title', e.target.value)} className={`form-input ${errors.title ? 'border-destructive' : ''}`} />
+                    <div className="relative">
+                      <input type="text" value={data.title} onChange={(e) => setData('title', e.target.value)} className={`form-input pr-10 ${errors.title ? 'border-destructive' : ''}`} />
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                        <AiImproveButton
+                          kind="task_title"
+                          getText={() => data.title}
+                          onImproved={(result) => setData('title', result)}
+                          title="Rewrite title with AI"
+                        />
+                      </div>
+                    </div>
                   </div>
                   <div>
-                    <label className="form-label">Description</label>
+                    <div className="flex items-center justify-between">
+                      <label className="form-label">Description</label>
+                      <AiImproveButton
+                        kind="task_description"
+                        getText={() => data.description}
+                        context={data.title}
+                        onImproved={(result) => setData('description', result)}
+                        label="Improve with AI"
+                        allowEmpty
+                      />
+                    </div>
                     <RichTextEditor content={data.description} onChange={(html) => setData('description', html)} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -527,23 +548,32 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
                   <MessageSquare className="h-4 w-4 text-muted-foreground" /> Comments
                 </h3>
-                <form onSubmit={handleAddComment} className="flex gap-2 mb-4">
-                  <input
-                    type="text"
+                <form onSubmit={handleAddComment} className="mb-4">
+                  <textarea
                     value={commentForm.data.body}
                     onChange={(e) => commentForm.setData('body', e.target.value)}
-                    className="form-input flex-1"
-                    placeholder="Add a comment..."
+                    onKeyDown={(e) => {
+                      // Enter submits, Shift+Enter inserts a new line.
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleAddComment(e);
+                      }
+                    }}
+                    rows="3"
+                    className="form-input w-full resize-y"
+                    placeholder="Add a comment... (Shift+Enter for a new line)"
                   />
-                  <button type="submit" disabled={commentForm.processing || !commentForm.data.body.trim()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
-                    Post
-                  </button>
+                  <div className="flex justify-end mt-2">
+                    <button type="submit" disabled={commentForm.processing || !commentForm.data.body.trim()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
+                      Post
+                    </button>
+                  </div>
                 </form>
                 {task.comments && task.comments.length > 0 ? (
                   <div className="space-y-3">
                     {task.comments.map((comment) => (
                       <div key={comment.id} className="p-3 bg-muted/50 rounded-lg">
-                        <p className="text-sm text-foreground">{comment.body}</p>
+                        <p className="text-sm text-foreground whitespace-pre-wrap">{comment.body}</p>
                         <p className="text-xs text-muted-foreground mt-1">
                           {comment.user?.name || 'System'} • {new Date(comment.created_at).toLocaleString()}
                         </p>

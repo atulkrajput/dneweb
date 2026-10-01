@@ -3,6 +3,7 @@ import { Head, Link, useForm, router } from '@inertiajs/react';
 import { ArrowLeft, Trash2, Edit3, Save, X, Building2, Calendar, DollarSign, Plus, Play, CheckCircle, Timer } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import NotesSection from '@/Components/NotesSection';
+import AiImproveButton from '@/Components/AiImproveButton';
 
 const STATUS_LABELS = {
   planning: 'Planning',
@@ -174,7 +175,17 @@ export default function ProjectShow({ project, clients, team, sprints, sprintDur
                 </div>
               </div>
               <div>
-                <label className="form-label">Description</label>
+                <div className="flex items-center justify-between">
+                  <label className="form-label">Description</label>
+                  <AiImproveButton
+                    kind="project_description"
+                    getText={() => data.description}
+                    context={data.name}
+                    onImproved={(result) => setData('description', result)}
+                    label="Write / Improve with AI"
+                    allowEmpty
+                  />
+                </div>
                 <textarea value={data.description} onChange={(e) => setData('description', e.target.value)} rows="3" className="form-input resize-y" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -337,7 +348,16 @@ export default function ProjectShow({ project, clients, team, sprints, sprintDur
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs text-muted-foreground">Goal</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-muted-foreground">Goal</label>
+                      <AiImproveButton
+                        kind="sprint_goal"
+                        getText={() => sprintForm.data.goal}
+                        context={sprintForm.data.name}
+                        onImproved={(result) => sprintForm.setData('goal', result)}
+                        label="Improve with AI"
+                      />
+                    </div>
                     <input type="text" value={sprintForm.data.goal} onChange={(e) => sprintForm.setData('goal', e.target.value)} className="form-input text-sm mt-1" placeholder="What to achieve..." />
                   </div>
                   <div className="flex justify-end gap-2">

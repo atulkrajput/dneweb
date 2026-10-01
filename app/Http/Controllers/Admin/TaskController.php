@@ -198,10 +198,16 @@ class TaskController extends Controller
             ->orderBy('start_date')
             ->get(['id', 'name', 'status']);
 
+        $projects = Project::active()
+            ->with('client:id,company')
+            ->orderBy('name')
+            ->get(['id', 'name', 'client_id']);
+
         return Inertia::render('Admin/Tasks/Show', [
             'task' => $task,
             'team' => $team,
             'sprints' => $sprints,
+            'projects' => $projects,
             'internalNotes' => $internalNotes,
         ]);
     }
@@ -356,6 +362,31 @@ class TaskController extends Controller
         $task->update(['sprint_id' => $validated['sprint_id'] ?: null]);
 
         return back()->with('success', 'Sprint updated.');
+    }
+
+    /**
+     * Move a task to a different project from the task details page.
+     * The sprint is cleared because sprints are scoped to a single project.
+     */
+    public function changeProject(Request $request, Task $task)
+    {
+        $this->authorize('update', $task);
+
+        $validated = $request->validate([
+            'project_id' => 'required|exists:projects,id',
+        ]);
+
+        // No-op if it's already in the target project.
+        if ((int) $validated['project_id'] === (int) $task->project_id) {
+            return back();
+        }
+
+        $task->update([
+            'project_id' => $validated['project_id'],
+            'sprint_id' => null,
+        ]);
+
+        return back()->with('success', 'Task moved to the selected project.');
     }
 
     public function destroy(Task $task)

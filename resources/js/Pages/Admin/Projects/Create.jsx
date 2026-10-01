@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import AiImproveButton from '@/Components/AiImproveButton';
 
 export default function ProjectCreate({ clients, team, preselectedClient }) {
   const { data, setData, post, processing, errors } = useForm({
@@ -79,7 +80,17 @@ export default function ProjectCreate({ clients, team, preselectedClient }) {
             </div>
 
             <div>
-              <label className="form-label">Description</label>
+              <div className="flex items-center justify-between">
+                <label className="form-label">Description</label>
+                <AiImproveButton
+                  kind="project_description"
+                  getText={() => data.description}
+                  context={data.name}
+                  onImproved={(result) => setData('description', result)}
+                  label="Write / Improve with AI"
+                  allowEmpty
+                />
+              </div>
               <textarea value={data.description} onChange={(e) => setData('description', e.target.value)} rows="3" className="form-input resize-y" placeholder="Project scope and objectives..." />
             </div>
 

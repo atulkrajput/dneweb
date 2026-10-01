@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AiController;
 use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -152,6 +153,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::post('/proposals/{proposal}/accept', [ProposalController::class, 'accept'])->name('proposals.accept');
         Route::post('/proposals/{proposal}/send', [ProposalController::class, 'send'])->name('proposals.send');
     });
+
+    // AI text improvement (Groq) — available to any admin.
+    Route::post('/ai/improve', [AiController::class, 'improve'])->name('ai.improve');
 
     // Notes (polymorphic) — available to any admin; per-record checks live in the controller.
     Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -47,6 +47,18 @@ export default function RichTextEditor({ content, onChange }) {
       },
     },
   });
+
+  // Sync external content changes into the editor (e.g. AI-generated text or
+  // programmatic resets). Guard against loops by only setting when it differs
+  // from the editor's current HTML.
+  useEffect(() => {
+    if (!editor) return;
+    const incoming = content || '';
+    if (incoming !== editor.getHTML()) {
+      editor.commands.setContent(incoming, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [content, editor]);
 
   if (!editor) return null;
 

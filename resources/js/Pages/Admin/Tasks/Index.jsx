@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Plus, Minus, X, Calendar, User, UserCheck, GripVertical, Timer, Edit3, FolderKanban, ChevronDown, Paperclip } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import RichTextEditor from '@/Components/RichTextEditor';
+import AiImproveButton from '@/Components/AiImproveButton';
 
 const COLUMN_CONFIG = {
   todo: { label: 'To Do', color: 'border-t-blue-500' },
@@ -168,19 +169,6 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
     <AdminLayout title="Tasks">
       <Head title="Tasks" />
 
-      {/* Top action bar */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-bold text-foreground">Tasks</h1>
-        {currentProject && (
-          <button
-            onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="h-4 w-4" /> New Task
-          </button>
-        )}
-      </div>
-
       {/* Project Header Bar */}
       {currentProject && (
         <div className="bg-card border border-border rounded-xl p-4 mb-6">
@@ -308,7 +296,17 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="form-label">Title <span className="text-primary">*</span></label>
-                <input type="text" value={data.title} onChange={(e) => setData('title', e.target.value)} className={`form-input ${errors.title ? 'border-destructive' : ''}`} placeholder="Task title" />
+                <div className="relative">
+                  <input type="text" value={data.title} onChange={(e) => setData('title', e.target.value)} className={`form-input pr-10 ${errors.title ? 'border-destructive' : ''}`} placeholder="Task title" />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                    <AiImproveButton
+                      kind="task_title"
+                      getText={() => data.title}
+                      onImproved={(result) => setData('title', result)}
+                      title="Rewrite title with AI"
+                    />
+                  </div>
+                </div>
                 {errors.title && <p className="mt-1 text-xs text-destructive">{errors.title}</p>}
               </div>
               <div>
@@ -371,7 +369,16 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
                   </div>
                 </div>
                 <div>
-                  <label className="form-label">Goal</label>
+                  <div className="flex items-center justify-between">
+                    <label className="form-label">Goal</label>
+                    <AiImproveButton
+                      kind="sprint_goal"
+                      getText={() => sprintData.goal}
+                      context={sprintData.name}
+                      onImproved={(result) => setSprintData('goal', result)}
+                      label="Improve with AI"
+                    />
+                  </div>
                   <input
                     type="text"
                     value={sprintData.goal}
@@ -447,7 +454,17 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
               </div>
             </div>
             <div>
-              <label className="form-label">Description</label>
+              <div className="flex items-center justify-between">
+                <label className="form-label">Description</label>
+                <AiImproveButton
+                  kind="task_description"
+                  getText={() => data.description}
+                  context={data.title}
+                  onImproved={(result) => setData('description', result)}
+                  label="Improve with AI"
+                  allowEmpty
+                />
+              </div>
               <RichTextEditor content={data.description} onChange={(html) => setData('description', html)} />
             </div>
             <div>
@@ -483,9 +500,12 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
               )}
               {errors['attachment_files.0'] && <p className="mt-1 text-xs text-destructive">Each file must be 10MB or less.</p>}
             </div>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 border border-border text-muted-foreground rounded-lg text-sm font-medium hover:text-foreground hover:bg-muted transition-colors">
+                Cancel
+              </button>
               <button type="submit" disabled={processing} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
-                {processing ? 'Creating...' : 'Create Task'}
+                {processing ? 'Saving...' : 'Save Task'}
               </button>
             </div>
           </form>
