@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\Admin\AiController;
+use App\Http\Controllers\Admin\AiInsightController;
 use App\Http\Controllers\Admin\CampaignController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\GoalController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\InsightController;
 use App\Http\Controllers\Admin\ApiKeyController;
@@ -19,6 +21,7 @@ use App\Http\Controllers\Admin\ProposalController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\SocialMetricController;
 use App\Http\Controllers\Admin\SprintController;
 use App\Http\Controllers\Admin\TaskController;
 use App\Http\Controllers\Admin\TeamMemberController;
@@ -81,6 +84,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     // Team Members (unified with users)
     Route::middleware('module:team')->group(function () {
+        Route::get('team/{team_member}/performance', [TeamMemberController::class, 'performance'])->name('team.performance');
         Route::resource('team', TeamMemberController::class)->parameters(['team' => 'team_member']);
     });
 
@@ -115,6 +119,23 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     // Projects
     Route::middleware('module:projects')->group(function () {
         Route::resource('projects', ProjectController::class)->except(['edit']);
+    });
+
+    // Social media monthly metrics
+    Route::middleware('module:social')->group(function () {
+        Route::get('/social', [SocialMetricController::class, 'index'])->name('social.index');
+        Route::post('/social', [SocialMetricController::class, 'store'])->name('social.store');
+        Route::post('/social/log-daily-post', [SocialMetricController::class, 'logDailyPost'])->name('social.logDailyPost');
+    });
+
+    // Goals (strategic objectives — manager level)
+    Route::middleware('module:goals')->group(function () {
+        Route::get('/goals', [GoalController::class, 'index'])->name('goals.index');
+        Route::post('/goals', [GoalController::class, 'store'])->name('goals.store');
+        Route::put('/goals/{goal}', [GoalController::class, 'update'])->name('goals.update');
+        Route::delete('/goals/{goal}', [GoalController::class, 'destroy'])->name('goals.destroy');
+        Route::post('/goals/{goal}/outcomes', [GoalController::class, 'storeOutcome'])->name('goals.outcomes.store');
+        Route::delete('/goals/{goal}/outcomes/{outcome}', [GoalController::class, 'destroyOutcome'])->name('goals.outcomes.destroy');
     });
 
     // Tasks
@@ -156,6 +177,12 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     // AI text improvement (Groq) — available to any admin.
     Route::post('/ai/improve', [AiController::class, 'improve'])->name('ai.improve');
+
+    // AI assistant & goal-aware insights (Groq).
+    Route::get('/ai-assistant', [AiInsightController::class, 'page'])->name('ai.assistant');
+    Route::post('/ai/performance-analysis', [AiInsightController::class, 'performanceAnalysis'])->name('ai.performanceAnalysis');
+    Route::post('/ai/draft-tasks', [AiInsightController::class, 'draftTasks'])->name('ai.draftTasks');
+    Route::post('/ai/close-by-link', [AiInsightController::class, 'closeByLink'])->name('ai.closeByLink');
 
     // Notes (polymorphic) — available to any admin; per-record checks live in the controller.
     Route::post('/notes', [NoteController::class, 'store'])->name('notes.store');

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Edit, Trash2, User, Shield, Mail } from 'lucide-react';
+import { Plus, Edit, Trash2, User, Shield, Mail, BarChart3 } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 const ROLE_LABELS = {
@@ -66,10 +66,13 @@ export default function TeamMembersIndex({ members, roles }) {
               <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full mb-3">Inactive</span>
             )}
             <div className="flex gap-2 mt-auto pt-3">
-              <Link href={`/admin/team/${member.id}/edit`} className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+              <Link href={`/admin/team/${member.id}/performance`} className="p-2 text-muted-foreground hover:text-primary transition-colors" title="View performance">
+                <BarChart3 className="h-4 w-4" />
+              </Link>
+              <Link href={`/admin/team/${member.id}/edit`} className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
                 <Edit className="h-4 w-4" />
               </Link>
-              <button onClick={() => handleDelete(member)} className="p-2 text-muted-foreground hover:text-destructive transition-colors">
+              <button onClick={() => handleDelete(member)} className="p-2 text-muted-foreground hover:text-destructive transition-colors" title="Delete">
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>

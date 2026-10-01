@@ -28,7 +28,7 @@ const defaultDueDate = () => {
   return d.toISOString().split('T')[0];
 };
 
-export default function TasksIndex({ columns, projects, currentProject, team, sprints, filters }) {
+export default function TasksIndex({ columns, projects, goals, currentProject, team, sprints, filters }) {
   const [showCreate, setShowCreate] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
   const [draggedTask, setDraggedTask] = useState(null);
@@ -37,13 +37,18 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
   const { data, setData, post, processing, errors, reset } = useForm({
     project_id: filters.project_id || '',
     sprint_id: '',
+    goal_id: '',
     title: '',
     description: '',
+    expected_impact: '',
+    impact_level: 'medium',
+    maintenance_risk: '',
     assignee_id: '',
     priority: 'medium',
     due_date: defaultDueDate(),
     status: 'todo',
     estimated_hours: DEFAULT_ESTIMATED_HOURS,
+    estimated_cost: '',
     attachment_files: [],
   });
 
@@ -134,12 +139,13 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
     post('/admin/tasks', {
       forceFormData: true,
       onSuccess: () => {
-        reset('title', 'description', 'assignee_id', 'sprint_id', 'attachment_files');
+        reset('title', 'description', 'expected_impact', 'maintenance_risk', 'goal_id', 'assignee_id', 'sprint_id', 'attachment_files', 'estimated_cost');
         // Restore the prefilled defaults for the next task.
         setData((prev) => ({
           ...prev,
           due_date: defaultDueDate(),
           estimated_hours: DEFAULT_ESTIMATED_HOURS,
+          impact_level: 'medium',
         }));
         if (fileInputRef.current) fileInputRef.current.value = '';
         setShowCreate(false);
@@ -399,6 +405,40 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
                 </div>
               </div>
             )}
+            {/* Goal-first alignment */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="form-label">Company Goal</label>
+                <select value={data.goal_id} onChange={(e) => setData('goal_id', e.target.value)} className="form-input">
+                  <option value="">No goal (unaligned)</option>
+                  {(goals || []).map((g) => (
+                    <option key={g.id} value={g.id}>{g.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Business Impact</label>
+                <select value={data.impact_level} onChange={(e) => setData('impact_level', e.target.value)} className="form-input">
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                  <option value="none">None</option>
+                </select>
+              </div>
+            </div>
+
+            {!data.goal_id ? (
+              <div>
+                <label className="form-label">Maintenance / why (no goal selected)</label>
+                <input type="text" value={data.maintenance_risk} onChange={(e) => setData('maintenance_risk', e.target.value)} className="form-input" placeholder="State the risk this prevents, or leave blank — it will be flagged as low/no impact" />
+              </div>
+            ) : (
+              <div>
+                <label className="form-label">Expected impact (what measurable result?)</label>
+                <input type="text" value={data.expected_impact} onChange={(e) => setData('expected_impact', e.target.value)} className="form-input" placeholder="e.g. 2 qualified inquiries, +10% signups" />
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="form-label">Assignee</label>
@@ -555,6 +595,11 @@ export default function TasksIndex({ columns, projects, currentProject, team, sp
                         <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${PRIORITY_COLORS[task.priority]}`}>
                           {task.priority}
                         </span>
+                        {(task.impact_level === 'none' || task.impact_level === 'low' || !task.goal_id) && (
+                          <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-amber-500/10 text-amber-500" title={!task.goal_id ? 'Not linked to a company goal' : 'Low/no business impact'}>
+                            {!task.goal_id ? 'unaligned' : 'low impact'}
+                          </span>
+                        )}
                         {task.sprint && (
                           <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-primary/10 text-primary">
                             <Timer className="h-3 w-3" />

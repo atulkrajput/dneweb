@@ -28,6 +28,7 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $projects = Project::active()->with('client:id,company')->orderBy('name')->get(['id', 'name', 'client_id']);
+        $goals = \App\Models\Goal::active()->ordered()->get(['id', 'title', 'category']);
 
         // Resolve the active project. Priority:
         //   1. Explicit project_id in the request (user just switched).
@@ -133,6 +134,7 @@ class TaskController extends Controller
         return Inertia::render('Admin/Tasks/Index', [
             'columns' => $columns,
             'projects' => $projects,
+            'goals' => $goals,
             'currentProject' => $projectId ? $projects->firstWhere('id', (int) $projectId) : null,
             'team' => $team,
             'sprints' => $sprints,
@@ -152,14 +154,19 @@ class TaskController extends Controller
         $validated = $request->validate([
             'project_id' => 'required|exists:projects,id',
             'sprint_id' => 'nullable|exists:sprints,id',
+            'goal_id' => 'nullable|exists:goals,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:20000',
+            'expected_impact' => 'nullable|string|max:2000',
+            'maintenance_risk' => 'nullable|string|max:2000',
+            'impact_level' => 'nullable|string|in:' . implode(',', Task::IMPACT_LEVELS),
             'assignee_id' => 'nullable|exists:users,id',
             'reviewer_id' => 'nullable|exists:users,id',
             'priority' => 'required|string|in:' . implode(',', Task::PRIORITIES),
             'due_date' => 'nullable|date',
             'status' => 'nullable|string|in:' . implode(',', Task::STATUSES),
             'estimated_hours' => 'nullable|numeric|min:0',
+            'estimated_cost' => 'nullable|numeric|min:0',
             'checklist' => 'nullable|array',
             'attachment_files' => 'nullable|array',
             'attachment_files.*' => 'file|max:10240',
@@ -203,11 +210,14 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'client_id']);
 
+        $goals = \App\Models\Goal::active()->ordered()->get(['id', 'title', 'category']);
+
         return Inertia::render('Admin/Tasks/Show', [
             'task' => $task,
             'team' => $team,
             'sprints' => $sprints,
             'projects' => $projects,
+            'goals' => $goals,
             'internalNotes' => $internalNotes,
         ]);
     }
@@ -219,6 +229,12 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:20000',
+            'goal_id' => 'nullable|exists:goals,id',
+            'expected_impact' => 'nullable|string|max:2000',
+            'actual_impact' => 'nullable|string|max:2000',
+            'outcome_decision' => 'nullable|string|in:' . implode(',', Task::OUTCOME_DECISIONS),
+            'maintenance_risk' => 'nullable|string|max:2000',
+            'impact_level' => 'nullable|string|in:' . implode(',', Task::IMPACT_LEVELS),
             'assignee_id' => 'nullable|exists:users,id',
             'reviewer_id' => 'nullable|exists:users,id',
             'sprint_id' => 'nullable|exists:sprints,id',
@@ -227,6 +243,7 @@ class TaskController extends Controller
             'status' => 'required|string|in:' . implode(',', Task::STATUSES),
             'estimated_hours' => 'nullable|numeric|min:0',
             'actual_hours' => 'nullable|numeric|min:0',
+            'estimated_cost' => 'nullable|numeric|min:0',
             'checklist' => 'nullable|array',
             'attachment_files' => 'nullable|array',
             'attachment_files.*' => 'file|max:10240',
@@ -280,7 +297,15 @@ class TaskController extends Controller
             'sort_order' => 'nullable|integer',
         ]);
 
+        $wasDone = $task->status === Task::STATUS_DONE;
         $task->update($validated);
+
+        // Credit effort + business impact the first time a task reaches "done".
+        if (!$wasDone && $task->status === Task::STATUS_DONE) {
+            Activity::log('task_closed', auth()->id(), $task);
+            $task->loadMissing('goal');
+            Activity::logTaskImpact($task);
+        }
 
         return back()->with('success', 'Task moved.');
     }
@@ -330,8 +355,11 @@ class TaskController extends Controller
         if ($newStatus === Task::STATUS_REVIEW) {
             Activity::log('task_review', $actorId, $task);
         } elseif ($newStatus === Task::STATUS_DONE) {
-            // Credit the assignee for closing the task.
+            // Credit the assignee for closing the task (effort).
             Activity::log('task_closed', $actorId, $task);
+            // Credit business IMPACT based on impact level + goal category (the real measure).
+            $task->loadMissing('goal');
+            Activity::logTaskImpact($task);
             // If the task was in review and a reviewer approved it, credit the reviewer too.
             if ($task->reviewer_id) {
                 Activity::log('task_reviewed', (int) $task->reviewer_id, $task);

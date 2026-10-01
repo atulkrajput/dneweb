@@ -100,6 +100,8 @@ class User extends Authenticatable
             'invoices' => [self::ROLE_ACCOUNTANT, self::ROLE_SALES],
             'campaigns' => [self::ROLE_SALES],
             'team' => [self::ROLE_PROJECT_MANAGER],
+            'goals' => [self::ROLE_PROJECT_MANAGER],
+            'social' => [self::ROLE_PROJECT_MANAGER, self::ROLE_SALES],
             'settings' => [],
 
             // Content & marketing modules — available to sales + project managers.
@@ -137,6 +139,11 @@ class User extends Authenticatable
     public function activities()
     {
         return $this->hasMany(Activity::class);
+    }
+
+    public function ownedGoals()
+    {
+        return $this->hasMany(Goal::class, 'owner_id');
     }
 
     /**

@@ -17,3 +17,6 @@ Schedule::command('digest:projects-sprints')->dailyAt('08:30');
 
 // Existing project deadline reminders (day-before).
 Schedule::command('reminders:deadlines')->dailyAt('09:00');
+
+// Monthly performance report, emailed on the 1st for the month just ended.
+Schedule::command('reports:monthly-performance')->monthlyOn(1, '08:15');

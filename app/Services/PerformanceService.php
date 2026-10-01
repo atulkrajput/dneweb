@@ -105,6 +105,64 @@ class PerformanceService
     }
 
     /**
+     * Build a single user's performance breakdown for a given month.
+     * Unscoped by viewer — intended for admin per-member views and reports.
+     *
+     * @return array{
+     *   month:string, monthLabel:string, total:int,
+     *   types:array<string,array{count:int,points:int}>,
+     *   groups:array<string,int>, groupKeys:array, groupLabels:array,
+     *   typeLabels:array
+     * }
+     */
+    public function monthlyReportForUser(Carbon $month, User $user): array
+    {
+        $start = $month->copy()->startOfMonth();
+        $end = $month->copy()->endOfMonth();
+
+        $groups = config('performance.groups', []);
+        $labels = config('performance.labels', []);
+        $types = array_keys(config('performance.points', []));
+
+        $agg = Activity::query()
+            ->selectRaw('type, COUNT(*) as cnt, SUM(points) as pts')
+            ->where('user_id', $user->id)
+            ->whereBetween('created_at', [$start, $end])
+            ->groupBy('type')
+            ->get()
+            ->keyBy('type');
+
+        $typeStats = [];
+        $total = 0;
+        foreach ($types as $type) {
+            $count = (int) ($agg[$type]->cnt ?? 0);
+            $points = (int) ($agg[$type]->pts ?? 0);
+            $typeStats[$type] = ['count' => $count, 'points' => $points];
+            $total += $points;
+        }
+
+        $groupPoints = [];
+        foreach ($groups as $groupKey => $groupTypes) {
+            $sum = 0;
+            foreach ($groupTypes as $t) {
+                $sum += $typeStats[$t]['points'] ?? 0;
+            }
+            $groupPoints[$groupKey] = $sum;
+        }
+
+        return [
+            'month' => $start->format('Y-m'),
+            'monthLabel' => $start->format('F Y'),
+            'total' => $total,
+            'types' => $typeStats,
+            'groups' => $groupPoints,
+            'groupKeys' => array_keys($groups),
+            'groupLabels' => $this->groupLabels(array_keys($groups)),
+            'typeLabels' => $labels,
+        ];
+    }
+
+    /**
      * Friendly labels for the group column headers.
      */
     protected function groupLabels(array $groupKeys): array

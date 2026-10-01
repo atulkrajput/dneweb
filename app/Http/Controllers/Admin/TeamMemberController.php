@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\TeamWelcomeEmail;
 use App\Models\User;
+use App\Services\PerformanceService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -150,5 +152,38 @@ class TeamMemberController extends Controller
         $team_member->delete();
 
         return redirect()->route('admin.team.index')->with('success', 'Team member deleted.');
+    }
+
+    /**
+     * Show a team member's performance for the selected month and the one before it.
+     */
+    public function performance(Request $request, User $team_member, PerformanceService $performance)
+    {
+        $this->authorize('manage-users');
+
+        // Resolve the selected month from ?month=YYYY-MM, defaulting to the current month.
+        $monthParam = $request->input('month');
+        try {
+            $current = $monthParam
+                ? Carbon::createFromFormat('Y-m', $monthParam)->startOfMonth()
+                : now()->startOfMonth();
+        } catch (\Throwable $e) {
+            $current = now()->startOfMonth();
+        }
+
+        $previous = $current->copy()->subMonth();
+
+        return Inertia::render('Admin/TeamMembers/Performance', [
+            'member' => [
+                'id' => $team_member->id,
+                'name' => $team_member->name,
+                'position' => $team_member->position,
+                'team_role' => $team_member->team_role,
+                'photo' => $team_member->photo,
+                'email' => $team_member->email,
+            ],
+            'current' => $performance->monthlyReportForUser($current, $team_member),
+            'previous' => $performance->monthlyReportForUser($previous, $team_member),
+        ]);
     }
 }

@@ -55,16 +55,22 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
 
   const maxPerfTotal = Math.max(...(performance?.rows || []).map((r) => r.total), 1);
 
-  const cards = [
-    { label: 'New Leads Today', value: stats.new_leads, icon: Target, color: 'text-blue-400', href: '/admin/leads?status=new' },
-    { label: 'Pipeline', value: stats.pipeline_leads + ' leads', icon: TrendingUp, color: 'text-purple-400', href: '/admin/leads' },
-    { label: 'Monthly Revenue', value: fmt(stats.monthly_revenue), icon: DollarSign, color: 'text-green-400', href: '/admin/invoices?status=paid' },
-    { label: 'Active Projects', value: stats.active_projects, icon: FolderKanban, color: 'text-orange-400', href: '/admin/projects' },
-    { label: 'Tasks Due', value: stats.tasks_due, icon: CheckSquare, color: stats.tasks_due > 0 ? 'text-red-400' : 'text-muted-foreground', href: '/admin/tasks' },
-    { label: 'Pending Invoices', value: fmt(stats.pending_invoices), icon: Clock, color: 'text-yellow-400', href: '/admin/invoices?status=sent' },
-    { label: 'Active Clients', value: stats.active_clients, icon: Building2, color: 'text-cyan-400', href: '/admin/clients' },
-    { label: 'Conversion Rate', value: stats.conversion_rate + '%', icon: TrendingUp, color: 'text-green-400', href: '/admin/campaigns' },
+  // `raw` holds the numeric value used to decide whether a card is worth showing.
+  // Cards where raw is 0/empty are hidden to reduce clutter. `alwaysShow` keeps
+  // key metrics visible even at zero (e.g. revenue, conversion).
+  const allCards = [
+    { label: 'New Leads Today', value: stats.new_leads, raw: stats.new_leads, icon: Target, color: 'text-blue-400', href: '/admin/leads?status=new' },
+    { label: 'Pipeline', value: stats.pipeline_leads + ' leads', raw: stats.pipeline_leads, icon: TrendingUp, color: 'text-purple-400', href: '/admin/leads' },
+    { label: 'Monthly Revenue', value: fmt(stats.monthly_revenue), raw: stats.monthly_revenue, icon: DollarSign, color: 'text-green-400', href: '/admin/invoices?status=paid', alwaysShow: true },
+    { label: 'Active Projects', value: stats.active_projects, raw: stats.active_projects, icon: FolderKanban, color: 'text-orange-400', href: '/admin/projects' },
+    { label: 'Tasks Due', value: stats.tasks_due, raw: stats.tasks_due, icon: CheckSquare, color: stats.tasks_due > 0 ? 'text-red-400' : 'text-muted-foreground', href: '/admin/tasks' },
+    { label: 'Pending Invoices', value: fmt(stats.pending_invoices), raw: stats.pending_invoices, icon: Clock, color: 'text-yellow-400', href: '/admin/invoices?status=sent' },
+    { label: 'Active Clients', value: stats.active_clients, raw: stats.active_clients, icon: Building2, color: 'text-cyan-400', href: '/admin/clients' },
+    { label: 'Conversion Rate', value: stats.conversion_rate + '%', raw: stats.conversion_rate, icon: TrendingUp, color: 'text-green-400', href: '/admin/campaigns', alwaysShow: true },
   ];
+
+  // Hide cards with no data unless flagged alwaysShow.
+  const cards = allCards.filter((c) => c.alwaysShow || Number(c.raw) > 0);
 
   // Revenue chart max for scaling
   const maxRevenue = Math.max(...revenueChart.map(r => r.revenue), 1);
@@ -76,15 +82,15 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
     <AdminLayout title="Dashboard">
       <Head title="Admin Dashboard" />
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Stat Cards — compact, more per row, zero-data cards hidden */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 mb-6">
         {cards.map((card) => (
-          <Link key={card.label} href={card.href} className="bg-card border border-border rounded-xl p-5 hover:border-primary/30 transition-colors group">
-            <div className="flex items-center justify-between mb-3">
-              <card.icon className={`h-6 w-6 ${card.color}`} />
-              <span className="text-2xl font-bold text-foreground">{card.value}</span>
+          <Link key={card.label} href={card.href} className="bg-card border border-border rounded-lg p-3 hover:border-primary/30 transition-colors group">
+            <div className="flex items-center gap-2">
+              <card.icon className={`h-4 w-4 shrink-0 ${card.color}`} />
+              <span className="text-lg font-bold text-foreground leading-none truncate">{card.value}</span>
             </div>
-            <p className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">{card.label}</p>
+            <p className="text-[11px] text-muted-foreground group-hover:text-foreground transition-colors mt-1.5 truncate">{card.label}</p>
           </Link>
         ))}
       </div>
@@ -126,7 +132,7 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
             <Link href="/admin/leads" className="text-xs text-primary hover:text-primary/80">View All →</Link>
           </div>
           <div className="space-y-3">
-            {Object.entries(STATUS_LABELS).map(([status, label]) => {
+            {Object.entries(STATUS_LABELS).filter(([status]) => (leadFunnel[status] || 0) > 0).map(([status, label]) => {
               const count = leadFunnel[status] || 0;
               const pct = (count / funnelTotal) * 100;
               return (
@@ -141,6 +147,9 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
                 </div>
               );
             })}
+            {Object.values(leadFunnel).every((v) => !v) && (
+              <p className="text-sm text-muted-foreground">No leads in the funnel yet.</p>
+            )}
           </div>
         </div>
 

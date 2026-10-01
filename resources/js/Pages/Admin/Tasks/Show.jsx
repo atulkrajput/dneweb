@@ -27,13 +27,19 @@ const PRIORITY_COLORS = {
   urgent: 'text-red-400',
 };
 
-export default function TaskShow({ task, team, sprints, internalNotes }) {
+export default function TaskShow({ task, team, sprints, goals, internalNotes }) {
   const [editing, setEditing] = useState(false);
 
   const fileInputRef = useRef(null);
   const { data, setData, processing, errors } = useForm({
     title: task.title,
     description: task.description || '',
+    goal_id: task.goal_id || '',
+    expected_impact: task.expected_impact || '',
+    actual_impact: task.actual_impact || '',
+    outcome_decision: task.outcome_decision || '',
+    maintenance_risk: task.maintenance_risk || '',
+    impact_level: task.impact_level || 'medium',
     assignee_id: task.assignee_id || '',
     reviewer_id: task.reviewer_id || '',
     sprint_id: task.sprint_id || '',
@@ -42,6 +48,7 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
     status: task.status,
     estimated_hours: task.estimated_hours || '',
     actual_hours: task.actual_hours || '',
+    estimated_cost: task.estimated_cost || '',
     checklist: task.checklist || [],
     attachment_files: [],
     removed_attachments: [],
@@ -224,6 +231,58 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
                     </div>
                     <RichTextEditor content={data.description} onChange={(html) => setData('description', html)} />
                   </div>
+
+                  {/* Goal-first alignment */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">Company Goal</label>
+                      <select value={data.goal_id} onChange={(e) => setData('goal_id', e.target.value)} className="form-input">
+                        <option value="">No goal (unaligned)</option>
+                        {(goals || []).map((g) => (
+                          <option key={g.id} value={g.id}>{g.title}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="form-label">Business Impact</label>
+                      <select value={data.impact_level} onChange={(e) => setData('impact_level', e.target.value)} className="form-input">
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                        <option value="none">None</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="form-label">Expected impact</label>
+                      <input type="text" value={data.expected_impact} onChange={(e) => setData('expected_impact', e.target.value)} className="form-input" placeholder="What measurable result?" />
+                    </div>
+                    <div>
+                      <label className="form-label">{data.goal_id ? 'Actual impact' : 'Maintenance / why (no goal)'}</label>
+                      {data.goal_id ? (
+                        <input type="text" value={data.actual_impact} onChange={(e) => setData('actual_impact', e.target.value)} className="form-input" placeholder="What actually happened?" />
+                      ) : (
+                        <input type="text" value={data.maintenance_risk} onChange={(e) => setData('maintenance_risk', e.target.value)} className="form-input" placeholder="Risk this prevents" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="form-label">Outcome decision</label>
+                      <select value={data.outcome_decision} onChange={(e) => setData('outcome_decision', e.target.value)} className="form-input">
+                        <option value="">—</option>
+                        <option value="continue">Continue</option>
+                        <option value="change">Change</option>
+                        <option value="stop">Stop</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="form-label">Est. cost</label>
+                      <input type="number" step="any" value={data.estimated_cost} onChange={(e) => setData('estimated_cost', e.target.value)} className="form-input" placeholder="0" />
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="form-label">Status</label>
