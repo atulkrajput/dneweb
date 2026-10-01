@@ -23,15 +23,18 @@ class AiController extends Controller
     protected const DEFAULT_MODEL = 'openai/gpt-oss-120b';
 
     /**
-     * Supported improvement kinds and whether their output is HTML.
+     * Supported improvement kinds and their output type.
+     * - html: output is an HTML fragment
+     * - list: output is a JSON array of short strings (e.g. a checklist)
      *
-     * @var array<string, array{html: bool}>
+     * @var array<string, array{html?: bool, list?: bool}>
      */
     protected const KINDS = [
         'task_title' => ['html' => false],
         'task_description' => ['html' => true],
         'project_description' => ['html' => false],
         'sprint_goal' => ['html' => false],
+        'task_checklist' => ['list' => true],
     ];
 
     /**
@@ -53,7 +56,8 @@ class AiController extends Controller
         }
 
         $kind = $validated['kind'];
-        $wantsHtml = self::KINDS[$kind]['html'];
+        $wantsHtml = self::KINDS[$kind]['html'] ?? false;
+        $wantsList = self::KINDS[$kind]['list'] ?? false;
         $inputText = (string) ($validated['text'] ?? '');
         $model = Setting::get('groq_model') ?: self::DEFAULT_MODEL;
 
@@ -87,7 +91,7 @@ class AiController extends Controller
             $response = $request->post(self::GROQ_ENDPOINT, [
                     'model' => $model,
                     'temperature' => 0.4,
-                    'max_tokens' => $wantsHtml ? 1200 : 300,
+                    'max_tokens' => ($wantsHtml || $wantsList) ? 1200 : 300,
                     'messages' => [
                         ['role' => 'system', 'content' => $system],
                         ['role' => 'user', 'content' => $user],
@@ -125,9 +129,15 @@ class AiController extends Controller
         }
 
         // Models sometimes wrap output in code fences or quotes; strip those for clean inline text.
-        $result = $this->cleanOutput($result, $wantsHtml);
+        $result = $this->cleanOutput($result, $wantsHtml || $wantsList);
 
         $this->logUsage($kind, $model, 'success', $inputText, $result, $response->json('usage'), $durationMs, null);
+
+        if ($wantsList) {
+            return response()->json([
+                'list' => $this->parseList($result),
+            ]);
+        }
 
         return response()->json([
             'result' => $result,
@@ -248,11 +258,63 @@ class AiController extends Controller
                     ? "Write a concise, outcome-focused sprint goal based on this context:{$contextLine}"
                     : "Improve this sprint goal:{$contextLine}\n\n{$text}",
             ],
+            'task_checklist' => [
+                'You are a project management assistant. Produce an actionable checklist of concrete subtasks for a task. '
+                . 'Return ONLY a JSON array of short strings (each a single checklist item), with no explanation, no numbering, and no code fences. '
+                . 'Keep each item under 100 characters and return between 3 and 8 items.',
+                $isGenerate
+                    ? "Create a checklist of concrete subtasks for a task with this title/description:{$contextLine}"
+                    : "Create or refine a checklist of concrete subtasks for this task.{$contextLine}\n\nExisting notes or items:\n{$text}",
+            ],
             default => [
                 'You are a helpful writing assistant. Improve the text and return only the result.',
                 $text,
             ],
         };
+    }
+
+    /**
+     * Parse the model output into a clean array of checklist item strings.
+     *
+     * Accepts a JSON array when provided, and gracefully falls back to parsing
+     * newline / bullet / numbered lists.
+     *
+     * @return array<int, string>
+     */
+    protected function parseList(string $result): array
+    {
+        $items = [];
+
+        // Preferred: a JSON array of strings.
+        $decoded = json_decode($result, true);
+        if (is_array($decoded)) {
+            foreach ($decoded as $item) {
+                if (is_string($item)) {
+                    $items[] = $item;
+                } elseif (is_array($item) && isset($item['text']) && is_string($item['text'])) {
+                    $items[] = $item['text'];
+                }
+            }
+        }
+
+        // Fallback: split lines and strip common bullet/number prefixes.
+        if (empty($items)) {
+            foreach (preg_split('/\r?\n/', $result) as $line) {
+                $line = preg_replace('/^\s*(?:[-*•]|\d+[.)])\s*/u', '', trim($line));
+                $line = trim((string) $line, " \t\"'");
+                if ($line !== '') {
+                    $items[] = $line;
+                }
+            }
+        }
+
+        // Normalize: trim, drop empties, cap length and count.
+        $items = array_values(array_filter(array_map(
+            fn ($i) => trim(mb_substr(trim($i), 0, 150)),
+            $items
+        )));
+
+        return array_slice($items, 0, 12);
     }
 
     /**

@@ -40,6 +40,7 @@ export default function AiImproveButton({
   kind,
   getText,
   onImproved,
+  onList,
   context,
   title = 'Improve with AI',
   label,
@@ -64,8 +65,12 @@ export default function AiImproveButton({
 
     setLoading(true);
     try {
-      const { result, html } = await improveText(kind, text, context);
-      onImproved?.(result, html);
+      const { result, html, list } = await improveText(kind, text, context);
+      if (Array.isArray(list)) {
+        onList?.(list);
+      } else {
+        onImproved?.(result, html);
+      }
     } catch (error) {
       const message =
         error?.response?.data?.message ||

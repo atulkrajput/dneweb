@@ -144,6 +144,23 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
     setData('checklist', data.checklist.filter((_, i) => i !== index));
   };
 
+  // Merge AI-generated checklist items into the existing list, skipping blanks
+  // and case-insensitive duplicates. New items default to not done.
+  const applyAiChecklist = (items) => {
+    const existing = data.checklist || [];
+    const seen = new Set(existing.map((it) => (it.text || '').trim().toLowerCase()));
+    const additions = [];
+    for (const raw of items) {
+      const text = String(raw || '').trim();
+      const key = text.toLowerCase();
+      if (text && !seen.has(key)) {
+        seen.add(key);
+        additions.push({ text, done: false });
+      }
+    }
+    setData('checklist', [...existing, ...additions]);
+  };
+
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
 
   const authUser = usePage().props.auth?.user;
@@ -270,7 +287,18 @@ export default function TaskShow({ task, team, sprints, internalNotes }) {
 
                   {/* Checklist */}
                   <div>
-                    <label className="form-label">Checklist</label>
+                    <div className="flex items-center justify-between">
+                      <label className="form-label">Checklist</label>
+                      <AiImproveButton
+                        kind="task_checklist"
+                        getText={() => (data.checklist || []).map((it) => it.text).filter(Boolean).join('\n')}
+                        context={`${data.title}${data.description ? ' — ' + data.description.replace(/<[^>]+>/g, ' ') : ''}`}
+                        onList={applyAiChecklist}
+                        label="Generate with AI"
+                        title="Generate / update checklist with AI"
+                        allowEmpty
+                      />
+                    </div>
                     <div className="space-y-2">
                       {data.checklist.map((item, i) => (
                         <div key={i} className="flex items-center gap-2">
