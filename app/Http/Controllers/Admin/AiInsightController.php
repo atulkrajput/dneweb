@@ -140,6 +140,55 @@ SYS;
     }
 
     /**
+     * Bulk-create the accepted drafted tasks.
+     *
+     * Each task is assigned to the logged-in user, due today, with a default
+     * 1-hour estimate. Returns JSON (not a redirect) so the AI Assistant page
+     * can create several tasks in one request without Inertia navigation.
+     */
+    public function createTasks(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'project_id' => 'required|exists:projects,id',
+            'tasks' => 'required|array|min:1',
+            'tasks.*.title' => 'required|string|max:255',
+            'tasks.*.goal_id' => 'nullable|exists:goals,id',
+            'tasks.*.impact_level' => 'nullable|string|in:' . implode(',', Task::IMPACT_LEVELS),
+            'tasks.*.expected_impact' => 'nullable|string|max:2000',
+            'tasks.*.estimated_hours' => 'nullable|numeric|min:0',
+        ]);
+
+        $userId = $request->user()->id;
+        $today = now()->toDateString();
+        $created = [];
+
+        foreach ($validated['tasks'] as $t) {
+            $task = Task::create([
+                'project_id' => $validated['project_id'],
+                'goal_id' => $t['goal_id'] ?? null,
+                'title' => $t['title'],
+                'expected_impact' => $t['expected_impact'] ?? null,
+                'impact_level' => $t['impact_level'] ?? 'low',
+                'assignee_id' => $userId,
+                'created_by' => $userId,
+                'priority' => 'medium',
+                'status' => Task::STATUS_TODO,
+                'due_date' => $today,
+                'estimated_hours' => is_numeric($t['estimated_hours'] ?? null) ? (float) $t['estimated_hours'] : 1,
+            ]);
+
+            Activity::log('task_created', $userId, $task);
+            $created[] = ['id' => $task->id, 'title' => $task->title];
+        }
+
+        return response()->json([
+            'created' => $created,
+            'count' => count($created),
+            'message' => count($created) . ' task(s) created, assigned to you and due today.',
+        ]);
+    }
+
+    /**
      * Match a supplied deliverable/post link to one of the user's open tasks,
      * then close it, attach the link as proof, and record it as activity.
      */

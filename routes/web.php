@@ -182,6 +182,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/ai-assistant', [AiInsightController::class, 'page'])->name('ai.assistant');
     Route::post('/ai/performance-analysis', [AiInsightController::class, 'performanceAnalysis'])->name('ai.performanceAnalysis');
     Route::post('/ai/draft-tasks', [AiInsightController::class, 'draftTasks'])->name('ai.draftTasks');
+    Route::post('/ai/create-tasks', [AiInsightController::class, 'createTasks'])->name('ai.createTasks');
     Route::post('/ai/close-by-link', [AiInsightController::class, 'closeByLink'])->name('ai.closeByLink');
 
     // Notes (polymorphic) — available to any admin; per-record checks live in the controller.

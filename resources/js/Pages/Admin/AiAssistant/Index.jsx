@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { Sparkles, Loader2, Link as LinkIcon, ClipboardList, BarChart3, Check, AlertTriangle } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
@@ -46,39 +46,34 @@ export default function AiAssistant({ defaultProject, projects, goals, groqConfi
     setDrafts((d) => d.map((t, idx) => (idx === i ? { ...t, [field]: value } : t)));
   };
 
-  const createAccepted = () => {
+  const createAccepted = async () => {
     const accepted = drafts.filter((d) => d._accept);
     if (!accepted.length || !projectId) {
       toast({ icon: 'info', title: 'Nothing to create', text: 'Select a project and at least one task.', timer: 3000 });
       return;
     }
     setCreating(true);
-    // Create tasks sequentially via the existing task store endpoint.
-    let remaining = accepted.length;
-    accepted.forEach((t) => {
-      router.post('/admin/tasks', {
+    try {
+      // Create all accepted tasks in one JSON request. The server assigns them
+      // to the logged-in user, sets the due date to today, and defaults to 1h.
+      const { data } = await window.axios.post('/admin/ai/create-tasks', {
         project_id: projectId,
-        title: t.title,
-        goal_id: t.goal_id || '',
-        impact_level: t.impact_level || 'low',
-        expected_impact: t.expected_impact || '',
-        estimated_hours: t.estimated_hours || '',
-        priority: 'medium',
-        status: 'todo',
-      }, {
-        preserveScroll: true,
-        preserveState: true,
-        onFinish: () => {
-          remaining -= 1;
-          if (remaining <= 0) {
-            setCreating(false);
-            setDrafts([]);
-            setDesc('');
-            toast({ icon: 'success', title: 'Tasks created', text: `${accepted.length} task(s) added to the project.`, timer: 3000 });
-          }
-        },
+        tasks: accepted.map((t) => ({
+          title: t.title,
+          goal_id: t.goal_id || null,
+          impact_level: t.impact_level || 'low',
+          expected_impact: t.expected_impact || '',
+          estimated_hours: t.estimated_hours ?? null,
+        })),
       });
-    });
+      setDrafts([]);
+      setDesc('');
+      await toast({ icon: 'success', title: 'Tasks created', text: data.message || `${accepted.length} task(s) created.`, timer: 3500 });
+    } catch (e) {
+      await toast({ icon: 'error', title: 'Could not create tasks', text: e?.response?.data?.message || 'Something went wrong.', timer: 4000 });
+    } finally {
+      setCreating(false);
+    }
   };
 
   // --- Close task by link ---
@@ -154,10 +149,22 @@ export default function AiAssistant({ defaultProject, projects, goals, groqConfi
 
           {drafts.length > 0 && (
             <div className="mt-4 space-y-2">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>{drafts.filter((d) => d._accept).length} of {drafts.length} selected</span>
+                <div className="flex items-center gap-3">
+                  <button type="button" onClick={() => setDrafts((d) => d.map((t) => ({ ...t, _accept: true })))} className="text-primary hover:text-primary/80">Select all</button>
+                  <button type="button" onClick={() => setDrafts((d) => d.map((t) => ({ ...t, _accept: false })))} className="text-primary hover:text-primary/80">Clear</button>
+                </div>
+              </div>
               {drafts.map((t, i) => (
                 <div key={i} className={`border rounded-lg p-3 ${t._accept ? 'border-border' : 'border-border/40 opacity-50'}`}>
                   <div className="flex items-start gap-3">
-                    <input type="checkbox" checked={t._accept} onChange={(e) => updateDraft(i, '_accept', e.target.checked)} className="mt-1 rounded border-border" />
+                    <input
+                      type="checkbox"
+                      checked={t._accept}
+                      onChange={(e) => updateDraft(i, '_accept', e.target.checked)}
+                      className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-border bg-background text-primary accent-primary focus:ring-primary"
+                    />
                     <div className="flex-1 min-w-0">
                       <input type="text" value={t.title} onChange={(e) => updateDraft(i, 'title', e.target.value)} className="form-input text-sm w-full mb-2" />
                       <div className="flex items-center gap-2 flex-wrap text-xs">
@@ -183,7 +190,7 @@ export default function AiAssistant({ defaultProject, projects, goals, groqConfi
               ))}
               <div className="flex justify-end">
                 <button onClick={createAccepted} disabled={creating} className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
-                  {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Create selected tasks
+                  {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Create {drafts.filter((d) => d._accept).length} selected task(s)
                 </button>
               </div>
             </div>

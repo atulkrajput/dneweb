@@ -35,6 +35,12 @@ class AiController extends Controller
         'project_description' => ['html' => false],
         'sprint_goal' => ['html' => false],
         'task_checklist' => ['list' => true],
+        // Insight (blog/article) content.
+        'insight_short_description' => ['html' => false],
+        'insight_detail_description' => ['html' => true],
+        'insight_meta_title' => ['html' => false],
+        'insight_meta_description' => ['html' => false],
+        'insight_meta_keywords' => ['html' => false],
     ];
 
     /**
@@ -265,6 +271,42 @@ class AiController extends Controller
                 $isGenerate
                     ? "Create a checklist of concrete subtasks for a task with this title/description:{$contextLine}"
                     : "Create or refine a checklist of concrete subtasks for this task.{$contextLine}\n\nExisting notes or items:\n{$text}",
+            ],
+            'insight_short_description' => [
+                'You are a content editor for a consulting + SaaS company blog. Write a short description (summary/excerpt) for an article that is engaging, clear, and SEO-friendly. '
+                . 'Keep it to one or two sentences under 300 characters. Return ONLY the description as plain text, with no quotes, labels, or explanation.',
+                $isGenerate
+                    ? "Write a short description/excerpt for an article with this title:{$contextLine}"
+                    : "Improve this article short description:{$contextLine}\n\n{$text}",
+            ],
+            'insight_detail_description' => [
+                'You are a content writer for a consulting + SaaS company blog. Write a well-structured, informative article body. '
+                . 'Use simple semantic HTML only (<h2>, <h3>, <p>, <ul>, <li>, <strong>, <em>, <a>). Use clear headings and short paragraphs. '
+                . 'Return ONLY the HTML fragment with no markdown, no code fences, and no explanation.',
+                $isGenerate
+                    ? "Write a complete, well-structured article body for an article with this title:{$contextLine}"
+                    : "Improve, expand, and format this article body:{$contextLine}\n\n{$text}",
+            ],
+            'insight_meta_title' => [
+                'You are an SEO specialist. Write a concise, keyword-rich meta title for a web page. '
+                . 'Keep it under 60 characters. Return ONLY the meta title as a single line of plain text, with no quotes, labels, or explanation.',
+                $isGenerate
+                    ? "Write an SEO meta title based on this article title/context:{$contextLine}"
+                    : "Improve this SEO meta title:{$contextLine}\n\n{$text}",
+            ],
+            'insight_meta_description' => [
+                'You are an SEO specialist. Write a compelling meta description for a web page that encourages clicks. '
+                . 'Keep it between 140 and 160 characters. Return ONLY the meta description as plain text, with no quotes, labels, or explanation.',
+                $isGenerate
+                    ? "Write an SEO meta description based on this article title/context:{$contextLine}"
+                    : "Improve this SEO meta description:{$contextLine}\n\n{$text}",
+            ],
+            'insight_meta_keywords' => [
+                'You are an SEO specialist. Produce a comma-separated list of 5 to 10 relevant SEO keywords/phrases for an article. '
+                . 'Return ONLY the comma-separated keywords as plain text, with no quotes, labels, numbering, or explanation.',
+                $isGenerate
+                    ? "Generate SEO keywords based on this article title/context:{$contextLine}"
+                    : "Improve or expand these SEO keywords:{$contextLine}\n\n{$text}",
             ],
             default => [
                 'You are a helpful writing assistant. Improve the text and return only the result.',

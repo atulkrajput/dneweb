@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -57,6 +57,17 @@ export default function InsightRichTextEditor({ content, onChange, uploadUrl = '
       },
     },
   });
+
+  // Sync external content changes (e.g. AI "Improve"/"Generate") into the editor.
+  // Only update when the incoming content differs from what's already rendered
+  // so normal typing doesn't reset the cursor.
+  useEffect(() => {
+    if (!editor) return;
+    const incoming = content || '';
+    if (incoming !== editor.getHTML()) {
+      editor.commands.setContent(incoming, false);
+    }
+  }, [content, editor]);
 
   if (!editor) return null;
 

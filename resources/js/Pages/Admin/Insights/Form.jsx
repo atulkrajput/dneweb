@@ -3,6 +3,7 @@ import { Head, useForm, Link, router, usePage } from '@inertiajs/react';
 import { Upload, X, Image, AlertCircle, Video, Youtube } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import InsightRichTextEditor from '@/Components/InsightRichTextEditor';
+import AiImproveButton, { improveText } from '@/Components/AiImproveButton';
 
 export default function InsightForm({ insight, teamMembers }) {
   const isEditing = !!insight;
@@ -37,6 +38,27 @@ export default function InsightForm({ insight, teamMembers }) {
 
   const errors = { ...formErrors, ...pageErrors };
   const hasErrors = Object.keys(errors).length > 0;
+
+  // Context passed to the AI for SEO fields: title + short description + a
+  // plain-text snippet of the article body, so generated meta is relevant.
+  const plainBody = (data.detail_description || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const seoContext = [
+    data.title && `Title: ${data.title}`,
+    data.small_description && `Summary: ${data.small_description}`,
+    plainBody && `Article: ${plainBody.slice(0, 800)}`,
+  ].filter(Boolean).join('\n');
+
+  // Fetch a single SEO field via the AI endpoint and apply it. Used by the
+  // "Generate all" button to fill title + keywords alongside the description.
+  const generateMeta = async (kind, apply) => {
+    try {
+      const { result } = await improveText(kind, '', seoContext);
+      if (result) apply(result);
+    } catch {
+      // Errors for the individual sub-requests are non-fatal; the primary
+      // button already surfaces failures via its own toast.
+    }
+  };
 
   // Auto-generate slug from title
   const generateSlug = (title) => {
@@ -237,7 +259,17 @@ export default function InsightForm({ insight, teamMembers }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Short Description</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-foreground">Short Description</label>
+              <AiImproveButton
+                kind="insight_short_description"
+                label={data.small_description.trim() ? 'Improve' : 'Generate'}
+                allowEmpty
+                context={data.title}
+                getText={() => data.small_description}
+                onImproved={(result) => setData('small_description', result.slice(0, 500))}
+              />
+            </div>
             <textarea value={data.small_description} onChange={(e) => setData('small_description', e.target.value)} className={`form-input resize-y ${errors.small_description ? 'border-destructive' : ''}`} rows={3} placeholder="Brief description shown in listings (max 500 chars)" maxLength={500} />
             <p className="text-xs text-muted-foreground mt-1">{data.small_description.length}/500 characters</p>
             {errors.small_description && <p className="text-sm text-destructive mt-1">{errors.small_description}</p>}
@@ -305,7 +337,17 @@ export default function InsightForm({ insight, teamMembers }) {
 
         {/* Detail Description (Rich Text) */}
         <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-          <h3 className="text-lg font-semibold text-foreground">Detail Description</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground">Detail Description</h3>
+            <AiImproveButton
+              kind="insight_detail_description"
+              label={(data.detail_description || '').trim() ? 'Improve' : 'Generate'}
+              allowEmpty
+              context={data.title}
+              getText={() => data.detail_description}
+              onImproved={(result) => setData('detail_description', result)}
+            />
+          </div>
           <p className="text-sm text-muted-foreground">Use the toolbar to add formatting, links, images, and symbols. You can insert images directly or upload them.</p>
           <InsightRichTextEditor
             content={data.detail_description}
@@ -412,23 +454,68 @@ export default function InsightForm({ insight, teamMembers }) {
 
         {/* SEO / Meta */}
         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-          <h3 className="text-lg font-semibold text-foreground">SEO & Meta Information</h3>
-          <p className="text-sm text-muted-foreground">Leave blank to auto-generate from title and description.</p>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground">SEO & Meta Information</h3>
+            <AiImproveButton
+              kind="insight_meta_description"
+              label="Generate all"
+              allowEmpty
+              context={seoContext}
+              getText={() => ''}
+              onImproved={(metaDesc) => {
+                // Fill all three SEO fields in sequence from the article context.
+                setData('meta_description', metaDesc.slice(0, 300));
+                generateMeta('insight_meta_title', (v) => setData('meta_title', v.slice(0, 70)));
+                generateMeta('insight_meta_keywords', (v) => setData('meta_keywords', v));
+              }}
+            />
+          </div>
+          <p className="text-sm text-muted-foreground">Leave blank to auto-generate from title and description, or use AI to draft them.</p>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Meta Title</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-foreground">Meta Title</label>
+              <AiImproveButton
+                kind="insight_meta_title"
+                label={data.meta_title.trim() ? 'Improve' : 'Generate'}
+                allowEmpty
+                context={seoContext}
+                getText={() => data.meta_title}
+                onImproved={(result) => setData('meta_title', result.slice(0, 70))}
+              />
+            </div>
             <input type="text" value={data.meta_title} onChange={(e) => setData('meta_title', e.target.value)} className="form-input" placeholder="Auto-generated if left blank" />
             {errors.meta_title && <p className="text-sm text-destructive mt-1">{errors.meta_title}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Meta Description</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-foreground">Meta Description</label>
+              <AiImproveButton
+                kind="insight_meta_description"
+                label={data.meta_description.trim() ? 'Improve' : 'Generate'}
+                allowEmpty
+                context={seoContext}
+                getText={() => data.meta_description}
+                onImproved={(result) => setData('meta_description', result.slice(0, 300))}
+              />
+            </div>
             <textarea value={data.meta_description} onChange={(e) => setData('meta_description', e.target.value)} className="form-input resize-y" rows={3} placeholder="Auto-generated if left blank" maxLength={500} />
             {errors.meta_description && <p className="text-sm text-destructive mt-1">{errors.meta_description}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Meta Keywords</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-foreground">Meta Keywords</label>
+              <AiImproveButton
+                kind="insight_meta_keywords"
+                label={data.meta_keywords.trim() ? 'Improve' : 'Generate'}
+                allowEmpty
+                context={seoContext}
+                getText={() => data.meta_keywords}
+                onImproved={(result) => setData('meta_keywords', result)}
+              />
+            </div>
             <input type="text" value={data.meta_keywords} onChange={(e) => setData('meta_keywords', e.target.value)} className="form-input" placeholder="Auto-generated from tags if left blank" />
             {errors.meta_keywords && <p className="text-sm text-destructive mt-1">{errors.meta_keywords}</p>}
           </div>
