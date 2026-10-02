@@ -17,7 +17,86 @@ class ReportController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Admin/Reports/Index');
+        return Inertia::render('Admin/Reports/Index', [
+            'summary' => $this->buildSummary(),
+        ]);
+    }
+
+    /**
+     * Headline figures for each report area: current month vs last month,
+     * shown on the Reports landing cards. Clicking a card opens the full report.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    protected function buildSummary(): array
+    {
+        $curStart = now()->startOfMonth();
+        $curEnd = now()->endOfMonth();
+        $prevStart = now()->subMonthNoOverflow()->startOfMonth();
+        $prevEnd = now()->subMonthNoOverflow()->endOfMonth();
+
+        // --- Leads: count created in each month ---
+        $leadsCur = Lead::whereBetween('created_at', [$curStart, $curEnd])->count();
+        $leadsPrev = Lead::whereBetween('created_at', [$prevStart, $prevEnd])->count();
+
+        // --- Revenue: paid invoice totals by issue_date in each month ---
+        $revCur = (float) Invoice::where('status', Invoice::STATUS_PAID)
+            ->whereBetween('issue_date', [$curStart->toDateString(), $curEnd->toDateString()])->sum('total');
+        $revPrev = (float) Invoice::where('status', Invoice::STATUS_PAID)
+            ->whereBetween('issue_date', [$prevStart->toDateString(), $prevEnd->toDateString()])->sum('total');
+        $outstanding = (float) Invoice::whereIn('status', [Invoice::STATUS_SENT, Invoice::STATUS_OVERDUE])->sum('total');
+
+        // --- Projects: active count now, and started in each month ---
+        $activeProjects = Project::whereNotIn('status', ['completed', 'cancelled'])->count();
+        $projCur = Project::whereBetween('created_at', [$curStart, $curEnd])->count();
+        $projPrev = Project::whereBetween('created_at', [$prevStart, $prevEnd])->count();
+
+        // --- Productivity: tasks completed (done) by updated_at in each month ---
+        $doneCur = Task::where('status', Task::STATUS_DONE)
+            ->whereBetween('updated_at', [$curStart, $curEnd])->count();
+        $donePrev = Task::where('status', Task::STATUS_DONE)
+            ->whereBetween('updated_at', [$prevStart, $prevEnd])->count();
+
+        return [
+            'monthLabel' => $curStart->format('M Y'),
+            'prevMonthLabel' => $prevStart->format('M Y'),
+            'leads' => [
+                'current' => $leadsCur,
+                'previous' => $leadsPrev,
+                'change' => $this->pctChange($leadsCur, $leadsPrev),
+            ],
+            'revenue' => [
+                'current' => $revCur,
+                'previous' => $revPrev,
+                'change' => $this->pctChange($revCur, $revPrev),
+                'outstanding' => $outstanding,
+                'is_currency' => true,
+            ],
+            'projects' => [
+                'current' => $projCur,
+                'previous' => $projPrev,
+                'change' => $this->pctChange($projCur, $projPrev),
+                'active' => $activeProjects,
+            ],
+            'productivity' => [
+                'current' => $doneCur,
+                'previous' => $donePrev,
+                'change' => $this->pctChange($doneCur, $donePrev),
+            ],
+        ];
+    }
+
+    /**
+     * Percentage change from previous to current. Returns null when there's no
+     * baseline to compare against (previous is zero).
+     */
+    protected function pctChange(float $current, float $previous): ?int
+    {
+        if ($previous == 0.0) {
+            return null;
+        }
+
+        return (int) round((($current - $previous) / $previous) * 100);
     }
 
     /**
