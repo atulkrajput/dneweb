@@ -120,6 +120,26 @@ class PerformanceService
         $start = $month->copy()->startOfMonth();
         $end = $month->copy()->endOfMonth();
 
+        return $this->reportForUserBetween($start, $end, $user);
+    }
+
+    /**
+     * Build a single user's performance breakdown for an explicit date range.
+     * Used for fair month-to-date comparisons (e.g. this month so far vs the
+     * same number of days last month).
+     *
+     * @return array{
+     *   month:string, monthLabel:string, rangeLabel:string, days:int, total:int,
+     *   types:array<string,array{count:int,points:int}>,
+     *   groups:array<string,int>, groupKeys:array, groupLabels:array,
+     *   typeLabels:array
+     * }
+     */
+    public function reportForUserBetween(Carbon $start, Carbon $end, User $user): array
+    {
+        $start = $start->copy()->startOfDay();
+        $end = $end->copy()->endOfDay();
+
         $groups = config('performance.groups', []);
         $labels = config('performance.labels', []);
         $types = array_keys(config('performance.points', []));
@@ -150,9 +170,19 @@ class PerformanceService
             $groupPoints[$groupKey] = $sum;
         }
 
+        // Inclusive day span of the range.
+        $days = $start->copy()->startOfDay()->diffInDays($end->copy()->startOfDay()) + 1;
+
+        $sameMonth = $start->isSameMonth($end);
+        $rangeLabel = $sameMonth
+            ? $start->format('M j') . '–' . $end->format('j')
+            : $start->format('M j') . ' – ' . $end->format('M j');
+
         return [
             'month' => $start->format('Y-m'),
             'monthLabel' => $start->format('F Y'),
+            'rangeLabel' => $rangeLabel,
+            'days' => $days,
             'total' => $total,
             'types' => $typeStats,
             'groups' => $groupPoints,

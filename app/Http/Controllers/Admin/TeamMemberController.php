@@ -171,7 +171,34 @@ class TeamMemberController extends Controller
             $current = now()->startOfMonth();
         }
 
-        $previous = $current->copy()->subMonth();
+        $previous = $current->copy()->subMonthNoOverflow();
+        $isCurrentMonth = $current->isSameMonth(now());
+
+        if ($isCurrentMonth) {
+            // Month-to-date comparison: this month (1st → today) vs the same
+            // elapsed window last month, so a 2-day-old month isn't unfairly
+            // measured against a full previous month.
+            $today = now();
+            $dayOfMonth = $today->day;
+
+            $currentStart = $current->copy()->startOfMonth();
+            $currentEnd = $today->copy();
+
+            // Clamp the day to the length of the previous month (e.g. comparing
+            // the 31st when the previous month has only 30 days).
+            $prevStart = $previous->copy()->startOfMonth();
+            $prevDay = min($dayOfMonth, $previous->copy()->endOfMonth()->day);
+            $prevEnd = $previous->copy()->startOfMonth()->setDay($prevDay)->endOfDay();
+
+            $currentReport = $performance->reportForUserBetween($currentStart, $currentEnd, $team_member);
+            $previousReport = $performance->reportForUserBetween($prevStart, $prevEnd, $team_member);
+            $comparisonMode = 'month_to_date';
+        } else {
+            // A completed month: compare the full month to the full prior month.
+            $currentReport = $performance->monthlyReportForUser($current, $team_member);
+            $previousReport = $performance->monthlyReportForUser($previous, $team_member);
+            $comparisonMode = 'full_month';
+        }
 
         return Inertia::render('Admin/TeamMembers/Performance', [
             'member' => [
@@ -182,8 +209,9 @@ class TeamMemberController extends Controller
                 'photo' => $team_member->photo,
                 'email' => $team_member->email,
             ],
-            'current' => $performance->monthlyReportForUser($current, $team_member),
-            'previous' => $performance->monthlyReportForUser($previous, $team_member),
+            'current' => $currentReport,
+            'previous' => $previousReport,
+            'comparisonMode' => $comparisonMode,
         ]);
     }
 }

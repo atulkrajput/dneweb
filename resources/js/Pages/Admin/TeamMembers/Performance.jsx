@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Award, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
-export default function TeamMemberPerformance({ member, current, previous }) {
+export default function TeamMemberPerformance({ member, current, previous, comparisonMode }) {
   // Month navigation rewrites ?month=YYYY-MM for the current (selected) month.
   const shiftMonth = (delta) => {
     const [y, m] = current.month.split('-').map(Number);
@@ -11,6 +11,14 @@ export default function TeamMemberPerformance({ member, current, previous }) {
     const next = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     router.get(`/admin/team/${member.id}/performance`, { month: next }, { preserveScroll: true, preserveState: true });
   };
+
+  const isMtd = comparisonMode === 'month_to_date';
+
+  // Column/stat labels: when it's the running month, show the day range so the
+  // comparison reads as "same elapsed window", not two full months.
+  const curLabel = isMtd && current.rangeLabel ? current.rangeLabel : current.monthLabel;
+  const prevLabel = isMtd && previous.rangeLabel ? previous.rangeLabel : previous.monthLabel;
+  const compareNote = isMtd ? 'vs same period last month' : 'vs last month';
 
   const delta = current.total - previous.total;
   const pctChange = previous.total > 0 ? Math.round((delta / previous.total) * 100) : null;
@@ -61,19 +69,25 @@ export default function TeamMemberPerformance({ member, current, previous }) {
             </button>
           </div>
         </div>
+
+        {isMtd && (
+          <p className="text-xs text-muted-foreground mt-4 pt-4 border-t border-border">
+            This month is still in progress. Showing <span className="text-foreground font-medium">{curLabel}</span> ({current.days} {current.days === 1 ? 'day' : 'days'}) compared against the same window last month (<span className="text-foreground font-medium">{prevLabel}</span>) for a fair comparison.
+          </p>
+        )}
       </div>
 
       {/* Totals: current vs previous */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div className="bg-card border border-border rounded-xl p-5">
           <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider">
-            <Award className="h-4 w-4 text-primary" /> {current.monthLabel}
+            <Award className="h-4 w-4 text-primary" /> {curLabel}{isMtd && <span className="normal-case tracking-normal text-[10px]">(so far)</span>}
           </div>
           <p className="text-3xl font-bold text-foreground mt-2">{current.total} <span className="text-base font-normal text-muted-foreground">pts</span></p>
         </div>
         <div className="bg-card border border-border rounded-xl p-5">
           <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wider">
-            {previous.monthLabel}
+            {prevLabel}
           </div>
           <p className="text-3xl font-bold text-foreground mt-2">{previous.total} <span className="text-base font-normal text-muted-foreground">pts</span></p>
         </div>
@@ -81,7 +95,7 @@ export default function TeamMemberPerformance({ member, current, previous }) {
           <div className="text-muted-foreground text-xs uppercase tracking-wider">Change</div>
           <p className="text-3xl font-bold mt-2"><Trend /></p>
           {pctChange !== null && (
-            <p className="text-xs text-muted-foreground mt-1">{pctChange > 0 ? '+' : ''}{pctChange}% vs last month</p>
+            <p className="text-xs text-muted-foreground mt-1">{pctChange > 0 ? '+' : ''}{pctChange}% {compareNote}</p>
           )}
         </div>
       </div>
@@ -94,8 +108,8 @@ export default function TeamMemberPerformance({ member, current, previous }) {
             <thead>
               <tr className="border-b border-border text-left">
                 <th className="py-2 pr-4 font-medium text-muted-foreground">Category</th>
-                <th className="py-2 px-3 font-medium text-muted-foreground text-right">{current.monthLabel}</th>
-                <th className="py-2 px-3 font-medium text-muted-foreground text-right">{previous.monthLabel}</th>
+                <th className="py-2 px-3 font-medium text-muted-foreground text-right">{curLabel}</th>
+                <th className="py-2 px-3 font-medium text-muted-foreground text-right">{prevLabel}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -118,7 +132,7 @@ export default function TeamMemberPerformance({ member, current, previous }) {
 
       {/* Per-activity detail for the selected month */}
       <div className="bg-card border border-border rounded-xl p-6">
-        <h3 className="text-sm font-semibold text-foreground mb-4">Activity detail — {current.monthLabel}</h3>
+        <h3 className="text-sm font-semibold text-foreground mb-4">Activity detail — {isMtd ? `${curLabel} (so far)` : current.monthLabel}</h3>
         {current.total > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -143,7 +157,7 @@ export default function TeamMemberPerformance({ member, current, previous }) {
             </table>
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No activity recorded for {current.monthLabel}.</p>
+          <p className="text-sm text-muted-foreground">No activity recorded for {isMtd ? curLabel : current.monthLabel}.</p>
         )}
       </div>
     </AdminLayout>
