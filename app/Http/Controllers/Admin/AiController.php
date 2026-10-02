@@ -94,7 +94,7 @@ class AiController extends Controller
                 $request->withOptions(['verify' => $caBundle]);
             }
 
-            $response = $request->post(self::GROQ_ENDPOINT, [
+            $payload = [
                     'model' => $model,
                     'temperature' => 0.4,
                     'max_tokens' => ($wantsHtml || $wantsList) ? 1200 : 300,
@@ -102,7 +102,15 @@ class AiController extends Controller
                         ['role' => 'system', 'content' => $system],
                         ['role' => 'user', 'content' => $user],
                     ],
-                ]);
+                ];
+
+            // gpt-oss models support a reasoning_effort hint. Keep it low for these
+            // short formatting tasks so the token budget goes to the answer.
+            if (str_contains(strtolower($model), 'gpt-oss')) {
+                $payload['reasoning_effort'] = 'low';
+            }
+
+            $response = $request->post(self::GROQ_ENDPOINT, $payload);
         } catch (\Throwable $e) {
             Log::error('Groq request failed: ' . $e->getMessage());
             $this->logUsage($kind, $model, 'error', $inputText, null, null, $this->elapsedMs($startedAt), $e->getMessage());

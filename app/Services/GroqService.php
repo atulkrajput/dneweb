@@ -55,12 +55,20 @@ class GroqService
                 $request->withOptions(['verify' => $ca]);
             }
 
-            $response = $request->post(self::ENDPOINT, [
+            $payload = [
                 'model' => $model,
                 'temperature' => $temperature,
                 'max_tokens' => $maxTokens,
                 'messages' => $messages,
-            ]);
+            ];
+
+            // gpt-oss reasoning models consume completion budget on reasoning.
+            // A low effort hint keeps more of the budget for the actual answer.
+            if (str_contains(strtolower($model), 'gpt-oss')) {
+                $payload['reasoning_effort'] = 'low';
+            }
+
+            $response = $request->post(self::ENDPOINT, $payload);
         } catch (\Throwable $e) {
             Log::error('Groq request failed: ' . $e->getMessage());
             $this->log($kind, $model, 'error', $messages, null, null, $this->ms($startedAt), $e->getMessage());
