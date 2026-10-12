@@ -25,7 +25,7 @@ class DeadlineTomorrowNotification extends Notification
             'title' => 'Deadline Tomorrow',
             'message' => "Project \"{$this->project->name}\" deadline is tomorrow.",
             'project_id' => $this->project->id,
-            'url' => "/dpm/projects/{$this->project->id}",
+            'url' => "/admin/projects/{$this->project->id}",
         ];
     }
 
@@ -36,7 +36,7 @@ class DeadlineTomorrowNotification extends Notification
             ->view('emails.notifications.deadline-tomorrow', [
                 'project' => $this->project,
                 'recipient' => $notifiable,
-                'url' => config('app.url') . '/dpm/projects/' . $this->project->id,
+                'url' => config('app.url') . '/admin/projects/' . $this->project->id,
             ]);
     }
 }

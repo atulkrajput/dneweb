@@ -19,7 +19,7 @@ export default function Maintenance({ logSize, logLastModified, aiStats, aiLogs 
 
   const handleClearCache = () => {
     setProcessing('cache');
-    router.post('/dpm/maintenance/clear-cache', {}, {
+    router.post('/admin/maintenance/clear-cache', {}, {
       onFinish: () => setProcessing(null),
     });
   };
@@ -27,7 +27,7 @@ export default function Maintenance({ logSize, logLastModified, aiStats, aiLogs 
   const handleClearLog = () => {
     if (!confirm('Are you sure you want to clear the error log? This action cannot be undone.')) return;
     setProcessing('log');
-    router.post('/dpm/maintenance/clear-log', {}, {
+    router.post('/admin/maintenance/clear-log', {}, {
       onFinish: () => setProcessing(null),
     });
   };
@@ -134,7 +134,7 @@ export default function Maintenance({ logSize, logLastModified, aiStats, aiLogs 
                   </button>
 
                   <a
-                    href="/dpm/maintenance/download-log"
+                    href="/admin/maintenance/download-log"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
                   >
                     <Download className="h-4 w-4" />

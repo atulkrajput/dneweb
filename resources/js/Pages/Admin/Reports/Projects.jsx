@@ -14,8 +14,8 @@ export default function ProjectsReport({ projects, summary }) {
 
       <div className="max-w-6xl">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/dpm/reports" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Back to Reports</Link>
-          <a href="/dpm/reports/projects?export=csv" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"><Download className="h-4 w-4" /> Export CSV</a>
+          <Link href="/admin/reports" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Back to Reports</Link>
+          <a href="/admin/reports/projects?export=csv" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"><Download className="h-4 w-4" /> Export CSV</a>
         </div>
 
         {/* Summary */}

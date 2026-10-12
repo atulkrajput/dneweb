@@ -18,7 +18,7 @@ export default function NotesSection({ notableType, notableId, notes = [] }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!data.body.trim()) return;
-    post('/dpm/notes', {
+    post('/admin/notes', {
       preserveScroll: true,
       onSuccess: () => reset('body'),
     });
@@ -26,7 +26,7 @@ export default function NotesSection({ notableType, notableId, notes = [] }) {
 
   const handleDelete = (noteId) => {
     if (confirm('Delete this note?')) {
-      router.delete(`/dpm/notes/${noteId}`, { preserveScroll: true });
+      router.delete(`/admin/notes/${noteId}`, { preserveScroll: true });
     }
   };
 

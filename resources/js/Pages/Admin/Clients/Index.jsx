@@ -20,11 +20,11 @@ export default function ClientsIndex({ clients, stats, filters }) {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    router.get('/dpm/clients', { search, status: filters.status }, { preserveState: true });
+    router.get('/admin/clients', { search, status: filters.status }, { preserveState: true });
   };
 
   const handleFilterStatus = (status) => {
-    router.get('/dpm/clients', { search: filters.search, status: status || undefined }, { preserveState: true });
+    router.get('/admin/clients', { search: filters.search, status: status || undefined }, { preserveState: true });
   };
 
   const statCards = [
@@ -64,7 +64,7 @@ export default function ClientsIndex({ clients, stats, filters }) {
             />
           </div>
         </form>
-        <Link href="/dpm/clients/create" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/admin/clients/create" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> New Client
         </Link>
       </div>
@@ -106,7 +106,7 @@ export default function ClientsIndex({ clients, stats, filters }) {
               {clients.data?.map((client) => (
                 <tr key={client.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4">
-                    <Link href={`/dpm/clients/${client.id}`} className="text-sm font-medium text-foreground hover:text-primary">
+                    <Link href={`/admin/clients/${client.id}`} className="text-sm font-medium text-foreground hover:text-primary">
                       {client.company}
                     </Link>
                   </td>

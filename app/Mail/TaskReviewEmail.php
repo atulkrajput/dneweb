@@ -37,7 +37,7 @@ class TaskReviewEmail extends Mailable
                 'task' => $this->task,
                 'reviewer' => $this->reviewer,
                 'isReminder' => $this->isReminder,
-                'taskUrl' => config('app.url') . '/dpm/tasks/' . $this->task->id,
+                'taskUrl' => config('app.url') . '/admin/tasks/' . $this->task->id,
             ],
         );
     }

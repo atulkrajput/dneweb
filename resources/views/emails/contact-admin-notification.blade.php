@@ -48,6 +48,6 @@
     </p>
 
     <p style="text-align: center; margin-top: 24px;">
-        <a href="{{ config('app.url') }}/dpm/leads" class="btn">View in Admin Panel</a>
+        <a href="{{ config('app.url') }}/admin/leads" class="btn">View in Admin Panel</a>
     </p>
 @endsection

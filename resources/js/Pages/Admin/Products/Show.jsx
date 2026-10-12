@@ -6,7 +6,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 export default function ProductShow({ product, interests }) {
   const handleDeleteInterest = (id) => {
     if (confirm('Delete this interest record?')) {
-      router.delete(`/dpm/products/interests/${id}`);
+      router.delete(`/admin/products/interests/${id}`);
     }
   };
 
@@ -15,7 +15,7 @@ export default function ProductShow({ product, interests }) {
       <Head title={`${product.name} Interests`} />
 
       <div className="mb-6">
-        <Link href="/dpm/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <Link href="/admin/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" /> Back to Products
         </Link>
       </div>

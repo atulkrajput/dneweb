@@ -6,7 +6,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 export default function ContactShow({ contact }) {
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this contact?')) {
-      router.delete(`/dpm/contacts/${contact.id}`);
+      router.delete(`/admin/contacts/${contact.id}`);
     }
   };
 
@@ -16,7 +16,7 @@ export default function ContactShow({ contact }) {
 
       <div className="max-w-3xl">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/dpm/contacts" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/admin/contacts" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Contacts
           </Link>
         </div>

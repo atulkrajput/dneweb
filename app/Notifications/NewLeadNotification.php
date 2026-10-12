@@ -33,7 +33,7 @@ class NewLeadNotification extends Notification
             'title' => 'New Lead',
             'message' => "{$this->lead->name} submitted a contact form.",
             'lead_id' => $this->lead->id,
-            'url' => "/dpm/leads/{$this->lead->id}",
+            'url' => "/admin/leads/{$this->lead->id}",
         ];
     }
 
@@ -44,7 +44,7 @@ class NewLeadNotification extends Notification
             ->view('emails.notifications.new-lead', [
                 'lead' => $this->lead,
                 'recipient' => $notifiable,
-                'url' => config('app.url') . '/dpm/leads/' . $this->lead->id,
+                'url' => config('app.url') . '/admin/leads/' . $this->lead->id,
             ]);
     }
 }

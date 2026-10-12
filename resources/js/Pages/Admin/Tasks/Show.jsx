@@ -75,7 +75,7 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    router.post(`/dpm/tasks/${task.id}`, {
+    router.post(`/admin/tasks/${task.id}`, {
       _method: 'put',
       ...data,
     }, {
@@ -86,9 +86,9 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
 
   const handleDelete = () => {
     if (confirm('Delete this task?')) {
-      router.delete(`/dpm/tasks/${task.id}`, {
+      router.delete(`/admin/tasks/${task.id}`, {
         preserveScroll: false,
-        onSuccess: () => router.visit('/dpm/tasks'),
+        onSuccess: () => router.visit('/admin/tasks'),
       });
     }
   };
@@ -96,7 +96,7 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
   const [reminderSending, setReminderSending] = useState(false);
   const handleRemindReviewer = () => {
     setReminderSending(true);
-    router.post(`/dpm/tasks/${task.id}/remind-reviewer`, {}, {
+    router.post(`/admin/tasks/${task.id}/remind-reviewer`, {}, {
       preserveScroll: true,
       onFinish: () => setReminderSending(false),
     });
@@ -111,7 +111,7 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
 
   const runTransition = (status, extra = {}) => {
     setTransitioning(true);
-    router.post(`/dpm/tasks/${task.id}/transition`, { status, ...extra }, {
+    router.post(`/admin/tasks/${task.id}/transition`, { status, ...extra }, {
       preserveScroll: true,
       onFinish: () => {
         setTransitioning(false);
@@ -123,14 +123,14 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
 
   // Sprint switcher
   const handleChangeSprint = (sprintId) => {
-    router.patch(`/dpm/tasks/${task.id}/sprint`, { sprint_id: sprintId || null }, {
+    router.patch(`/admin/tasks/${task.id}/sprint`, { sprint_id: sprintId || null }, {
       preserveScroll: true,
     });
   };
 
   const handleAddComment = (e) => {
     e.preventDefault();
-    commentForm.post(`/dpm/tasks/${task.id}/comments`, {
+    commentForm.post(`/admin/tasks/${task.id}/comments`, {
       onSuccess: () => commentForm.reset('body'),
       preserveScroll: true,
     });
@@ -180,7 +180,7 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
 
       <div className="max-w-4xl">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/dpm/tasks" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/admin/tasks" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Tasks
           </Link>
           <div className="flex items-center gap-2">
@@ -439,8 +439,8 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
 
                   {task.project && (
                     <p className="text-sm text-muted-foreground">
-                      Project: <Link href={`/dpm/projects/${task.project.id}`} className="text-primary hover:text-primary/80">{task.project.name}</Link>
-                      {task.project.client && <> • Client: <Link href={`/dpm/clients/${task.project.client.id}`} className="text-primary hover:text-primary/80">{task.project.client.company}</Link></>}
+                      Project: <Link href={`/admin/projects/${task.project.id}`} className="text-primary hover:text-primary/80">{task.project.name}</Link>
+                      {task.project.client && <> • Client: <Link href={`/admin/clients/${task.project.client.id}`} className="text-primary hover:text-primary/80">{task.project.client.company}</Link></>}
                     </p>
                   )}
 

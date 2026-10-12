@@ -6,7 +6,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 export default function InsightShow({ insight }) {
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this insight?')) {
-      router.delete(`/dpm/insights/${insight.id}`);
+      router.delete(`/admin/insights/${insight.id}`);
     }
   };
 
@@ -25,11 +25,11 @@ export default function InsightShow({ insight }) {
       <div className="max-w-4xl space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Link href="/dpm/insights" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/admin/insights" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Insights
           </Link>
           <div className="flex items-center gap-2">
-            <Link href={`/dpm/insights/${insight.id}/edit`} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+            <Link href={`/admin/insights/${insight.id}/edit`} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
               <Edit className="h-4 w-4" /> Edit
             </Link>
             <button onClick={handleDelete} className="flex items-center gap-2 px-4 py-2 bg-destructive text-destructive-foreground rounded-lg text-sm font-medium hover:bg-destructive/90 transition-colors">

@@ -15,8 +15,8 @@ export default function ProposalsIndex({ proposals, stats, filters }) {
   const [search, setSearch] = React.useState(filters.search || '');
   const fmt = (val) => '$' + Number(val || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-  const handleSearch = (e) => { e.preventDefault(); router.get('/dpm/proposals', { search, status: filters.status }, { preserveState: true }); };
-  const handleFilterStatus = (status) => { router.get('/dpm/proposals', { search: filters.search, status: status || undefined }, { preserveState: true }); };
+  const handleSearch = (e) => { e.preventDefault(); router.get('/admin/proposals', { search, status: filters.status }, { preserveState: true }); };
+  const handleFilterStatus = (status) => { router.get('/admin/proposals', { search: filters.search, status: status || undefined }, { preserveState: true }); };
 
   const statCards = [
     { label: 'Total Proposals', value: stats.total, icon: FileSignature, color: 'text-blue-400' },
@@ -48,7 +48,7 @@ export default function ProposalsIndex({ proposals, stats, filters }) {
             <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search proposals..." className="form-input pl-9 w-full" />
           </div>
         </form>
-        <Link href="/dpm/proposals/create" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/admin/proposals/create" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> New Proposal
         </Link>
       </div>
@@ -76,7 +76,7 @@ export default function ProposalsIndex({ proposals, stats, filters }) {
               {proposals.data?.map((proposal) => (
                 <tr key={proposal.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4">
-                    <Link href={`/dpm/proposals/${proposal.id}`} className="text-sm font-medium text-foreground hover:text-primary">{proposal.number}</Link>
+                    <Link href={`/admin/proposals/${proposal.id}`} className="text-sm font-medium text-foreground hover:text-primary">{proposal.number}</Link>
                     <p className="text-xs text-muted-foreground">{proposal.title}</p>
                   </td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">

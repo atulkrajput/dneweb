@@ -1,5 +1,5 @@
 User-agent: *
-Disallow: /dpm
+Disallow: /admin
 Disallow: /profile
 
 Sitemap: https://dneco.io/sitemap.xml

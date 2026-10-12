@@ -37,7 +37,7 @@ class ProjectSprintDigest extends Mailable
                 'recipient' => $this->recipient,
                 'projects' => $this->projects,
                 'date' => now()->format('l, F j, Y'),
-                'dashboardUrl' => config('app.url') . '/dpm/projects',
+                'dashboardUrl' => config('app.url') . '/admin/projects',
             ],
         );
     }

@@ -24,11 +24,11 @@ export default function InvoicesIndex({ invoices, stats, filters }) {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    router.get('/dpm/invoices', { search, status: filters.status }, { preserveState: true });
+    router.get('/admin/invoices', { search, status: filters.status }, { preserveState: true });
   };
 
   const handleFilterStatus = (status) => {
-    router.get('/dpm/invoices', { search: filters.search, status: status || undefined }, { preserveState: true });
+    router.get('/admin/invoices', { search: filters.search, status: status || undefined }, { preserveState: true });
   };
 
   const fmt = (val) => '$' + Number(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -63,7 +63,7 @@ export default function InvoicesIndex({ invoices, stats, filters }) {
             <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoices..." className="form-input pl-9 w-full" />
           </div>
         </form>
-        <Link href="/dpm/invoices/create" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/admin/invoices/create" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> New Invoice
         </Link>
       </div>
@@ -93,7 +93,7 @@ export default function InvoicesIndex({ invoices, stats, filters }) {
                 return (
                   <tr key={invoice.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
-                      <Link href={`/dpm/invoices/${invoice.id}`} className="text-sm font-medium text-foreground hover:text-primary">{invoice.number}</Link>
+                      <Link href={`/admin/invoices/${invoice.id}`} className="text-sm font-medium text-foreground hover:text-primary">{invoice.number}</Link>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{invoice.client?.company || '—'}</td>
                     <td className="px-6 py-4 text-sm font-medium text-foreground">{fmt(invoice.total)}</td>

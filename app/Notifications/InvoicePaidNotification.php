@@ -25,7 +25,7 @@ class InvoicePaidNotification extends Notification
             'title' => 'Invoice Paid',
             'message' => "Invoice {$this->invoice->number} has been fully paid (${$this->invoice->total}).",
             'invoice_id' => $this->invoice->id,
-            'url' => "/dpm/invoices/{$this->invoice->id}",
+            'url' => "/admin/invoices/{$this->invoice->id}",
         ];
     }
 
@@ -36,7 +36,7 @@ class InvoicePaidNotification extends Notification
             ->view('emails.notifications.invoice-paid', [
                 'invoice' => $this->invoice,
                 'recipient' => $notifiable,
-                'url' => config('app.url') . '/dpm/invoices/' . $this->invoice->id,
+                'url' => config('app.url') . '/admin/invoices/' . $this->invoice->id,
             ]);
     }
 }

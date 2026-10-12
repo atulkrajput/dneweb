@@ -33,7 +33,7 @@ class TaskAssignedEmail extends Mailable
             with: [
                 'task' => $this->task,
                 'assignee' => $this->assignee,
-                'taskUrl' => config('app.url') . '/dpm/tasks/' . $this->task->id,
+                'taskUrl' => config('app.url') . '/admin/tasks/' . $this->task->id,
             ],
         );
     }

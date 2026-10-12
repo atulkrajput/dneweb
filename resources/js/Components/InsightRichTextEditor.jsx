@@ -25,7 +25,7 @@ function MenuButton({ onClick, active, children, title, disabled }) {
   );
 }
 
-export default function InsightRichTextEditor({ content, onChange, uploadUrl = '/dpm/insights/upload-image' }) {
+export default function InsightRichTextEditor({ content, onChange, uploadUrl = '/admin/insights/upload-image' }) {
   const [showCode, setShowCode] = useState(false);
   const [codeContent, setCodeContent] = useState('');
   const [uploading, setUploading] = useState(false);

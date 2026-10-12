@@ -19,7 +19,7 @@ export default function InvoiceCreate({ clients, projects, nextNumber }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    post('/dpm/invoices');
+    post('/admin/invoices');
   };
 
   const addItem = () => {
@@ -51,7 +51,7 @@ export default function InvoiceCreate({ clients, projects, nextNumber }) {
 
       <div className="max-w-4xl">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/dpm/invoices" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/admin/invoices" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Invoices
           </Link>
         </div>
@@ -169,7 +169,7 @@ export default function InvoiceCreate({ clients, projects, nextNumber }) {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-              <Link href="/dpm/invoices" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Cancel</Link>
+              <Link href="/admin/invoices" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Cancel</Link>
               <button type="submit" disabled={processing} className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
                 {processing ? 'Creating...' : 'Create Invoice'}
               </button>

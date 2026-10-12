@@ -6,7 +6,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 export default function InsightsIndex({ insights }) {
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this insight?')) {
-      router.delete(`/dpm/insights/${id}`);
+      router.delete(`/admin/insights/${id}`);
     }
   };
 
@@ -16,7 +16,7 @@ export default function InsightsIndex({ insights }) {
 
       <div className="flex justify-between items-center mb-6">
         <p className="text-muted-foreground">{insights.length} insights</p>
-        <Link href="/dpm/insights/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/admin/insights/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> New Insight
         </Link>
       </div>
@@ -86,10 +86,10 @@ export default function InsightsIndex({ insights }) {
                     <span className="text-sm text-muted-foreground">{insight.views || 0}</span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-1">
-                    <Link href={`/dpm/insights/${insight.id}`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Preview">
+                    <Link href={`/admin/insights/${insight.id}`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Preview">
                       <Eye className="h-4 w-4" />
                     </Link>
-                    <Link href={`/dpm/insights/${insight.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
+                    <Link href={`/admin/insights/${insight.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
                       <Edit className="h-4 w-4" />
                     </Link>
                     <button onClick={() => handleDelete(insight.id)} className="inline-flex p-2 text-muted-foreground hover:text-destructive transition-colors" title="Delete">

@@ -50,7 +50,7 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
     const [y, m] = performance.month.split('-').map(Number);
     const d = new Date(y, m - 1 + delta, 1);
     const next = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    router.get('/dpm', { perf_month: next }, { preserveScroll: true, preserveState: true });
+    router.get('/admin', { perf_month: next }, { preserveScroll: true, preserveState: true });
   };
 
   const maxPerfTotal = Math.max(...(performance?.rows || []).map((r) => r.total), 1);
@@ -59,14 +59,14 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
   // Cards where raw is 0/empty are hidden to reduce clutter. `alwaysShow` keeps
   // key metrics visible even at zero (e.g. revenue, conversion).
   const allCards = [
-    { label: 'New Leads Today', value: stats.new_leads, raw: stats.new_leads, icon: Target, color: 'text-blue-400', href: '/dpm/leads?status=new' },
-    { label: 'Pipeline', value: stats.pipeline_leads + ' leads', raw: stats.pipeline_leads, icon: TrendingUp, color: 'text-purple-400', href: '/dpm/leads' },
-    { label: 'Monthly Revenue', value: fmt(stats.monthly_revenue), raw: stats.monthly_revenue, icon: DollarSign, color: 'text-green-400', href: '/dpm/invoices?status=paid', alwaysShow: true },
-    { label: 'Active Projects', value: stats.active_projects, raw: stats.active_projects, icon: FolderKanban, color: 'text-orange-400', href: '/dpm/projects' },
-    { label: 'Tasks Due', value: stats.tasks_due, raw: stats.tasks_due, icon: CheckSquare, color: stats.tasks_due > 0 ? 'text-red-400' : 'text-muted-foreground', href: '/dpm/tasks' },
-    { label: 'Pending Invoices', value: fmt(stats.pending_invoices), raw: stats.pending_invoices, icon: Clock, color: 'text-yellow-400', href: '/dpm/invoices?status=sent' },
-    { label: 'Active Clients', value: stats.active_clients, raw: stats.active_clients, icon: Building2, color: 'text-cyan-400', href: '/dpm/clients' },
-    { label: 'Conversion Rate', value: stats.conversion_rate + '%', raw: stats.conversion_rate, icon: TrendingUp, color: 'text-green-400', href: '/dpm/campaigns', alwaysShow: true },
+    { label: 'New Leads Today', value: stats.new_leads, raw: stats.new_leads, icon: Target, color: 'text-blue-400', href: '/admin/leads?status=new' },
+    { label: 'Pipeline', value: stats.pipeline_leads + ' leads', raw: stats.pipeline_leads, icon: TrendingUp, color: 'text-purple-400', href: '/admin/leads' },
+    { label: 'Monthly Revenue', value: fmt(stats.monthly_revenue), raw: stats.monthly_revenue, icon: DollarSign, color: 'text-green-400', href: '/admin/invoices?status=paid', alwaysShow: true },
+    { label: 'Active Projects', value: stats.active_projects, raw: stats.active_projects, icon: FolderKanban, color: 'text-orange-400', href: '/admin/projects' },
+    { label: 'Tasks Due', value: stats.tasks_due, raw: stats.tasks_due, icon: CheckSquare, color: stats.tasks_due > 0 ? 'text-red-400' : 'text-muted-foreground', href: '/admin/tasks' },
+    { label: 'Pending Invoices', value: fmt(stats.pending_invoices), raw: stats.pending_invoices, icon: Clock, color: 'text-yellow-400', href: '/admin/invoices?status=sent' },
+    { label: 'Active Clients', value: stats.active_clients, raw: stats.active_clients, icon: Building2, color: 'text-cyan-400', href: '/admin/clients' },
+    { label: 'Conversion Rate', value: stats.conversion_rate + '%', raw: stats.conversion_rate, icon: TrendingUp, color: 'text-green-400', href: '/admin/campaigns', alwaysShow: true },
   ];
 
   // Hide cards with no data unless flagged alwaysShow.
@@ -100,7 +100,7 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-foreground">Revenue (6 Mo)</h2>
-            <Link href="/dpm/invoices" className="text-xs text-primary hover:text-primary/80">Invoices →</Link>
+            <Link href="/admin/invoices" className="text-xs text-primary hover:text-primary/80">Invoices →</Link>
           </div>
           <div className="flex items-end gap-2 h-40">
             {revenueChart.map((item, i) => {
@@ -129,7 +129,7 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-foreground">Lead Funnel</h2>
-            <Link href="/dpm/leads" className="text-xs text-primary hover:text-primary/80">View All →</Link>
+            <Link href="/admin/leads" className="text-xs text-primary hover:text-primary/80">View All →</Link>
           </div>
           <div className="space-y-3">
             {Object.entries(STATUS_LABELS).filter(([status]) => (leadFunnel[status] || 0) > 0).map(([status, label]) => {
@@ -236,12 +236,12 @@ export default function Dashboard({ stats, leadFunnel, revenueChart, recentActiv
         <div className="bg-card border border-border rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-foreground">Recent Leads</h2>
-            <Link href="/dpm/leads" className="text-xs text-primary hover:text-primary/80">View All →</Link>
+            <Link href="/admin/leads" className="text-xs text-primary hover:text-primary/80">View All →</Link>
           </div>
           {recent_leads && recent_leads.length > 0 ? (
             <div className="space-y-3">
               {recent_leads.map((lead) => (
-                <Link key={lead.id} href={`/dpm/leads/${lead.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors">
+                <Link key={lead.id} href={`/admin/leads/${lead.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors">
                   <div>
                     <p className="text-sm font-medium text-foreground">{lead.name}</p>
                     <p className="text-xs text-muted-foreground">{lead.email} • {lead.company || 'No company'}</p>

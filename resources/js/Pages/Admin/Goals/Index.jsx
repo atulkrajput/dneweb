@@ -47,7 +47,7 @@ function OutcomePanel({ goal, outcomeTypes }) {
 
   const submit = (e) => {
     e.preventDefault();
-    post(`/dpm/goals/${goal.id}/outcomes`, {
+    post(`/admin/goals/${goal.id}/outcomes`, {
       preserveScroll: true,
       onSuccess: () => reset('value', 'note'),
     });
@@ -55,7 +55,7 @@ function OutcomePanel({ goal, outcomeTypes }) {
 
   const removeOutcome = (o) => {
     if (confirm('Remove this outcome?')) {
-      router.delete(`/dpm/goals/${goal.id}/outcomes/${o.id}`, { preserveScroll: true });
+      router.delete(`/admin/goals/${goal.id}/outcomes/${o.id}`, { preserveScroll: true });
     }
   };
 
@@ -142,15 +142,15 @@ export default function GoalsIndex({ goals, categories, statuses, outcomeTypes, 
     e.preventDefault();
     const opts = { preserveScroll: true, onSuccess: () => setShowForm(false) };
     if (data.id) {
-      put(`/dpm/goals/${data.id}`, opts);
+      put(`/admin/goals/${data.id}`, opts);
     } else {
-      post('/dpm/goals', opts);
+      post('/admin/goals', opts);
     }
   };
 
   const remove = (goal) => {
     if (confirm(`Delete goal "${goal.title}"? Tasks keep their history but lose the goal link.`)) {
-      router.delete(`/dpm/goals/${goal.id}`, { preserveScroll: true });
+      router.delete(`/admin/goals/${goal.id}`, { preserveScroll: true });
     }
   };
 

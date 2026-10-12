@@ -6,7 +6,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 export default function LegalPagesIndex({ pages }) {
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this page?')) {
-      router.delete(`/dpm/legal-pages/${id}`);
+      router.delete(`/admin/legal-pages/${id}`);
     }
   };
 
@@ -16,7 +16,7 @@ export default function LegalPagesIndex({ pages }) {
 
       <div className="flex justify-between items-center mb-6">
         <p className="text-muted-foreground">{pages.length} pages</p>
-        <Link href="/dpm/legal-pages/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/admin/legal-pages/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> Add Page
         </Link>
       </div>
@@ -49,7 +49,7 @@ export default function LegalPagesIndex({ pages }) {
                     <a href={`/legal/${page.slug}`} target="_blank" rel="noopener" className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Preview">
                       <Eye className="h-4 w-4" />
                     </a>
-                    <Link href={`/dpm/legal-pages/${page.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Link href={`/admin/legal-pages/${page.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors">
                       <Edit className="h-4 w-4" />
                     </Link>
                     <button onClick={() => handleDelete(page.id)} className="inline-flex p-2 text-muted-foreground hover:text-destructive transition-colors">

@@ -39,7 +39,7 @@ class MonthlyPerformanceReport extends Mailable
                 'recipient' => $this->recipient,
                 'current' => $this->current,
                 'previous' => $this->previous,
-                'dashboardUrl' => config('app.url') . '/dpm',
+                'dashboardUrl' => config('app.url') . '/admin',
             ],
         );
     }

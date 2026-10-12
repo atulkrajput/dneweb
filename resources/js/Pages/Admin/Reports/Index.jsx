@@ -4,10 +4,10 @@ import { Target, DollarSign, FolderKanban, Users, TrendingUp, TrendingDown, Minu
 import AdminLayout from '@/Layouts/AdminLayout';
 
 const reports = [
-  { key: 'leads', name: 'Leads Report', description: 'Lead acquisition, status breakdown, and sources', href: '/dpm/reports/leads', icon: Target, color: 'text-blue-400', metricLabel: 'New leads' },
-  { key: 'revenue', name: 'Revenue Report', description: 'Invoiced amounts, payments, and revenue by client', href: '/dpm/reports/revenue', icon: DollarSign, color: 'text-green-400', metricLabel: 'Paid revenue' },
-  { key: 'projects', name: 'Projects Report', description: 'Project statuses, budgets, progress, and deadlines', href: '/dpm/reports/projects', icon: FolderKanban, color: 'text-orange-400', metricLabel: 'New projects' },
-  { key: 'productivity', name: 'Productivity Report', description: 'Task completion, hours logged, and team performance', href: '/dpm/reports/productivity', icon: Users, color: 'text-purple-400', metricLabel: 'Tasks completed' },
+  { key: 'leads', name: 'Leads Report', description: 'Lead acquisition, status breakdown, and sources', href: '/admin/reports/leads', icon: Target, color: 'text-blue-400', metricLabel: 'New leads' },
+  { key: 'revenue', name: 'Revenue Report', description: 'Invoiced amounts, payments, and revenue by client', href: '/admin/reports/revenue', icon: DollarSign, color: 'text-green-400', metricLabel: 'Paid revenue' },
+  { key: 'projects', name: 'Projects Report', description: 'Project statuses, budgets, progress, and deadlines', href: '/admin/reports/projects', icon: FolderKanban, color: 'text-orange-400', metricLabel: 'New projects' },
+  { key: 'productivity', name: 'Productivity Report', description: 'Task completion, hours logged, and team performance', href: '/admin/reports/productivity', icon: Users, color: 'text-purple-400', metricLabel: 'Tasks completed' },
 ];
 
 const fmtMoney = (val) => '$' + Number(val || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });

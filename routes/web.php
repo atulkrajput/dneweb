@@ -68,7 +68,7 @@ Route::get('/proposal/{proposal}/accept', [App\Http\Controllers\ProposalAcceptCo
     ->middleware('signed');
 
 // Admin routes
-Route::middleware(['auth', 'verified'])->prefix('dpm')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Settings (super admin only — no role map entry)

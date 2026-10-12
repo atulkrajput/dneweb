@@ -77,7 +77,7 @@ export default function TasksIndex({ columns, projects, goals, currentProject, t
   const handleCreateSprint = (e) => {
     e.preventDefault();
     if (!currentProject) return;
-    postSprint(`/dpm/projects/${currentProject.id}/sprints`, {
+    postSprint(`/admin/projects/${currentProject.id}/sprints`, {
       preserveScroll: true,
       onSuccess: () => {
         resetSprint('name', 'goal');
@@ -121,7 +121,7 @@ export default function TasksIndex({ columns, projects, goals, currentProject, t
     Object.keys(params).forEach((k) => {
       if (!params[k]) delete params[k];
     });
-    router.get('/dpm/tasks', params, { preserveState: true });
+    router.get('/admin/tasks', params, { preserveState: true });
   };
 
   const switchProject = (projectId) => {
@@ -136,7 +136,7 @@ export default function TasksIndex({ columns, projects, goals, currentProject, t
 
   const handleCreateTask = (e) => {
     e.preventDefault();
-    post('/dpm/tasks', {
+    post('/admin/tasks', {
       forceFormData: true,
       onSuccess: () => {
         reset('title', 'description', 'expected_impact', 'maintenance_risk', 'goal_id', 'assignee_id', 'sprint_id', 'attachment_files', 'estimated_cost');
@@ -166,7 +166,7 @@ export default function TasksIndex({ columns, projects, goals, currentProject, t
   const handleDrop = (e, newStatus) => {
     e.preventDefault();
     if (draggedTask && draggedTask.status !== newStatus) {
-      router.patch(`/dpm/tasks/${draggedTask.id}/status`, { status: newStatus }, { preserveState: true });
+      router.patch(`/admin/tasks/${draggedTask.id}/status`, { status: newStatus }, { preserveState: true });
     }
     setDraggedTask(null);
   };
@@ -581,11 +581,11 @@ export default function TasksIndex({ columns, projects, goals, currentProject, t
                       className="bg-background border border-border rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-primary/40 transition-colors group"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <Link href={`/dpm/tasks/${task.id}`} className="text-sm font-medium text-foreground hover:text-primary leading-tight flex-1">
+                        <Link href={`/admin/tasks/${task.id}`} className="text-sm font-medium text-foreground hover:text-primary leading-tight flex-1">
                           {task.title}
                         </Link>
                         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                          <Link href={`/dpm/tasks/${task.id}`} className="p-1 text-muted-foreground hover:text-primary rounded transition-colors" title="Edit task">
+                          <Link href={`/admin/tasks/${task.id}`} className="p-1 text-muted-foreground hover:text-primary rounded transition-colors" title="Edit task">
                             <Edit3 className="h-3.5 w-3.5" />
                           </Link>
                           <GripVertical className="h-4 w-4 text-muted-foreground" />

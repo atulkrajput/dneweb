@@ -9,7 +9,7 @@ export default function TeamMemberPerformance({ member, current, previous, compa
     const [y, m] = current.month.split('-').map(Number);
     const d = new Date(y, m - 1 + delta, 1);
     const next = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    router.get(`/dpm/team/${member.id}/performance`, { month: next }, { preserveScroll: true, preserveState: true });
+    router.get(`/admin/team/${member.id}/performance`, { month: next }, { preserveScroll: true, preserveState: true });
   };
 
   const isMtd = comparisonMode === 'month_to_date';
@@ -37,7 +37,7 @@ export default function TeamMemberPerformance({ member, current, previous, compa
       <Head title={`Performance — ${member.name}`} />
 
       <div className="mb-6">
-        <Link href="/dpm/team" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link href="/admin/team" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Back to Team
         </Link>
       </div>

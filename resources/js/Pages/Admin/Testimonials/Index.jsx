@@ -6,7 +6,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 export default function TestimonialsIndex({ testimonials }) {
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this testimonial?')) {
-      router.delete(`/dpm/testimonials/${id}`);
+      router.delete(`/admin/testimonials/${id}`);
     }
   };
 
@@ -16,7 +16,7 @@ export default function TestimonialsIndex({ testimonials }) {
 
       <div className="flex justify-between items-center mb-6">
         <p className="text-muted-foreground">{testimonials.length} testimonials</p>
-        <Link href="/dpm/testimonials/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/admin/testimonials/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> Add Testimonial
         </Link>
       </div>
@@ -67,7 +67,7 @@ export default function TestimonialsIndex({ testimonials }) {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-1">
-                    <Link href={`/dpm/testimonials/${testimonial.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
+                    <Link href={`/admin/testimonials/${testimonial.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
                       <Edit className="h-4 w-4" />
                     </Link>
                     <button onClick={() => handleDelete(testimonial.id)} className="inline-flex p-2 text-muted-foreground hover:text-destructive transition-colors" title="Delete">

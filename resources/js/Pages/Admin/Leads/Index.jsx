@@ -28,11 +28,11 @@ export default function LeadsIndex({ leads, stats, filters }) {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    router.get('/dpm/leads', { search, status: filters.status }, { preserveState: true });
+    router.get('/admin/leads', { search, status: filters.status }, { preserveState: true });
   };
 
   const handleFilterStatus = (status) => {
-    router.get('/dpm/leads', { search: filters.search, status: status || undefined }, { preserveState: true });
+    router.get('/admin/leads', { search: filters.search, status: status || undefined }, { preserveState: true });
   };
 
   const statCards = [
@@ -73,7 +73,7 @@ export default function LeadsIndex({ leads, stats, filters }) {
             />
           </div>
         </form>
-        <Link href="/dpm/leads/create" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/admin/leads/create" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> New Lead
         </Link>
       </div>
@@ -115,7 +115,7 @@ export default function LeadsIndex({ leads, stats, filters }) {
               {leads.data?.map((lead) => (
                 <tr key={lead.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4">
-                    <Link href={`/dpm/leads/${lead.id}`} className="text-sm font-medium text-foreground hover:text-primary">
+                    <Link href={`/admin/leads/${lead.id}`} className="text-sm font-medium text-foreground hover:text-primary">
                       {lead.name}
                     </Link>
                     <p className="text-xs text-muted-foreground">{lead.email}</p>

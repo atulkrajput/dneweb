@@ -14,11 +14,11 @@ const TYPE_ICONS = {
 
 export default function NotificationsIndex({ notifications, unreadCount }) {
   const handleMarkAsRead = (id) => {
-    router.patch(`/dpm/notifications/${id}/read`, {}, { preserveScroll: true });
+    router.patch(`/admin/notifications/${id}/read`, {}, { preserveScroll: true });
   };
 
   const handleMarkAllRead = () => {
-    router.post('/dpm/notifications/mark-all-read', {}, { preserveScroll: true });
+    router.post('/admin/notifications/mark-all-read', {}, { preserveScroll: true });
   };
 
   return (

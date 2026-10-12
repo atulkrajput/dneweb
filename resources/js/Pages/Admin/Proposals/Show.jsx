@@ -15,12 +15,12 @@ export default function ProposalShow({ proposal }) {
   const [sending, setSending] = useState(false);
   const fmt = (val) => '$' + Number(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const handleDelete = () => { if (confirm('Delete this proposal?')) router.delete(`/dpm/proposals/${proposal.id}`); };
-  const handleAccept = () => { if (confirm('Accept this proposal? A project will be created automatically.')) router.post(`/dpm/proposals/${proposal.id}/accept`); };
+  const handleDelete = () => { if (confirm('Delete this proposal?')) router.delete(`/admin/proposals/${proposal.id}`); };
+  const handleAccept = () => { if (confirm('Accept this proposal? A project will be created automatically.')) router.post(`/admin/proposals/${proposal.id}/accept`); };
   const handleSend = () => {
     if (!confirm('Send this proposal via email to the linked lead/client?')) return;
     setSending(true);
-    router.post(`/dpm/proposals/${proposal.id}/send`, {}, {
+    router.post(`/admin/proposals/${proposal.id}/send`, {}, {
       onFinish: () => setSending(false),
     });
   };
@@ -31,7 +31,7 @@ export default function ProposalShow({ proposal }) {
 
       <div className="max-w-4xl">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/dpm/proposals" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/admin/proposals" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Proposals
           </Link>
           <div className="flex items-center gap-2">
@@ -59,12 +59,12 @@ export default function ProposalShow({ proposal }) {
               <p className="text-lg text-foreground mt-1">{proposal.title}</p>
               <div className="flex items-center gap-4 mt-2">
                 {proposal.lead && (
-                  <Link href={`/dpm/leads/${proposal.lead.id}`} className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1">
+                  <Link href={`/admin/leads/${proposal.lead.id}`} className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1">
                     <Target className="h-3 w-3" /> Lead: {proposal.lead.name}
                   </Link>
                 )}
                 {proposal.client && (
-                  <Link href={`/dpm/clients/${proposal.client.id}`} className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1">
+                  <Link href={`/admin/clients/${proposal.client.id}`} className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1">
                     <Building2 className="h-3 w-3" /> Client: {proposal.client.company}
                   </Link>
                 )}

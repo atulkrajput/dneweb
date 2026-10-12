@@ -22,7 +22,7 @@ const ROLE_COLORS = {
 export default function TeamMembersIndex({ members, roles }) {
   const handleDelete = (member) => {
     if (confirm(`Delete "${member.name}"? This cannot be undone.`)) {
-      router.delete(`/dpm/team/${member.id}`);
+      router.delete(`/admin/team/${member.id}`);
     }
   };
 
@@ -32,7 +32,7 @@ export default function TeamMembersIndex({ members, roles }) {
 
       <div className="flex justify-between items-center mb-6">
         <p className="text-muted-foreground">{members.length} member(s)</p>
-        <Link href="/dpm/team/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/admin/team/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> Add Member
         </Link>
       </div>
@@ -66,10 +66,10 @@ export default function TeamMembersIndex({ members, roles }) {
               <span className="text-xs text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full mb-3">Inactive</span>
             )}
             <div className="flex gap-2 mt-auto pt-3">
-              <Link href={`/dpm/team/${member.id}/performance`} className="p-2 text-muted-foreground hover:text-primary transition-colors" title="View performance">
+              <Link href={`/admin/team/${member.id}/performance`} className="p-2 text-muted-foreground hover:text-primary transition-colors" title="View performance">
                 <BarChart3 className="h-4 w-4" />
               </Link>
-              <Link href={`/dpm/team/${member.id}/edit`} className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
+              <Link href={`/admin/team/${member.id}/edit`} className="p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
                 <Edit className="h-4 w-4" />
               </Link>
               <button onClick={() => handleDelete(member)} className="p-2 text-muted-foreground hover:text-destructive transition-colors" title="Delete">

@@ -24,7 +24,7 @@ class TaskReviewReminderNotification extends Notification
             'title' => 'Review Reminder',
             'message' => "Reminder to review: {$this->task->title}",
             'task_id' => $this->task->id,
-            'url' => "/dpm/tasks/{$this->task->id}",
+            'url' => "/admin/tasks/{$this->task->id}",
         ];
     }
 }
