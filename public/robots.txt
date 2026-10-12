@@ -2,4 +2,4 @@ User-agent: *
 Disallow: /dpm
 Disallow: /profile
 
-Sitemap: https://dneconsultants.com/sitemap.xml
+Sitemap: https://dneco.io/sitemap.xml

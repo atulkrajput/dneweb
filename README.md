@@ -252,7 +252,7 @@ Key variables in `.env`:
 
 ```env
 APP_NAME="DNE Consultants"
-APP_URL=https://dneconsultants.com
+APP_URL=https://dneco.io
 
 # Database
 DB_CONNECTION=mysql
@@ -260,7 +260,7 @@ DB_DATABASE=dne
 
 # Mail (Resend)
 MAIL_MAILER=resend
-MAIL_FROM_ADDRESS="noreply@email.dneconsultants.com"
+MAIL_FROM_ADDRESS="noreply@email.dneco.io"
 RESEND_API_KEY=re_xxxxxxxxxxxxx
 
 # reCAPTCHA v3

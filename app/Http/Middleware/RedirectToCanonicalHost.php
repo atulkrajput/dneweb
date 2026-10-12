@@ -8,20 +8,26 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RedirectToCanonicalHost
 {
+    /**
+     * Known alternate hosts that should 301 to the canonical host. Covers the
+     * www/non-www alias of the current domain plus the legacy dneconsultants.com
+     * domain (both www and non-www) from the dneco.io rebrand, so old links,
+     * bookmarks, and search results keep working. Deliberately an explicit
+     * allowlist rather than "any host" so local dev hosts are never redirected.
+     */
+    private const ALIAS_HOSTS = [
+        'www.dneco.io',
+        'dneconsultants.com',
+        'www.dneconsultants.com',
+    ];
+
     public function handle(Request $request, Closure $next): Response
     {
         $canonicalUrl = config('seo.canonical_url');
-        $canonicalHost = parse_url($canonicalUrl, PHP_URL_HOST);
-
-        // Only redirect known www/non-www aliases. This avoids redirecting local
-        // development hosts or unexpected domains to the production site.
+        $canonicalHost = strtolower((string) parse_url($canonicalUrl, PHP_URL_HOST));
         $requestHost = strtolower($request->getHost());
-        $canonicalHost = strtolower((string) $canonicalHost);
-        $alternateHost = $canonicalHost === 'www.dneconsultants.com'
-            ? 'dneconsultants.com'
-            : ($canonicalHost === 'dneconsultants.com' ? 'www.dneconsultants.com' : null);
 
-        if ($alternateHost !== null && $requestHost === $alternateHost) {
+        if ($requestHost !== $canonicalHost && in_array($requestHost, self::ALIAS_HOSTS, true)) {
             return redirect()->to(
                 $canonicalUrl . $request->getRequestUri(),
                 301
