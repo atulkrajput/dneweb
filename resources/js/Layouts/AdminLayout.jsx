@@ -8,6 +8,7 @@ export default function AdminLayout({ children, title }) {
   const { auth } = usePage().props;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const logoSrc = theme === 'dark' ? '/logo-white.png' : '/logo.png';
   const unreadCount = auth?.unreadNotifications || 0;
   const role = auth?.role || 'developer';
   const isSuperAdmin = auth?.isSuperAdmin || false;
@@ -119,7 +120,7 @@ export default function AdminLayout({ children, title }) {
     <div className="min-h-screen bg-background">
       {/* Mobile sidebar toggle */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-        <img src="/logo-white.png" alt="DNE Admin" className="h-7 w-auto" />
+        <img src={logoSrc} alt="DNE Admin" className="h-7 w-auto" />
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-foreground">
           {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -130,7 +131,7 @@ export default function AdminLayout({ children, title }) {
         <div className="flex flex-col h-full min-h-0">
           <div className="p-6 border-b border-border">
             <Link href="/dpm" className="flex items-center gap-3">
-              <img src="/logo-white.png" alt="DNE" className="h-7 w-auto" />
+              <img src={logoSrc} alt="DNE" className="h-7 w-auto" />
               <span className="text-sm font-semibold text-primary">Admin</span>
             </Link>
           </div>
