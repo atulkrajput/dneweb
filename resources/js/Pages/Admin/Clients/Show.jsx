@@ -34,14 +34,14 @@ export default function ClientShow({ client, internalNotes }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    put(`/admin/clients/${client.id}`, {
+    put(`/dpm/clients/${client.id}`, {
       onSuccess: () => setEditing(false),
     });
   };
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this client?')) {
-      router.delete(`/admin/clients/${client.id}`);
+      router.delete(`/dpm/clients/${client.id}`);
     }
   };
 
@@ -51,7 +51,7 @@ export default function ClientShow({ client, internalNotes }) {
 
       <div className="max-w-4xl">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/admin/clients" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/dpm/clients" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Clients
           </Link>
           <div className="flex items-center gap-2">
@@ -192,7 +192,7 @@ export default function ClientShow({ client, internalNotes }) {
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <Target className="h-3 w-3" />
                     Converted from lead •{' '}
-                    <Link href={`/admin/leads/${client.lead.id}`} className="text-primary hover:text-primary/80">View Lead →</Link>
+                    <Link href={`/dpm/leads/${client.lead.id}`} className="text-primary hover:text-primary/80">View Lead →</Link>
                   </p>
                 </div>
               )}
@@ -207,14 +207,14 @@ export default function ClientShow({ client, internalNotes }) {
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <FolderKanban className="h-4 w-4 text-muted-foreground" /> Projects
               </h3>
-              <Link href={`/admin/projects/create?client_id=${client.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+              <Link href={`/dpm/projects/create?client_id=${client.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
                 <Plus className="h-3 w-3" /> New Project
               </Link>
             </div>
             {client.projects && client.projects.length > 0 ? (
               <div className="space-y-3">
                 {client.projects.map((project) => (
-                  <Link key={project.id} href={`/admin/projects/${project.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors">
+                  <Link key={project.id} href={`/dpm/projects/${project.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors">
                     <div>
                       <p className="text-sm font-medium text-foreground">{project.name}</p>
                       <p className="text-xs text-muted-foreground capitalize">{project.status?.replace('_', ' ')} • {project.progress}% complete</p>

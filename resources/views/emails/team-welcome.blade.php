@@ -38,6 +38,6 @@
     <p style="font-size: 13px; color: #6b6b80;">
         For security, we recommend changing your password after your first login.
         If you have any questions, reach out to us at
-        <a href="mailto:letsbuild@dneconsultants.com" style="color: #6366f1;">letsbuild@dneconsultants.com</a>.
+        <a href="mailto:letsbuild@dneco.io" style="color: #6366f1;">letsbuild@dneco.io</a>.
     </p>
 @endsection

@@ -15,7 +15,7 @@ export default function CampaignsIndex({ stats, topCampaigns, topSources, topLan
 
   const handleFilter = (e) => {
     e.preventDefault();
-    router.get('/admin/campaigns', { date_from: dateFrom, date_to: dateTo }, { preserveState: true });
+    router.get('/dpm/campaigns', { date_from: dateFrom, date_to: dateTo }, { preserveState: true });
   };
 
   const statCards = [

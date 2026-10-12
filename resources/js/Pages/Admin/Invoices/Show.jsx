@@ -29,7 +29,7 @@ export default function InvoiceShow({ invoice, paidAmount, outstanding, internal
 
   const handlePayment = (e) => {
     e.preventDefault();
-    paymentForm.post(`/admin/invoices/${invoice.id}/payments`, {
+    paymentForm.post(`/dpm/invoices/${invoice.id}/payments`, {
       onSuccess: () => { paymentForm.reset(); setShowPayment(false); },
       preserveScroll: true,
     });
@@ -37,7 +37,7 @@ export default function InvoiceShow({ invoice, paidAmount, outstanding, internal
 
   const handleDelete = () => {
     if (confirm('Delete this invoice?')) {
-      router.delete(`/admin/invoices/${invoice.id}`);
+      router.delete(`/dpm/invoices/${invoice.id}`);
     }
   };
 
@@ -49,7 +49,7 @@ export default function InvoiceShow({ invoice, paidAmount, outstanding, internal
 
       <div className="max-w-4xl">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/admin/invoices" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/dpm/invoices" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Invoices
           </Link>
           <div className="flex items-center gap-2">
@@ -102,12 +102,12 @@ export default function InvoiceShow({ invoice, paidAmount, outstanding, internal
             <div>
               <h2 className="text-2xl font-bold text-foreground">{invoice.number}</h2>
               {invoice.client && (
-                <Link href={`/admin/clients/${invoice.client.id}`} className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 mt-1">
+                <Link href={`/dpm/clients/${invoice.client.id}`} className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 mt-1">
                   <Building2 className="h-3 w-3" /> {invoice.client.company}
                 </Link>
               )}
               {invoice.project && (
-                <Link href={`/admin/projects/${invoice.project.id}`} className="text-xs text-muted-foreground hover:text-primary mt-0.5 block">
+                <Link href={`/dpm/projects/${invoice.project.id}`} className="text-xs text-muted-foreground hover:text-primary mt-0.5 block">
                   Project: {invoice.project.name}
                 </Link>
               )}

@@ -1,5 +1,5 @@
 User-agent: *
-Disallow: /admin
+Disallow: /dpm
 Disallow: /profile
 
 Sitemap: https://dneconsultants.com/sitemap.xml

@@ -47,9 +47,9 @@ export default function PartnerForm({ partner }) {
 
     if (isEditing) {
       formData.append('_method', 'PUT');
-      router.post(`/admin/partners/${partner.id}`, formData, { forceFormData: true });
+      router.post(`/dpm/partners/${partner.id}`, formData, { forceFormData: true });
     } else {
-      router.post('/admin/partners', formData, { forceFormData: true });
+      router.post('/dpm/partners', formData, { forceFormData: true });
     }
   };
 
@@ -129,7 +129,7 @@ export default function PartnerForm({ partner }) {
           <button type="submit" disabled={processing} className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
             {processing ? 'Saving...' : (isEditing ? 'Update Partner' : 'Create Partner')}
           </button>
-          <Link href="/admin/partners" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">Cancel</Link>
+          <Link href="/dpm/partners" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">Cancel</Link>
         </div>
       </form>
     </AdminLayout>

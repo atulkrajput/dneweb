@@ -386,26 +386,26 @@ function KeyManagementTab({ apiKeys }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    post('/admin/api-keys', {
+    post('/dpm/api-keys', {
       onSuccess: () => { reset(); setShowForm(false); },
     });
   };
 
   const handleToggle = (id) => {
     if (confirm('Change the status of this API key?')) {
-      router.post(`/admin/api-keys/${id}/toggle`);
+      router.post(`/dpm/api-keys/${id}/toggle`);
     }
   };
 
   const handleRegenerate = (id) => {
     if (confirm('This will invalidate the current key. The external website will need to update their configuration. Continue?')) {
-      router.post(`/admin/api-keys/${id}/regenerate`);
+      router.post(`/dpm/api-keys/${id}/regenerate`);
     }
   };
 
   const handleDelete = (id) => {
     if (confirm('Permanently delete this API key? Any website using it will lose access.')) {
-      router.delete(`/admin/api-keys/${id}`);
+      router.delete(`/dpm/api-keys/${id}`);
     }
   };
 

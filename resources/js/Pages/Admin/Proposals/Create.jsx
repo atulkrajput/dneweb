@@ -26,7 +26,7 @@ export default function ProposalCreate({ leads, clients, services, nextNumber, p
       ...data,
       deliverables: data.deliverables.filter(d => d.trim()),
     };
-    post('/admin/proposals', { data: cleanData });
+    post('/dpm/proposals', { data: cleanData });
   };
 
   // Service toggles
@@ -56,7 +56,7 @@ export default function ProposalCreate({ leads, clients, services, nextNumber, p
 
       <div className="max-w-4xl">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin/proposals" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/dpm/proposals" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Proposals
           </Link>
         </div>
@@ -160,7 +160,7 @@ export default function ProposalCreate({ leads, clients, services, nextNumber, p
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-              <Link href="/admin/proposals" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Cancel</Link>
+              <Link href="/dpm/proposals" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Cancel</Link>
               <button type="submit" disabled={processing} className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
                 {processing ? 'Creating...' : 'Create Proposal'}
               </button>

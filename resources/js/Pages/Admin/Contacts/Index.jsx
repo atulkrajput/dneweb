@@ -6,7 +6,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 export default function ContactsIndex({ contacts }) {
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this contact?')) {
-      router.delete(`/admin/contacts/${id}`);
+      router.delete(`/dpm/contacts/${id}`);
     }
   };
 
@@ -30,7 +30,7 @@ export default function ContactsIndex({ contacts }) {
               {contacts.data?.map((contact) => (
                 <tr key={contact.id} className={`hover:bg-muted/30 transition-colors ${!contact.is_read ? 'bg-primary/5' : ''}`}>
                   <td className="px-6 py-4">
-                    <Link href={`/admin/contacts/${contact.id}`} className="text-sm font-medium text-foreground hover:text-primary">
+                    <Link href={`/dpm/contacts/${contact.id}`} className="text-sm font-medium text-foreground hover:text-primary">
                       {!contact.is_read && <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2"></span>}
                       {contact.full_name}
                     </Link>

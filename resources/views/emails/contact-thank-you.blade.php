@@ -53,6 +53,6 @@
 
     <p style="margin-top: 28px; font-size: 13px; color: #6b6b80;">
         If you have any urgent questions, you can reach us directly at
-        <a href="mailto:letsbuild@dneconsultants.com" style="color: #6366f1;">letsbuild@dneconsultants.com</a>.
+        <a href="mailto:letsbuild@dneco.io" style="color: #6366f1;">letsbuild@dneco.io</a>.
     </p>
 @endsection

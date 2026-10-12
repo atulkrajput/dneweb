@@ -25,7 +25,7 @@ class ProjectCompletedNotification extends Notification
             'title' => 'Project Completed',
             'message' => "Project \"{$this->project->name}\" has been marked as completed.",
             'project_id' => $this->project->id,
-            'url' => "/admin/projects/{$this->project->id}",
+            'url' => "/dpm/projects/{$this->project->id}",
         ];
     }
 
@@ -36,7 +36,7 @@ class ProjectCompletedNotification extends Notification
             ->view('emails.notifications.project-completed', [
                 'project' => $this->project,
                 'recipient' => $notifiable,
-                'url' => config('app.url') . '/admin/projects/' . $this->project->id,
+                'url' => config('app.url') . '/dpm/projects/' . $this->project->id,
             ]);
     }
 }

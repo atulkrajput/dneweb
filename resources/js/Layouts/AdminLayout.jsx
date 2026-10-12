@@ -33,54 +33,54 @@ export default function AdminLayout({ children, title }) {
 
   // Standalone item (no group) renders on its own.
   // Grouped items render inside a collapsible submenu.
-  const dashboardItem = { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, module: null };
+  const dashboardItem = { name: 'Dashboard', href: '/dpm', icon: LayoutDashboard, module: null };
 
   const navGroups = [
     {
       name: 'Marketing Management',
       icon: Megaphone,
       items: [
-        { name: 'Leads', href: '/admin/leads', icon: Target, module: 'leads' },
-        { name: 'Clients', href: '/admin/clients', icon: Building2, module: 'clients' },
-        { name: 'Proposals', href: '/admin/proposals', icon: FileSignature, module: 'proposals' },
-        { name: 'Invoices', href: '/admin/invoices', icon: Receipt, module: 'invoices' },
-        { name: 'Campaigns', href: '/admin/campaigns', icon: BarChart3, module: 'campaigns' },
-        { name: 'Social Media', href: '/admin/social', icon: Share2, module: 'social' },
+        { name: 'Leads', href: '/dpm/leads', icon: Target, module: 'leads' },
+        { name: 'Clients', href: '/dpm/clients', icon: Building2, module: 'clients' },
+        { name: 'Proposals', href: '/dpm/proposals', icon: FileSignature, module: 'proposals' },
+        { name: 'Invoices', href: '/dpm/invoices', icon: Receipt, module: 'invoices' },
+        { name: 'Campaigns', href: '/dpm/campaigns', icon: BarChart3, module: 'campaigns' },
+        { name: 'Social Media', href: '/dpm/social', icon: Share2, module: 'social' },
       ],
     },
     {
       name: 'Project Management',
       icon: FolderKanban,
       items: [
-        { name: 'Projects', href: '/admin/projects', icon: FolderKanban, module: 'projects' },
-        { name: 'Tasks', href: '/admin/tasks', icon: CheckSquare, module: 'tasks' },
-        { name: 'Services', href: '/admin/services', icon: Briefcase, module: 'services' },
+        { name: 'Projects', href: '/dpm/projects', icon: FolderKanban, module: 'projects' },
+        { name: 'Tasks', href: '/dpm/tasks', icon: CheckSquare, module: 'tasks' },
+        { name: 'Services', href: '/dpm/services', icon: Briefcase, module: 'services' },
       ],
     },
     {
       name: 'Company Management',
       icon: Building,
       items: [
-        { name: 'Team', href: '/admin/team', icon: Users, module: 'team' },
-        { name: 'Goals', href: '/admin/goals', icon: Flag, module: 'goals' },
+        { name: 'Team', href: '/dpm/team', icon: Users, module: 'team' },
+        { name: 'Goals', href: '/dpm/goals', icon: Flag, module: 'goals' },
       ],
     },
     {
       name: 'Insights & AI',
       icon: Sparkles,
       items: [
-        { name: 'AI Assistant', href: '/admin/ai-assistant', icon: Sparkles, module: null },
-        { name: 'Reports', href: '/admin/reports', icon: PieChart, module: null },
-        { name: 'Insights', href: '/admin/insights', icon: Lightbulb, module: null },
+        { name: 'AI Assistant', href: '/dpm/ai-assistant', icon: Sparkles, module: null },
+        { name: 'Reports', href: '/dpm/reports', icon: PieChart, module: null },
+        { name: 'Insights', href: '/dpm/insights', icon: Lightbulb, module: null },
       ],
     },
     {
       name: 'Other',
       icon: Settings,
       items: [
-        { name: 'Settings', href: '/admin/settings', icon: Settings, module: null, superAdmin: true },
-        { name: 'API Management', href: '/admin/api-keys', icon: Key, module: null, superAdmin: true },
-        { name: 'Maintenance', href: '/admin/maintenance', icon: Wrench, module: null, superAdmin: true },
+        { name: 'Settings', href: '/dpm/settings', icon: Settings, module: null, superAdmin: true },
+        { name: 'API Management', href: '/dpm/api-keys', icon: Key, module: null, superAdmin: true },
+        { name: 'Maintenance', href: '/dpm/maintenance', icon: Wrench, module: null, superAdmin: true },
       ],
     },
   ];
@@ -101,7 +101,7 @@ export default function AdminLayout({ children, title }) {
   );
 
   const isItemActive = (href) =>
-    currentPath === href || (href !== '/admin' && currentPath.startsWith(href));
+    currentPath === href || (href !== '/dpm' && currentPath.startsWith(href));
 
   // A group is open if it contains the active route (default), tracked in state so users can toggle.
   const initialOpen = {};
@@ -129,7 +129,7 @@ export default function AdminLayout({ children, title }) {
       <aside className={`fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-200 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         <div className="flex flex-col h-full min-h-0">
           <div className="p-6 border-b border-border">
-            <Link href="/admin" className="flex items-center gap-3">
+            <Link href="/dpm" className="flex items-center gap-3">
               <img src="/logo-white.png" alt="DNE" className="h-7 w-auto" />
               <span className="text-sm font-semibold text-primary">Admin</span>
             </Link>
@@ -218,7 +218,7 @@ export default function AdminLayout({ children, title }) {
               </button>
 
               <Link
-                href="/admin/notifications"
+                href="/dpm/notifications"
                 onClick={closeSidebar}
                 className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
                 aria-label="Notifications"

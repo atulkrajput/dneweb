@@ -6,7 +6,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 export default function ProductsIndex({ products }) {
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this product?')) {
-      router.delete(`/admin/products/${id}`);
+      router.delete(`/dpm/products/${id}`);
     }
   };
 
@@ -36,7 +36,7 @@ export default function ProductsIndex({ products }) {
 
       <div className="flex justify-between items-center mb-6">
         <p className="text-muted-foreground">{products.length} products</p>
-        <Link href="/admin/products/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/dpm/products/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> Add Product
         </Link>
       </div>
@@ -97,7 +97,7 @@ export default function ProductsIndex({ products }) {
                     <span className="text-sm text-muted-foreground">{product.views || 0}</span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-1">
-                    <Link href={`/admin/products/${product.id}`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="View interests">
+                    <Link href={`/dpm/products/${product.id}`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="View interests">
                       <Eye className="h-4 w-4" />
                     </Link>
                     {product.link && (
@@ -105,7 +105,7 @@ export default function ProductsIndex({ products }) {
                         <ExternalLink className="h-4 w-4" />
                       </a>
                     )}
-                    <Link href={`/admin/products/${product.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
+                    <Link href={`/dpm/products/${product.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
                       <Edit className="h-4 w-4" />
                     </Link>
                     <button onClick={() => handleDelete(product.id)} className="inline-flex p-2 text-muted-foreground hover:text-destructive transition-colors" title="Delete">

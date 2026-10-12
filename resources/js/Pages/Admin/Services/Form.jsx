@@ -67,9 +67,9 @@ export default function ServiceForm({ service }) {
 
     if (isEditing) {
       formData.append('_method', 'PUT');
-      router.post(`/admin/services/${service.id}`, formData, { forceFormData: true });
+      router.post(`/dpm/services/${service.id}`, formData, { forceFormData: true });
     } else {
-      router.post('/admin/services', formData, { forceFormData: true });
+      router.post('/dpm/services', formData, { forceFormData: true });
     }
   };
 
@@ -217,7 +217,7 @@ export default function ServiceForm({ service }) {
           <button type="submit" disabled={processing} className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
             {processing ? 'Saving...' : (isEditing ? 'Update Service' : 'Create Service')}
           </button>
-          <Link href="/admin/services" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">
+          <Link href="/dpm/services" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">
             Cancel
           </Link>
         </div>

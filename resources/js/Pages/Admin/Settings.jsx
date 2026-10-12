@@ -57,7 +57,7 @@ export default function Settings({ settings }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    put('/admin/settings');
+    put('/dpm/settings');
   };
 
   const tabs = [

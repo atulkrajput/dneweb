@@ -6,7 +6,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 export default function PartnersIndex({ partners }) {
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this partner?')) {
-      router.delete(`/admin/partners/${id}`);
+      router.delete(`/dpm/partners/${id}`);
     }
   };
 
@@ -16,7 +16,7 @@ export default function PartnersIndex({ partners }) {
 
       <div className="flex justify-between items-center mb-6">
         <p className="text-muted-foreground">{partners.length} partners</p>
-        <Link href="/admin/partners/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/dpm/partners/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> Add Partner
         </Link>
       </div>
@@ -62,7 +62,7 @@ export default function PartnersIndex({ partners }) {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-1">
-                    <Link href={`/admin/partners/${partner.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
+                    <Link href={`/dpm/partners/${partner.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors" title="Edit">
                       <Edit className="h-4 w-4" />
                     </Link>
                     <button onClick={() => handleDelete(partner.id)} className="inline-flex p-2 text-muted-foreground hover:text-destructive transition-colors" title="Delete">

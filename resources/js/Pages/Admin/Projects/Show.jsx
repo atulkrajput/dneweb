@@ -73,12 +73,12 @@ export default function ProjectShow({ project, clients, team, sprints, sprintDur
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    put(`/admin/projects/${project.id}`, { onSuccess: () => setEditing(false) });
+    put(`/dpm/projects/${project.id}`, { onSuccess: () => setEditing(false) });
   };
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this project?')) {
-      router.delete(`/admin/projects/${project.id}`);
+      router.delete(`/dpm/projects/${project.id}`);
     }
   };
 
@@ -100,7 +100,7 @@ export default function ProjectShow({ project, clients, team, sprints, sprintDur
   // Sprint handlers
   const handleCreateSprint = (e) => {
     e.preventDefault();
-    sprintForm.post(`/admin/projects/${project.id}/sprints`, {
+    sprintForm.post(`/dpm/projects/${project.id}/sprints`, {
       onSuccess: () => { sprintForm.reset('name', 'goal'); setShowSprintCreate(false); },
     });
   };
@@ -115,22 +115,22 @@ export default function ProjectShow({ project, clients, team, sprints, sprintDur
 
   const handleUpdateSprint = (e) => {
     e.preventDefault();
-    sprintEditForm.put(`/admin/sprints/${editingSprint}`, { onSuccess: () => setEditingSprint(null) });
+    sprintEditForm.put(`/dpm/sprints/${editingSprint}`, { onSuccess: () => setEditingSprint(null) });
   };
 
   const handleStartSprint = (sprint) => {
     if (confirm('Start this sprint? Any active sprint will be completed.')) {
-      router.post(`/admin/sprints/${sprint.id}/start`);
+      router.post(`/dpm/sprints/${sprint.id}/start`);
     }
   };
 
   const handleCompleteSprint = (sprint) => {
-    if (confirm('Complete this sprint?')) { router.post(`/admin/sprints/${sprint.id}/complete`); }
+    if (confirm('Complete this sprint?')) { router.post(`/dpm/sprints/${sprint.id}/complete`); }
   };
 
   const handleDeleteSprint = (sprint) => {
     if (confirm(`Delete "${sprint.name}"? Tasks will move to backlog.`)) {
-      router.delete(`/admin/sprints/${sprint.id}`);
+      router.delete(`/dpm/sprints/${sprint.id}`);
     }
   };
 
@@ -143,7 +143,7 @@ export default function ProjectShow({ project, clients, team, sprints, sprintDur
 
       <div className="max-w-5xl">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/admin/projects" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/dpm/projects" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Projects
           </Link>
           <div className="flex items-center gap-2">
@@ -268,7 +268,7 @@ export default function ProjectShow({ project, clients, team, sprints, sprintDur
                 <div>
                   <h2 className="text-xl font-semibold text-foreground">{project.name}</h2>
                   {project.client && (
-                    <Link href={`/admin/clients/${project.client.id}`} className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 mt-1">
+                    <Link href={`/dpm/clients/${project.client.id}`} className="text-sm text-muted-foreground hover:text-primary flex items-center gap-1 mt-1">
                       <Building2 className="h-3 w-3" /> {project.client.company}
                     </Link>
                   )}

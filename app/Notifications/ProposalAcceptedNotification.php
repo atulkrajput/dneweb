@@ -25,7 +25,7 @@ class ProposalAcceptedNotification extends Notification
             'title' => 'Proposal Accepted',
             'message' => "Proposal {$this->proposal->number} was accepted.",
             'proposal_id' => $this->proposal->id,
-            'url' => "/admin/proposals/{$this->proposal->id}",
+            'url' => "/dpm/proposals/{$this->proposal->id}",
         ];
     }
 
@@ -36,7 +36,7 @@ class ProposalAcceptedNotification extends Notification
             ->view('emails.notifications.proposal-accepted', [
                 'proposal' => $this->proposal,
                 'recipient' => $notifiable,
-                'url' => config('app.url') . '/admin/proposals/' . $this->proposal->id,
+                'url' => config('app.url') . '/dpm/proposals/' . $this->proposal->id,
             ]);
     }
 }

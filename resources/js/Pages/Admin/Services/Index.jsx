@@ -6,7 +6,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 export default function ServicesIndex({ services }) {
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this service?')) {
-      router.delete(`/admin/services/${id}`);
+      router.delete(`/dpm/services/${id}`);
     }
   };
 
@@ -16,7 +16,7 @@ export default function ServicesIndex({ services }) {
 
       <div className="flex justify-between items-center mb-6">
         <p className="text-muted-foreground">{services.length} services</p>
-        <Link href="/admin/services/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/dpm/services/create" className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> Add Service
         </Link>
       </div>
@@ -46,7 +46,7 @@ export default function ServicesIndex({ services }) {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-2">
-                    <Link href={`/admin/services/${service.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Link href={`/dpm/services/${service.id}/edit`} className="inline-flex p-2 text-muted-foreground hover:text-foreground transition-colors">
                       <Edit className="h-4 w-4" />
                     </Link>
                     <button onClick={() => handleDelete(service.id)} className="inline-flex p-2 text-muted-foreground hover:text-destructive transition-colors">

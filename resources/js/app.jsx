@@ -20,7 +20,7 @@ router.on('invalid', (event) => {
 });
 
 // Apply theme from localStorage on page load (before render to avoid flash)
-const savedTheme = localStorage.getItem('theme') || 'dark';
+const savedTheme = localStorage.getItem('theme') || 'light';
 if (savedTheme === 'dark') {
     document.documentElement.classList.add('dark');
 } else {

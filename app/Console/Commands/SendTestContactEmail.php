@@ -31,8 +31,8 @@ class SendTestContactEmail extends Command
         Mail::to($email)->send(new ContactThankYou($contact));
         $this->info('✓ Thank you email sent!');
 
-        $this->info('Sending admin notification to letsbuild@dneconsultants.com...');
-        Mail::to('letsbuild@dneconsultants.com')->send(new ContactAdminNotification($contact));
+        $this->info('Sending admin notification to letsbuild@dneco.io...');
+        Mail::to('letsbuild@dneco.io')->send(new ContactAdminNotification($contact));
         $this->info('✓ Admin notification email sent!');
 
         $this->info('All emails sent successfully.');

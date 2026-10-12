@@ -165,7 +165,7 @@
                                 Vancouver, BC, Canada
                             </p>
                             <p>
-                                <a href="mailto:letsbuild@dneconsultants.com">letsbuild@dneconsultants.com</a>
+                                <a href="mailto:letsbuild@dneco.io">letsbuild@dneco.io</a>
                             </p>
                             <p style="margin-top: 16px; font-size: 12px; color: #9999aa;">
                                 &copy; {{ date('Y') }} DNE Technology Consultants. All rights reserved.

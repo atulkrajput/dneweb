@@ -193,7 +193,7 @@ All emails use branded HTML templates with:
 | Email | Trigger | Recipient |
 |-------|---------|-----------|
 | Contact Thank You | Contact form submission | User |
-| Contact Admin Notification | Contact form submission | letsbuild@dneconsultants.com |
+| Contact Admin Notification | Contact form submission | letsbuild@dneco.io |
 | Proposal | Admin sends proposal | Lead/Client |
 | Team Welcome | New team member created (optional) | Team member |
 | Password Reset | Forgot password | User |

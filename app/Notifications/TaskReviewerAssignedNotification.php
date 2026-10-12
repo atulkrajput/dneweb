@@ -24,7 +24,7 @@ class TaskReviewerAssignedNotification extends Notification
             'title' => 'Task Review Requested',
             'message' => "You were added as reviewer for: {$this->task->title}",
             'task_id' => $this->task->id,
-            'url' => "/admin/tasks/{$this->task->id}",
+            'url' => "/dpm/tasks/{$this->task->id}",
         ];
     }
 }

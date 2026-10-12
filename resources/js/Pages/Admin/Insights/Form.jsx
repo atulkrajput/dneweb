@@ -205,12 +205,12 @@ export default function InsightForm({ insight, teamMembers }) {
 
     if (isEditing) {
       formData.append('_method', 'PUT');
-      router.post(`/admin/insights/${insight.id}`, formData, {
+      router.post(`/dpm/insights/${insight.id}`, formData, {
         forceFormData: true,
         preserveScroll: true,
       });
     } else {
-      router.post('/admin/insights', formData, {
+      router.post('/dpm/insights', formData, {
         forceFormData: true,
         preserveScroll: true,
       });
@@ -526,7 +526,7 @@ export default function InsightForm({ insight, teamMembers }) {
           <button type="submit" disabled={processing} className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
             {processing ? 'Saving...' : (isEditing ? 'Update Insight' : 'Create Insight')}
           </button>
-          <Link href="/admin/insights" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">Cancel</Link>
+          <Link href="/dpm/insights" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">Cancel</Link>
         </div>
       </form>
     </AdminLayout>

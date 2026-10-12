@@ -96,7 +96,7 @@
     </p>
 
     <p style="text-align: center; margin-top: 16px;">
-        <a href="mailto:letsbuild@dneconsultants.com" class="btn" style="background-color: #6366f1;">Let's Discuss</a>
+        <a href="mailto:letsbuild@dneco.io" class="btn" style="background-color: #6366f1;">Let's Discuss</a>
     </p>
 
     <p style="margin-top: 28px; font-size: 13px; color: #6b6b80;">

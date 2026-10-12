@@ -27,7 +27,7 @@ const toast = async (options) => {
  * @returns {Promise<{result: string, html: boolean}>}
  */
 export async function improveText(kind, text, context) {
-  const { data } = await window.axios.post('/admin/ai/improve', { kind, text, context });
+  const { data } = await window.axios.post('/dpm/ai/improve', { kind, text, context });
   return data;
 }
 

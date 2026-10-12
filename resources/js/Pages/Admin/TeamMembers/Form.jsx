@@ -70,11 +70,11 @@ export default function TeamMemberForm({ member, roles }) {
 
     if (isEditing) {
       formData.append('_method', 'PUT');
-      router.post(`/admin/team/${member.id}`, formData, {
+      router.post(`/dpm/team/${member.id}`, formData, {
         forceFormData: true,
       });
     } else {
-      router.post('/admin/team', formData, {
+      router.post('/dpm/team', formData, {
         forceFormData: true,
       });
     }
@@ -222,7 +222,7 @@ export default function TeamMemberForm({ member, roles }) {
           <button type="submit" disabled={processing} className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
             {processing ? 'Saving...' : (isEditing ? 'Update' : 'Create')}
           </button>
-          <Link href="/admin/team" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">Cancel</Link>
+          <Link href="/dpm/team" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">Cancel</Link>
         </div>
       </form>
     </AdminLayout>

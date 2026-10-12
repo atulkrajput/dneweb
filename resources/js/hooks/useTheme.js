@@ -12,12 +12,12 @@ function notifyAll() {
   listeners.forEach(l => l());
 }
 function getSnapshot() {
-  if (typeof window === 'undefined') return 'dark';
-  return localStorage.getItem('theme') || 'dark';
+  if (typeof window === 'undefined') return 'light';
+  return localStorage.getItem('theme') || 'light';
 }
 
 export function useTheme() {
-  const theme = useSyncExternalStore(subscribe, getSnapshot, () => 'dark');
+  const theme = useSyncExternalStore(subscribe, getSnapshot, () => 'light');
 
   useEffect(() => {
     const root = document.documentElement;

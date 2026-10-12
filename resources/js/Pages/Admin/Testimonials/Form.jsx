@@ -55,9 +55,9 @@ export default function TestimonialForm({ testimonial }) {
 
     if (isEditing) {
       formData.append('_method', 'PUT');
-      router.post(`/admin/testimonials/${testimonial.id}`, formData, { forceFormData: true });
+      router.post(`/dpm/testimonials/${testimonial.id}`, formData, { forceFormData: true });
     } else {
-      router.post('/admin/testimonials', formData, { forceFormData: true });
+      router.post('/dpm/testimonials', formData, { forceFormData: true });
     }
   };
 
@@ -174,7 +174,7 @@ export default function TestimonialForm({ testimonial }) {
           <button type="submit" disabled={processing} className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
             {processing ? 'Saving...' : (isEditing ? 'Update Testimonial' : 'Create Testimonial')}
           </button>
-          <Link href="/admin/testimonials" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">Cancel</Link>
+          <Link href="/dpm/testimonials" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">Cancel</Link>
         </div>
       </form>
     </AdminLayout>

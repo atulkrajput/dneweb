@@ -10,7 +10,7 @@ export default function RevenueReport({ invoices, summary, filters }) {
   const [dateTo, setDateTo] = useState(filters.date_to);
   const fmt = (val) => '$' + Number(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const handleFilter = (e) => { e.preventDefault(); router.get('/admin/reports/revenue', { date_from: dateFrom, date_to: dateTo }, { preserveState: true }); };
+  const handleFilter = (e) => { e.preventDefault(); router.get('/dpm/reports/revenue', { date_from: dateFrom, date_to: dateTo }, { preserveState: true }); };
 
   return (
     <AdminLayout title="Revenue Report">
@@ -18,8 +18,8 @@ export default function RevenueReport({ invoices, summary, filters }) {
 
       <div className="max-w-6xl">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/admin/reports" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Back to Reports</Link>
-          <a href={`/admin/reports/revenue?date_from=${dateFrom}&date_to=${dateTo}&export=csv`} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"><Download className="h-4 w-4" /> Export CSV</a>
+          <Link href="/dpm/reports" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Back to Reports</Link>
+          <a href={`/dpm/reports/revenue?date_from=${dateFrom}&date_to=${dateTo}&export=csv`} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90"><Download className="h-4 w-4" /> Export CSV</a>
         </div>
 
         <form onSubmit={handleFilter} className="flex flex-wrap items-end gap-3 mb-6">

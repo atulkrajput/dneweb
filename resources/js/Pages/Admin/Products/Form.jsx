@@ -150,12 +150,12 @@ export default function ProductForm({ product }) {
 
     if (isEditing) {
       formData.append('_method', 'PUT');
-      router.post(`/admin/products/${product.id}`, formData, {
+      router.post(`/dpm/products/${product.id}`, formData, {
         forceFormData: true,
         preserveScroll: true,
       });
     } else {
-      router.post('/admin/products', formData, {
+      router.post('/dpm/products', formData, {
         forceFormData: true,
         preserveScroll: true,
       });
@@ -403,7 +403,7 @@ export default function ProductForm({ product }) {
           <button type="submit" disabled={processing} className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
             {processing ? 'Saving...' : (isEditing ? 'Update Product' : 'Create Product')}
           </button>
-          <Link href="/admin/products" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">Cancel</Link>
+          <Link href="/dpm/products" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">Cancel</Link>
         </div>
       </form>
     </AdminLayout>

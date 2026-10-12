@@ -35,7 +35,7 @@ class PendingTasksReminder extends Mailable
             with: [
                 'assignee' => $this->assignee,
                 'tasks' => $this->tasks,
-                'boardUrl' => config('app.url') . '/admin/tasks',
+                'boardUrl' => config('app.url') . '/dpm/tasks',
             ],
         );
     }

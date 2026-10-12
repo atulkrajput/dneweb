@@ -18,9 +18,9 @@ export default function LegalPageForm({ page }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isEditing) {
-      put(`/admin/legal-pages/${page.id}`);
+      put(`/dpm/legal-pages/${page.id}`);
     } else {
-      post('/admin/legal-pages');
+      post('/dpm/legal-pages');
     }
   };
 
@@ -80,7 +80,7 @@ export default function LegalPageForm({ page }) {
           <button type="submit" disabled={processing} className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
             {processing ? 'Saving...' : (isEditing ? 'Update Page' : 'Create Page')}
           </button>
-          <Link href="/admin/legal-pages" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">
+          <Link href="/dpm/legal-pages" className="px-6 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">
             Cancel
           </Link>
         </div>

@@ -49,21 +49,21 @@ export default function LeadShow({ lead, services, internalNotes }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    put(`/admin/leads/${lead.id}`, {
+    put(`/dpm/leads/${lead.id}`, {
       onSuccess: () => setEditing(false),
     });
   };
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this lead?')) {
-      router.delete(`/admin/leads/${lead.id}`);
+      router.delete(`/dpm/leads/${lead.id}`);
     }
   };
 
   const handleStatusChange = (newStatus, confirmMessage) => {
     if (confirmMessage && !confirm(confirmMessage)) return;
     setStatusProcessing(true);
-    router.patch(`/admin/leads/${lead.id}/status`, { status: newStatus }, {
+    router.patch(`/dpm/leads/${lead.id}/status`, { status: newStatus }, {
       onFinish: () => setStatusProcessing(false),
     });
   };
@@ -187,13 +187,13 @@ export default function LeadShow({ lead, services, internalNotes }) {
 
       <div className="max-w-5xl">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/admin/leads" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/dpm/leads" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Leads
           </Link>
           <div className="flex items-center gap-2">
             {lead.status === 'won' && !lead.client && (
               <Link
-                href={`/admin/leads/${lead.id}/convert`}
+                href={`/dpm/leads/${lead.id}/convert`}
                 method="post"
                 as="button"
                 className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors font-medium"
@@ -203,7 +203,7 @@ export default function LeadShow({ lead, services, internalNotes }) {
             )}
             {lead.client && (
               <Link
-                href={`/admin/clients/${lead.client.id}`}
+                href={`/dpm/clients/${lead.client.id}`}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-green-400 hover:bg-green-500/10 rounded-lg transition-colors"
               >
                 <UserPlus className="h-4 w-4" /> View Client

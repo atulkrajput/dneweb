@@ -32,7 +32,7 @@ export default function AiAssistant({ defaultProject, projects, goals, groqConfi
     setDrafting(true);
     setDrafts([]);
     try {
-      const { data } = await window.axios.post('/admin/ai/draft-tasks', { text: desc });
+      const { data } = await window.axios.post('/dpm/ai/draft-tasks', { text: desc });
       setDrafts((data.tasks || []).map((t) => ({ ...t, _accept: true })));
       if (!data.tasks?.length) await toast({ icon: 'info', title: 'No tasks found', text: 'Try describing your work in more detail.', timer: 3000 });
     } catch (e) {
@@ -56,7 +56,7 @@ export default function AiAssistant({ defaultProject, projects, goals, groqConfi
     try {
       // Create all accepted tasks in one JSON request. The server assigns them
       // to the logged-in user, sets the due date to today, and defaults to 1h.
-      const { data } = await window.axios.post('/admin/ai/create-tasks', {
+      const { data } = await window.axios.post('/dpm/ai/create-tasks', {
         project_id: projectId,
         tasks: accepted.map((t) => ({
           title: t.title,
@@ -87,7 +87,7 @@ export default function AiAssistant({ defaultProject, projects, goals, groqConfi
     setClosing(true);
     setCloseResult(null);
     try {
-      const { data } = await window.axios.post('/admin/ai/close-by-link', { link, note: closeNote });
+      const { data } = await window.axios.post('/dpm/ai/close-by-link', { link, note: closeNote });
       setCloseResult(data);
       if (data.matched) {
         await toast({ icon: 'success', title: 'Task closed', text: data.message, timer: 3500 });
@@ -110,7 +110,7 @@ export default function AiAssistant({ defaultProject, projects, goals, groqConfi
     setAnalyzing(true);
     setAnalysis(null);
     try {
-      const { data } = await window.axios.post('/admin/ai/performance-analysis', { month });
+      const { data } = await window.axios.post('/dpm/ai/performance-analysis', { month });
       setAnalysis(data.analysis);
     } catch (e) {
       await toast({ icon: 'error', title: 'AI error', text: e?.response?.data?.message || 'Could not analyze.', timer: 4000 });

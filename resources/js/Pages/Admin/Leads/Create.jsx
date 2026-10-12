@@ -17,7 +17,7 @@ export default function LeadCreate({ services }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    post('/admin/leads');
+    post('/dpm/leads');
   };
 
   return (
@@ -26,7 +26,7 @@ export default function LeadCreate({ services }) {
 
       <div className="max-w-3xl">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin/leads" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/dpm/leads" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Leads
           </Link>
         </div>
@@ -80,7 +80,7 @@ export default function LeadCreate({ services }) {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-              <Link href="/admin/leads" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Cancel</Link>
+              <Link href="/dpm/leads" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">Cancel</Link>
               <button type="submit" disabled={processing} className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
                 {processing ? 'Creating...' : 'Create Lead'}
               </button>

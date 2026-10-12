@@ -42,7 +42,7 @@ function PlatformCard({ platform, data, currentPeriod, goals }) {
 
   const submit = (e) => {
     e.preventDefault();
-    form.post('/admin/social', { preserveScroll: true, onSuccess: () => setEditing(false) });
+    form.post('/dpm/social', { preserveScroll: true, onSuccess: () => setEditing(false) });
   };
 
   const curPosts = data.current?.posts_published ?? null;
@@ -153,7 +153,7 @@ export default function SocialIndex({ currentPeriod, currentLabel, previousLabel
     const [y, m] = currentPeriod.split('-').map(Number);
     const d = new Date(y, m - 1 + delta, 1);
     const next = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    router.get('/admin/social', { month: next }, { preserveScroll: true, preserveState: true });
+    router.get('/dpm/social', { month: next }, { preserveScroll: true, preserveState: true });
   };
 
   return (
@@ -166,7 +166,7 @@ export default function SocialIndex({ currentPeriod, currentLabel, previousLabel
         </p>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.post('/admin/social/log-daily-post', {}, { preserveScroll: true })}
+            onClick={() => router.post('/dpm/social/log-daily-post', {}, { preserveScroll: true })}
             className="px-3 py-1.5 bg-secondary text-foreground rounded-lg text-xs font-medium hover:bg-secondary/80 transition-colors"
             title="Logs today's social posting as effort (once per day)"
           >

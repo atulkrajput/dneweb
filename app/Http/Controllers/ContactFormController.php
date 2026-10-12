@@ -116,7 +116,7 @@ class ContactFormController extends Controller
             Mail::to($contact->email)->send(new ContactThankYou($contact));
 
             // Admin notification email
-            Mail::to('letsbuild@dneconsultants.com')->send(new ContactAdminNotification($contact));
+            Mail::to('letsbuild@dneco.io')->send(new ContactAdminNotification($contact));
         } catch (\Exception $e) {
             Log::error('Failed to send contact form emails: ' . $e->getMessage());
         }
