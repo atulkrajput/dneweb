@@ -24,7 +24,7 @@ class TaskAssignedNotification extends Notification
             'title' => 'Task Assigned',
             'message' => "You were assigned to: {$this->task->title}",
             'task_id' => $this->task->id,
-            'url' => "/admin/tasks/{$this->task->id}",
+            'url' => "/dpm/tasks/{$this->task->id}",
         ];
     }
 }

@@ -107,7 +107,7 @@ export default function InvoiceShow({ invoice, paidAmount, outstanding, internal
                 </Link>
               )}
               {invoice.project && (
-                <Link href={`/admin/projects/${invoice.project.id}`} className="text-xs text-muted-foreground hover:text-primary mt-0.5 block">
+                <Link href={`/dpm/projects/${invoice.project.id}`} className="text-xs text-muted-foreground hover:text-primary mt-0.5 block">
                   Project: {invoice.project.name}
                 </Link>
               )}

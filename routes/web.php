@@ -77,11 +77,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
     });
 
-    // Services
-    Route::middleware('module:services')->group(function () {
-        Route::resource('services', ServiceController::class);
-    });
-
     // Team Members (unified with users)
     Route::middleware('module:team')->group(function () {
         Route::get('team/{team_member}/performance', [TeamMemberController::class, 'performance'])->name('team.performance');
@@ -116,11 +111,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::resource('clients', ClientController::class)->except(['edit']);
     });
 
-    // Projects
-    Route::middleware('module:projects')->group(function () {
-        Route::resource('projects', ProjectController::class)->except(['edit']);
-    });
-
     // Social media monthly metrics
     Route::middleware('module:social')->group(function () {
         Route::get('/social', [SocialMetricController::class, 'index'])->name('social.index');
@@ -136,30 +126,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::delete('/goals/{goal}', [GoalController::class, 'destroy'])->name('goals.destroy');
         Route::post('/goals/{goal}/outcomes', [GoalController::class, 'storeOutcome'])->name('goals.outcomes.store');
         Route::delete('/goals/{goal}/outcomes/{outcome}', [GoalController::class, 'destroyOutcome'])->name('goals.outcomes.destroy');
-    });
-
-    // Tasks
-    Route::middleware('module:tasks')->group(function () {
-        Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
-        Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
-        Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
-        Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
-        Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
-        Route::post('/tasks/{task}/transition', [TaskController::class, 'transition'])->name('tasks.transition');
-        Route::patch('/tasks/{task}/sprint', [TaskController::class, 'changeSprint'])->name('tasks.sprint');
-        Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
-        Route::post('/tasks/{task}/comments', [TaskController::class, 'addComment'])->name('tasks.comments.store');
-        Route::post('/tasks/{task}/remind-reviewer', [TaskController::class, 'remindReviewer'])->name('tasks.remind-reviewer');
-    });
-
-    // Sprints (project-scoped)
-    Route::middleware('module:projects')->group(function () {
-        Route::get('/projects/{project}/sprints', [SprintController::class, 'index'])->name('sprints.index');
-        Route::post('/projects/{project}/sprints', [SprintController::class, 'store'])->name('sprints.store');
-        Route::put('/sprints/{sprint}', [SprintController::class, 'update'])->name('sprints.update');
-        Route::delete('/sprints/{sprint}', [SprintController::class, 'destroy'])->name('sprints.destroy');
-        Route::post('/sprints/{sprint}/start', [SprintController::class, 'start'])->name('sprints.start');
-        Route::post('/sprints/{sprint}/complete', [SprintController::class, 'complete'])->name('sprints.complete');
     });
 
     // Invoices
@@ -234,6 +200,45 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::post('/api-keys/{apiKey}/toggle', [ApiKeyController::class, 'toggleStatus'])->name('api-keys.toggle');
         Route::post('/api-keys/{apiKey}/regenerate', [ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
         Route::delete('/api-keys/{apiKey}', [ApiKeyController::class, 'destroy'])->name('api-keys.destroy');
+    });
+});
+
+// Project Management module (Projects, Tasks, Services, Sprints) — lives under
+// its own /dpm prefix while keeping the admin.* route names so the rest of the
+// app (redirects, route() calls, policies) doesn't need to know about the split.
+Route::middleware(['auth', 'verified'])->prefix('dpm')->name('admin.')->group(function () {
+    // Services
+    Route::middleware('module:services')->group(function () {
+        Route::resource('services', ServiceController::class);
+    });
+
+    // Projects
+    Route::middleware('module:projects')->group(function () {
+        Route::resource('projects', ProjectController::class)->except(['edit']);
+    });
+
+    // Tasks
+    Route::middleware('module:tasks')->group(function () {
+        Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+        Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+        Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+        Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+        Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
+        Route::post('/tasks/{task}/transition', [TaskController::class, 'transition'])->name('tasks.transition');
+        Route::patch('/tasks/{task}/sprint', [TaskController::class, 'changeSprint'])->name('tasks.sprint');
+        Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+        Route::post('/tasks/{task}/comments', [TaskController::class, 'addComment'])->name('tasks.comments.store');
+        Route::post('/tasks/{task}/remind-reviewer', [TaskController::class, 'remindReviewer'])->name('tasks.remind-reviewer');
+    });
+
+    // Sprints (project-scoped)
+    Route::middleware('module:projects')->group(function () {
+        Route::get('/projects/{project}/sprints', [SprintController::class, 'index'])->name('sprints.index');
+        Route::post('/projects/{project}/sprints', [SprintController::class, 'store'])->name('sprints.store');
+        Route::put('/sprints/{sprint}', [SprintController::class, 'update'])->name('sprints.update');
+        Route::delete('/sprints/{sprint}', [SprintController::class, 'destroy'])->name('sprints.destroy');
+        Route::post('/sprints/{sprint}/start', [SprintController::class, 'start'])->name('sprints.start');
+        Route::post('/sprints/{sprint}/complete', [SprintController::class, 'complete'])->name('sprints.complete');
     });
 });
 

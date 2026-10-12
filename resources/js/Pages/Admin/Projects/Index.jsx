@@ -35,11 +35,11 @@ export default function ProjectsIndex({ projects, stats, filters }) {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    router.get('/admin/projects', { search, status: filters.status, priority: filters.priority }, { preserveState: true });
+    router.get('/dpm/projects', { search, status: filters.status, priority: filters.priority }, { preserveState: true });
   };
 
   const handleFilterStatus = (status) => {
-    router.get('/admin/projects', { search: filters.search, status: status || undefined, priority: filters.priority }, { preserveState: true });
+    router.get('/dpm/projects', { search: filters.search, status: status || undefined, priority: filters.priority }, { preserveState: true });
   };
 
   const statCards = [
@@ -80,7 +80,7 @@ export default function ProjectsIndex({ projects, stats, filters }) {
             />
           </div>
         </form>
-        <Link href="/admin/projects/create" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+        <Link href="/dpm/projects/create" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
           <Plus className="h-4 w-4" /> New Project
         </Link>
       </div>
@@ -126,7 +126,7 @@ export default function ProjectsIndex({ projects, stats, filters }) {
                 return (
                   <tr key={project.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4">
-                      <Link href={`/admin/projects/${project.id}`} className="text-sm font-medium text-foreground hover:text-primary">
+                      <Link href={`/dpm/projects/${project.id}`} className="text-sm font-medium text-foreground hover:text-primary">
                         {project.name}
                       </Link>
                     </td>

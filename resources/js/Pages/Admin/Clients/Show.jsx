@@ -207,14 +207,14 @@ export default function ClientShow({ client, internalNotes }) {
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <FolderKanban className="h-4 w-4 text-muted-foreground" /> Projects
               </h3>
-              <Link href={`/admin/projects/create?client_id=${client.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+              <Link href={`/dpm/projects/create?client_id=${client.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
                 <Plus className="h-3 w-3" /> New Project
               </Link>
             </div>
             {client.projects && client.projects.length > 0 ? (
               <div className="space-y-3">
                 {client.projects.map((project) => (
-                  <Link key={project.id} href={`/admin/projects/${project.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors">
+                  <Link key={project.id} href={`/dpm/projects/${project.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors">
                     <div>
                       <p className="text-sm font-medium text-foreground">{project.name}</p>
                       <p className="text-xs text-muted-foreground capitalize">{project.status?.replace('_', ' ')} • {project.progress}% complete</p>

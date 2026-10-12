@@ -53,9 +53,9 @@ export default function AdminLayout({ children, title }) {
       name: 'Project Management',
       icon: FolderKanban,
       items: [
-        { name: 'Projects', href: '/admin/projects', icon: FolderKanban, module: 'projects' },
-        { name: 'Tasks', href: '/admin/tasks', icon: CheckSquare, module: 'tasks' },
-        { name: 'Services', href: '/admin/services', icon: Briefcase, module: 'services' },
+        { name: 'Projects', href: '/dpm/projects', icon: FolderKanban, module: 'projects' },
+        { name: 'Tasks', href: '/dpm/tasks', icon: CheckSquare, module: 'tasks' },
+        { name: 'Services', href: '/dpm/services', icon: Briefcase, module: 'services' },
       ],
     },
     {
