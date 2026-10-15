@@ -164,7 +164,7 @@ class SeoMeta
 
         $defaultDescriptions = [
             'terms-of-service' => 'Read the DNE Consultants Terms of Service covering website use, software services, project agreements, intellectual property, and user responsibilities.',
-            'privacy-policy' => 'Learn how DNE Consultants collects, uses, stores, and protects personal information when you visit our website, contact our team, or use our services.',
+            'privacy-policy' => 'How DNE Consultants collects, uses, shares, retains and protects personal information across our website and mobile apps, and how to request account and data deletion.',
         ];
         $storedDescription = trim(strip_tags((string) $page->meta_description));
         $description = $storedDescription;
