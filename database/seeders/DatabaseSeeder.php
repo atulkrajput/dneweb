@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
 
         // Settings
         $settings = [
-            ['group' => 'contact', 'key' => 'contact_email', 'value' => 'build@dnetechnology.com'],
+            ['group' => 'contact', 'key' => 'contact_email', 'value' => 'hello@dneco.io'],
             ['group' => 'contact', 'key' => 'company_location', 'value' => 'Chicago, IL, USA'],
             ['group' => 'social', 'key' => 'facebook_url', 'value' => 'https://facebook.com/dneconsultants'],
             ['group' => 'social', 'key' => 'instagram_url', 'value' => 'https://instagram.com/dneconsultants'],

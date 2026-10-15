@@ -25,7 +25,7 @@ export default function Footer() {
     { icon: XIcon, href: settings.twitter_url || '#', label: 'X' },
   ];
 
-  const email = settings.contact_email || 'build@dnetechnology.com';
+  const email = settings.contact_email || 'hello@dneco.io';
   const location = settings.company_location || 'Chicago, IL';
   const tagline = settings.footer_tagline || 'Technology that works. Results you can measure.';
 

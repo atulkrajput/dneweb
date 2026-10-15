@@ -160,7 +160,7 @@ export default function Contact({ page }) {
     { number: "04", title: "We get to work", description: "Once you're happy to proceed, we onboard your project and start building immediately." }
   ];
 
-  const email = settings.contact_email || 'build@dnetechnology.com';
+  const email = settings.contact_email || 'hello@dneco.io';
   const location = settings.company_location || 'Chicago, IL, USA';
 
   return (
