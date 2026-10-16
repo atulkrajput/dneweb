@@ -94,6 +94,16 @@ class GroqService
             }
 
             $response = $request->post(self::ENDPOINT, $payload);
+
+            // Rate limited (tokens/requests per minute): if Groq says the wait
+            // is short, wait once and retry rather than failing the visitor.
+            if ($response->status() === 429) {
+                $wait = (float) ($response->header('retry-after') ?: 0);
+                if ($wait > 0 && $wait <= 8) {
+                    usleep((int) ($wait * 1_000_000));
+                    $response = $request->post(self::ENDPOINT, $payload);
+                }
+            }
         } catch (\Throwable $e) {
             Log::error('Groq request failed: ' . $e->getMessage());
             $this->log($kind, $model, 'error', $messages, null, null, $this->ms($startedAt), $e->getMessage());
@@ -105,8 +115,9 @@ class GroqService
         if ($response->failed()) {
             $apiMessage = $response->json('error.message');
             Log::error('Groq API error', ['status' => $response->status(), 'body' => $response->body()]);
-            $this->log($kind, $model, 'error', $messages, null, null, $duration, $apiMessage ?: ('HTTP ' . $response->status()));
-            return ['ok' => false, 'reply' => null, 'message' => $apiMessage ?: 'The AI service returned an error.', 'code' => $response->json('error.code')];
+            $this->log($kind, $model, 'error', $messages, null, null, $duration, 'HTTP ' . $response->status() . ($apiMessage ? ': ' . $apiMessage : ''));
+            $code = $response->json('error.code') ?: ($response->status() === 429 ? 'rate_limit_exceeded' : null);
+            return ['ok' => false, 'reply' => null, 'message' => $apiMessage ?: 'The AI service returned an error.', 'code' => $code, 'status' => $response->status()];
         }
 
         $reply = $response->json('choices.0.message');

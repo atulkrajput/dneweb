@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
 class ChatAssistantService
 {
     /** Only the most recent messages are sent to the model. */
-    public const HISTORY_LIMIT = 20;
+    public const HISTORY_LIMIT = 12;
 
     /** Tool-calling rounds allowed per visitor message. */
     public const MAX_STEPS = 5;
@@ -47,8 +47,12 @@ class ChatAssistantService
         $tools = new ChatAgentTools($conversation);
         $messages = [['role' => 'system', 'content' => $this->systemPrompt($pageUrl)]];
 
-        foreach (array_slice($conversation->messages ?? [], -self::HISTORY_LIMIT) as $m) {
-            $messages[] = ['role' => $m['role'], 'content' => $m['content']];
+        $history = array_slice($conversation->messages ?? [], -self::HISTORY_LIMIT);
+        $count = count($history);
+        foreach ($history as $i => $m) {
+            // Older replies are shortened to keep the request small.
+            $content = $i < $count - 4 ? Str::limit((string) $m['content'], 500) : (string) $m['content'];
+            $messages[] = ['role' => $m['role'], 'content' => $content];
         }
 
         for ($step = 0; $step < self::MAX_STEPS; $step++) {
@@ -72,7 +76,7 @@ class ChatAssistantService
             }
 
             if (!$result['ok']) {
-                return $this->failed($result['message'], $tools);
+                return $this->failed($result['message'], $tools, $this->isRateLimit($result));
             }
 
             $reply = $result['reply'];
@@ -118,9 +122,15 @@ class ChatAssistantService
             || str_contains(strtolower((string) $result['message']), 'tool call validation');
     }
 
-    protected function failed(?string $message, ChatAgentTools $tools): array
+    protected function isRateLimit(array $result): bool
     {
-        return ['ok' => false, 'content' => null, 'message' => $message, 'actions' => [], 'tools' => $tools->used];
+        return ($result['status'] ?? null) === 429 || ($result['status'] ?? null) === 413
+            || in_array($result['code'] ?? null, ['rate_limit_exceeded', 'request_too_large'], true);
+    }
+
+    protected function failed(?string $message, ChatAgentTools $tools, bool $busy = false): array
+    {
+        return ['ok' => false, 'content' => null, 'message' => $message, 'busy' => $busy, 'actions' => [], 'tools' => $tools->used];
     }
 
     protected function systemPrompt(?string $pageUrl): string
@@ -172,53 +182,30 @@ PROMPT;
                 'Main pages: Home (/), Services (/services), Products (/products), Insights blog (/insights), About (/about), Contact (/contact), Privacy Policy (/legal/privacy-policy).',
             ];
 
+            // Kept deliberately short: every agent step re-sends this prompt, and
+            // Groq rate-limits by tokens per minute. Details come from tools.
             $services = Service::active()->ordered()->get();
             if ($services->isNotEmpty()) {
-                $parts[] = "SERVICES (details at /services):\n" . $services->map(function ($s) {
-                    $line = "- {$s->title}";
-                    if ($s->subtitle) {
-                        $line .= " — {$s->subtitle}";
-                    }
-                    $desc = $this->clean($s->description, 500);
-                    if ($desc !== '') {
-                        $line .= "\n  {$desc}";
-                    }
-                    if (is_array($s->checklist) && $s->checklist) {
-                        $items = collect($s->checklist)->map(fn ($i) => is_array($i) ? ($i['text'] ?? $i['title'] ?? '') : $i)->filter()->take(8);
-                        if ($items->isNotEmpty()) {
-                            $line .= "\n  Includes: " . $items->implode('; ');
-                        }
-                    }
-                    return $line;
-                })->implode("\n");
+                $parts[] = "SERVICES (use get_service_details for specifics):\n" . $services
+                    ->map(fn ($s) => "- {$s->title}" . ($s->subtitle ? " — {$s->subtitle}" : ''))
+                    ->implode("\n");
             }
 
             $products = Product::active()->ordered()->get();
             if ($products->isNotEmpty()) {
-                $parts[] = "PRODUCTS (details at /products/<slug>):\n" . $products->map(function ($p) {
-                    $line = "- {$p->name} (/products/{$p->slug})";
-                    if ($p->status) {
-                        $line .= " [status: {$p->status}]";
-                    }
-                    $desc = $this->clean($p->summary ?: $p->description, 400);
-                    if ($desc !== '') {
-                        $line .= "\n  {$desc}";
-                    }
-                    if (is_array($p->features) && $p->features) {
-                        $line .= "\n  Features: " . collect($p->features)->map(fn ($f) => is_array($f) ? ($f['title'] ?? $f['name'] ?? '') : $f)->filter()->take(8)->implode('; ');
-                    }
-                    return $line;
-                })->implode("\n");
+                $parts[] = "PRODUCTS (use get_product_details for specifics):\n" . $products
+                    ->map(fn ($p) => "- {$p->name} (/products/{$p->slug})" . (($d = $this->clean($p->summary ?: $p->description, 140)) !== '' ? " — {$d}" : ''))
+                    ->implode("\n");
             }
 
-            $faqs = Faq::active()->ordered()->get();
-            if ($faqs->isNotEmpty()) {
-                $parts[] = "FAQ:\n" . $faqs->map(fn ($f) => "Q: {$f->question}\nA: " . $this->clean($f->answer, 600))->implode("\n");
+            $faqCount = Faq::active()->count();
+            if ($faqCount > 0) {
+                $parts[] = "FAQ: {$faqCount} answered questions are available through search_faqs.";
             }
 
             $extra = trim((string) Setting::get('chat_knowledge'));
             if ($extra !== '') {
-                $parts[] = "ADDITIONAL INFORMATION FROM THE TEAM:\n" . Str::limit($extra, 6000);
+                $parts[] = "ADDITIONAL INFORMATION FROM THE TEAM:\n" . Str::limit($extra, 4000);
             }
 
             return implode("\n\n", $parts);

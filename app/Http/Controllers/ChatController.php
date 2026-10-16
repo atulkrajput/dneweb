@@ -90,7 +90,9 @@ class ChatController extends Controller
             }
 
             return response()->json([
-                'message' => 'Sorry, I\'m having trouble answering right now. Please try again in a moment, or use the contact page.',
+                'message' => !empty($result['busy'])
+                    ? 'I\'m getting a lot of questions right now — please try again in a minute. You can also reach the team via the contact page.'
+                    : 'Sorry, I\'m having trouble answering right now. Please try again in a moment, or use the contact page.',
             ], 502);
         }
 

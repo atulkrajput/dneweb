@@ -271,4 +271,30 @@ class ChatTest extends TestCase
         $this->assertNotNull($lead->contact_id);
         Mail::assertSent(\App\Mail\ContactThankYou::class, fn ($m) => $m->hasTo('atulclassic18@gmail.com'));
     }
+
+    public function test_short_rate_limit_is_waited_out(): void
+    {
+        $this->enableChat();
+
+        Http::fakeSequence('api.groq.com/*')
+            ->push(['error' => ['message' => 'Rate limit reached for model on tokens per minute (TPM)', 'code' => 'rate_limit_exceeded']], 429, ['retry-after' => '1'])
+            ->push($this->answer('Hello!'));
+
+        $this->postJson('/chat/message', ['message' => 'Hi'])->assertOk()->assertJsonPath('reply', 'Hello!');
+    }
+
+    public function test_long_rate_limit_shows_a_busy_message(): void
+    {
+        $this->enableChat();
+
+        Http::fake(['api.groq.com/*' => Http::response(
+            ['error' => ['message' => 'Rate limit reached for model on tokens per minute (TPM)', 'code' => 'rate_limit_exceeded']], 429, ['retry-after' => '40']
+        )]);
+
+        $this->postJson('/chat/message', ['message' => 'Hi'])
+            ->assertStatus(502)
+            ->assertJsonPath('message', fn ($m) => str_contains($m, 'a lot of questions'));
+
+        $this->assertStringStartsWith('HTTP 429: Rate limit reached', \App\Models\AiUsageLog::latest('id')->value('error'));
+    }
 }
