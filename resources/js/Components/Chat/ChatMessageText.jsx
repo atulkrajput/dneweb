@@ -42,12 +42,36 @@ function renderInline(text, keyPrefix) {
   return nodes;
 }
 
+const isTableRow = (line) => line.startsWith('|') && line.endsWith('|') && line.length > 2;
+const isTableDivider = (line) => /^\|[\s:|-]+\|$/.test(line);
+const tableCells = (line) => line.slice(1, -1).split('|').map((c) => c.trim());
+
 export default function ChatMessageText({ text }) {
   const blocks = [];
   let list = null;
+  let table = null;
+  const lines = String(text || '').split('\n').map((l) => l.trim());
 
-  String(text || '').split('\n').forEach((raw, idx) => {
-    const line = raw.trim();
+  lines.forEach((line, idx) => {
+    // Markdown tables are too wide for the chat window, so each row becomes
+    // a list item: "**first cell** — other cells". The header row is dropped.
+    if (isTableRow(line)) {
+      list = null;
+      if (isTableDivider(line)) return;
+      if (!table) {
+        table = { rows: [] };
+        blocks.push(table);
+        const next = lines.slice(idx + 1).find((l) => l !== '');
+        if (next && isTableDivider(next)) return; // header row
+      }
+      const [first, ...rest] = tableCells(line).filter((c) => c !== '');
+      if (first) table.rows.push(renderInline(rest.length ? `**${first.replace(/\*\*/g, '')}** — ${rest.join(' — ')}` : first, `tr-${idx}`));
+      return;
+    }
+    // Blank lines inside a table don't end it.
+    if (table && line === '' && lines.slice(idx + 1).find((l) => l !== '')?.startsWith('|')) return;
+    table = null;
+
     const bullet = line.match(/^(?:[-*•]|\d+[.)])\s+(.*)$/);
 
     if (bullet) {
@@ -68,6 +92,13 @@ export default function ChatMessageText({ text }) {
     <div className="space-y-2 break-words">
       {blocks.map((block, i) => {
         if (block.paragraph) return <p key={i}>{block.paragraph}</p>;
+        if (block.rows) {
+          return (
+            <ul key={i} className="space-y-1.5">
+              {block.rows.map((row, j) => <li key={j} className="pl-3 border-l-2 border-primary/40">{row}</li>)}
+            </ul>
+          );
+        }
         const Tag = block.ordered ? 'ol' : 'ul';
         return (
           <Tag key={i} className={`pl-5 space-y-1 ${block.ordered ? 'list-decimal' : 'list-disc'}`}>

@@ -60,7 +60,7 @@ class GroqService
      *
      * @param  array<int, array<string, mixed>>  $messages
      * @param  array<string, mixed>  $extra
-     * @return array{ok:bool, reply:?array, message:?string}
+     * @return array{ok:bool, reply:?array, message:?string, code?:?string}
      */
     public function complete(array $messages, string $kind, float $temperature = 0.4, int $maxTokens = 1500, array $extra = []): array
     {
@@ -106,7 +106,7 @@ class GroqService
             $apiMessage = $response->json('error.message');
             Log::error('Groq API error', ['status' => $response->status(), 'body' => $response->body()]);
             $this->log($kind, $model, 'error', $messages, null, null, $duration, $apiMessage ?: ('HTTP ' . $response->status()));
-            return ['ok' => false, 'reply' => null, 'message' => $apiMessage ?: 'The AI service returned an error.'];
+            return ['ok' => false, 'reply' => null, 'message' => $apiMessage ?: 'The AI service returned an error.', 'code' => $response->json('error.code')];
         }
 
         $reply = $response->json('choices.0.message');

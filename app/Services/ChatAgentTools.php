@@ -65,7 +65,7 @@ class ChatAgentTools
             $fn('save_contact_request', 'Send the visitor\'s request to the DNE team so they follow up (quote, consultation, callback, demo, or talking to a human). Only call after the visitor has given at least their name and email AND agreed to be contacted. The visitor gets a confirmation email.', [
                 'name' => ['type' => 'string', 'description' => 'Visitor\'s full name.'],
                 'email' => ['type' => 'string', 'description' => 'Visitor\'s email address.'],
-                'phone' => ['type' => 'string', 'description' => 'Phone number, if given.'],
+                'phone' => ['type' => 'string', 'description' => 'Phone number as a string (e.g. "+91 80571 88884"), if given.'],
                 'company' => ['type' => 'string', 'description' => 'Company name, if given.'],
                 'inquiry_type' => ['type' => 'string', 'enum' => self::INQUIRY_TYPES, 'description' => 'Closest service area.'],
                 'summary' => ['type' => 'string', 'description' => 'A clear brief for the team: what they need, goals, budget/timeline if mentioned, and preferred contact time.'],
@@ -195,15 +195,23 @@ class ChatAgentTools
             return ['saved' => false, 'error' => 'Use the exact email address the visitor typed. Ask them to type it.'];
         }
 
-        if ($this->conversation->lead_id) {
-            $lead = Lead::find($this->conversation->lead_id);
-            $lead?->update(['notes' => $this->leadNotes($args)]);
-            return ['saved' => true, 'note' => 'This conversation was already sent to the team; the request has been updated.'];
-        }
-
         $inquiry = in_array($args['inquiry_type'] ?? null, self::INQUIRY_TYPES, true) ? $args['inquiry_type'] : 'not-sure';
         $company = trim(Str::limit((string) ($args['company'] ?? ''), 255, '')) ?: null;
         $phone = trim(Str::limit((string) ($args['phone'] ?? ''), 30, '')) ?: null;
+
+        $lead = $this->conversation->lead_id ? Lead::find($this->conversation->lead_id) : null;
+
+        // Already sent to the team earlier in this chat: just update it.
+        if ($lead && $lead->contact_id) {
+            $lead->update(array_filter([
+                'name' => $name,
+                'phone' => $phone,
+                'company' => $company,
+                'interested_service' => $inquiry !== 'not-sure' ? $inquiry : null,
+                'notes' => $this->leadNotes($args),
+            ]));
+            return ['saved' => true, 'note' => 'The request was already with the team and has been updated with the new details.'];
+        }
 
         $contact = Contact::create([
             'full_name' => $name,
@@ -213,7 +221,7 @@ class ChatAgentTools
             'message' => Str::limit((string) ($args['summary'] ?? ''), 5000),
         ]);
 
-        $lead = Lead::create([
+        $fields = [
             'contact_id' => $contact->id,
             'name' => $name,
             'email' => $email,
@@ -221,20 +229,31 @@ class ChatAgentTools
             'company' => $company,
             'interested_service' => $inquiry,
             'notes' => $this->leadNotes($args),
-            'status' => Lead::STATUS_NEW,
-            'source' => 'ai_chat',
-            'landing_url' => $this->conversation->page_url,
-            'ip_address' => $this->conversation->ip_address,
-        ]);
+        ];
 
-        $lead->logActivity('created', 'Lead created by the website AI agent (Dani).', [
-            'source' => 'ai_chat',
-            'chat_conversation_id' => $this->conversation->id,
-        ]);
+        if ($lead) {
+            // The safety net created a bare lead when the email was first typed;
+            // complete it rather than creating a duplicate.
+            $lead->update($fields);
+            $lead->logActivity('updated', 'Lead completed by the website AI agent (Dani).', ['source' => 'ai_chat']);
+        } else {
+            $lead = Lead::create($fields + [
+                'status' => Lead::STATUS_NEW,
+                'source' => 'ai_chat',
+                'landing_url' => $this->conversation->page_url,
+                'ip_address' => $this->conversation->ip_address,
+            ]);
 
-        $this->conversation->forceFill(['lead_id' => $lead->id])->save();
+            $lead->logActivity('created', 'Lead created by the website AI agent (Dani).', [
+                'source' => 'ai_chat',
+                'chat_conversation_id' => $this->conversation->id,
+            ]);
 
-        User::all()->each(fn ($user) => $user->notify(new NewLeadNotification($lead)));
+            $this->conversation->forceFill(['lead_id' => $lead->id])->save();
+
+            // (A lead completed from the safety net already notified the team.)
+            User::all()->each(fn ($user) => $user->notify(new NewLeadNotification($lead)));
+        }
 
         try {
             Mail::to($contact->email)->send(new ContactThankYou($contact));

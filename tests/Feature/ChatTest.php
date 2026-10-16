@@ -221,4 +221,54 @@ class ChatTest extends TestCase
             ->assertJsonCount(1, 'actions')
             ->assertJsonPath('actions.0.url', '/services');
     }
+
+    public function test_agent_recovers_when_groq_rejects_a_tool_call(): void
+    {
+        $this->enableChat();
+
+        Http::fakeSequence('api.groq.com/*')
+            ->push(['error' => [
+                'message' => 'Tool call validation failed: parameters for tool save_contact_request did not match schema: errors: [`/phone`: expected string, but got number]',
+                'type' => 'invalid_request_error',
+                'code' => 'tool_use_failed',
+            ]], 400)
+            ->push($this->answer('Thanks! I have added your number.'));
+
+        $this->postJson('/chat/message', ['message' => '8057188884'])
+            ->assertOk()
+            ->assertJsonPath('reply', 'Thanks! I have added your number.');
+
+        // The retry tells the model what was wrong.
+        Http::assertSent(fn ($request) => collect($request['messages'])->contains(
+            fn ($m) => $m['role'] === 'system' && str_contains($m['content'], 'was rejected')
+        ));
+    }
+
+    public function test_agent_completes_the_safety_net_lead_instead_of_duplicating(): void
+    {
+        Mail::fake();
+        $this->enableChat();
+
+        // Turn 1: visitor types an email, the agent just asks for more.
+        Http::fakeSequence('api.groq.com/*')
+            ->push($this->answer('Thanks! Can I have your name and phone?'))
+            ->push($this->toolCall('save_contact_request', [
+                'name' => 'Atul Kumar', 'email' => 'atulclassic18@gmail.com', 'phone' => '8057188884',
+                'inquiry_type' => 'ai-automation', 'summary' => 'GST & billing platform; wants automation.',
+            ]))
+            ->push($this->answer('Done — the team will be in touch.'));
+
+        $id = $this->postJson('/chat/message', ['message' => 'Atulclassic18@gmail.com'])->assertOk()->json('conversation_id');
+        $this->assertSame(1, Lead::count()); // safety net
+        Mail::assertNothingSent();
+
+        $this->postJson('/chat/message', ['conversation_id' => $id, 'message' => 'Atul Kumar, 8057188884'])->assertOk();
+
+        $this->assertSame(1, Lead::count());
+        $lead = Lead::first();
+        $this->assertSame('Atul Kumar', $lead->name);
+        $this->assertSame('8057188884', $lead->phone);
+        $this->assertNotNull($lead->contact_id);
+        Mail::assertSent(\App\Mail\ContactThankYou::class, fn ($m) => $m->hasTo('atulclassic18@gmail.com'));
+    }
 }
