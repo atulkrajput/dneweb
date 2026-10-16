@@ -36,6 +36,25 @@ class Setting extends Model
         });
     }
 
+    /**
+     * Keys that hold secrets and must never be sent to the browser.
+     */
+    public const SECRET_KEYS = ['groq_api_key', 'groq_ca_bundle'];
+
+    /**
+     * Strip secret values (known secret keys, plus anything that looks like a
+     * key, secret, token or password) from a settings array.
+     */
+    public static function withoutSecrets(array $settings): array
+    {
+        return array_filter(
+            $settings,
+            fn ($key) => !in_array($key, self::SECRET_KEYS, true)
+                && !preg_match('/(_key|secret|token|password)$/i', (string) $key),
+            ARRAY_FILTER_USE_KEY
+        );
+    }
+
     public static function getAllAsArray(): array
     {
         return Cache::remember('settings.all', 3600, function () {

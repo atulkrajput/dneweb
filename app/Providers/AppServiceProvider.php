@@ -14,7 +14,10 @@ use App\Policies\LeadPolicy;
 use App\Policies\ProjectPolicy;
 use App\Policies\ProposalPolicy;
 use App\Policies\TaskPolicy;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,6 +37,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        // Website AI chat: each message costs an AI call, so cap it per visitor IP.
+        RateLimiter::for('chat', function (Request $request) {
+            return [
+                Limit::perMinute(10)->by('chat-min:' . $request->ip())
+                    ->response(fn () => response()->json(['message' => 'You\'re sending messages too quickly. Please wait a moment.'], 429)),
+                Limit::perDay(150)->by('chat-day:' . $request->ip())
+                    ->response(fn () => response()->json(['message' => 'Daily chat limit reached. Please use the contact page and our team will get back to you.'], 429)),
+            ];
+        });
 
         // Register policies
         Gate::policy(Lead::class, LeadPolicy::class);

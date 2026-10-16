@@ -7,6 +7,7 @@ use App\Models\LegalPage;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\Setting;
+use App\Services\ChatAssistantService;
 use App\Support\SeoMeta;
 use App\Support\SeoSchema;
 use Illuminate\Http\Request;
@@ -30,6 +31,10 @@ class HandleInertiaRequests extends Middleware
             // Table may not exist yet during migrations
         }
 
+        // Settings are shared with every page, public ones included, so secrets
+        // (API keys, CA bundle paths, …) must never be part of the payload.
+        $settings = Setting::withoutSecrets($settings);
+
         $footerServices = [];
         try {
             $footerServices = Service::active()->ordered()->get(['title', 'slug'])->map(fn ($s) => [
@@ -50,6 +55,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'settings' => $settings,
             'footerServices' => $footerServices,
+            'chat' => fn () => $this->chatConfig($settings),
             'tracking' => [
                 'ga4_id' => $settings['ga4_id'] ?? '',
                 'gtm_id' => $settings['gtm_id'] ?? '',
@@ -260,5 +266,24 @@ class HandleInertiaRequests extends Middleware
             : self::BASE_KEYWORDS;
 
         return $entry;
+    }
+
+    /**
+     * Public config for the website AI chat widget. Enabled only when the admin
+     * toggle is on and a Groq API key is configured.
+     */
+    protected function chatConfig(array $settings): array
+    {
+        try {
+            $enabled = app(ChatAssistantService::class)->isEnabled();
+        } catch (\Throwable $e) {
+            $enabled = false;
+        }
+
+        return [
+            'enabled' => $enabled,
+            'name' => $settings['chat_assistant_name'] ?? null,
+            'welcome' => $settings['chat_welcome_message'] ?? null,
+        ];
     }
 }

@@ -45,6 +45,11 @@ Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
 Route::post('/contact', [ContactFormController::class, 'store'])->name('contact.store');
 
+// Website AI chat widget (rate limited per IP; see AppServiceProvider)
+Route::post('/chat/message', [App\Http\Controllers\ChatController::class, 'message'])
+    ->middleware('throttle:chat')
+    ->name('chat.message');
+
 // Products
 Route::get('/products', [ProductPageController::class, 'index'])->name('products.index');
 Route::get('/products/{slug}', [ProductPageController::class, 'show'])->name('products.show');
@@ -101,6 +106,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     // Leads
     Route::middleware('module:leads')->group(function () {
+        Route::get('chats', [App\Http\Controllers\Admin\ChatConversationController::class, 'index'])->name('chats.index');
+        Route::get('chats/{chat}', [App\Http\Controllers\Admin\ChatConversationController::class, 'show'])->name('chats.show');
+        Route::delete('chats/{chat}', [App\Http\Controllers\Admin\ChatConversationController::class, 'destroy'])->name('chats.destroy');
         Route::resource('leads', LeadController::class)->except(['edit']);
         Route::post('/leads/{lead}/convert', [ClientController::class, 'convertFromLead'])->name('leads.convert');
         Route::patch('/leads/{lead}/status', [LeadController::class, 'updateStatus'])->name('leads.status');

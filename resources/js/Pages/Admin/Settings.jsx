@@ -37,6 +37,12 @@ export default function Settings({ settings }) {
     integrations: [
       { key: 'groq_api_key', label: 'Groq API Key', type: 'password', placeholder: 'gsk_...' },
     ],
+    chat: [
+      { key: 'chat_enabled', label: 'Show AI chat on the website (needs the Groq API key under Integrations)', type: 'toggle' },
+      { key: 'chat_assistant_name', label: 'Assistant Name', type: 'text', placeholder: 'DNE Assistant' },
+      { key: 'chat_welcome_message', label: 'Welcome Message', type: 'textarea', placeholder: "Hi! I'm the DNE Consultants assistant. Ask me about our services, products, or how we can help with your project." },
+      { key: 'chat_knowledge', label: 'Extra Knowledge for the Assistant', type: 'textarea', placeholder: 'Anything else the assistant should know: typical project timelines, starting prices, working hours, industries you serve, what you do NOT offer… Services, products and FAQs are included automatically.' },
+    ],
   };
 
   const { data, setData, put, processing } = useForm({
@@ -67,6 +73,7 @@ export default function Settings({ settings }) {
     { id: 'social', label: 'Social Media' },
     { id: 'tracking', label: 'Tracking & Analytics' },
     { id: 'integrations', label: 'Integrations' },
+    { id: 'chat', label: 'AI Chat' },
   ];
 
   return (

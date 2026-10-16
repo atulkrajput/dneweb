@@ -20,3 +20,6 @@ Schedule::command('reminders:deadlines')->dailyAt('09:00');
 
 // Monthly performance report, emailed on the 1st for the month just ended.
 Schedule::command('reports:monthly-performance')->monthlyOn(1, '08:15');
+
+// Delete website AI chat conversations older than 12 months (Privacy Policy).
+Schedule::command('model:prune', ['--model' => [App\Models\ChatConversation::class]])->dailyAt('03:00');

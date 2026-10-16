@@ -3,6 +3,7 @@ import { Head, usePage } from '@inertiajs/react';
 import Header from '@/Components/Header';
 import Footer from '@/Components/Footer';
 import FlashNotification from '@/Components/FlashNotification';
+import ChatWidget from '@/Components/Chat/ChatWidget';
 
 export default function PublicLayout({ children }) {
   const { canonicalUrl, seoMeta, seoFallback } = usePage().props;
@@ -58,6 +59,7 @@ export default function PublicLayout({ children }) {
       </main>
       <Footer />
       <FlashNotification />
+      <ChatWidget />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Settings, Users, Briefcase, Menu, X, LogOut, Package, ChevronDown, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun, Wrench, Lightbulb, Key, Flag, Share2, Sparkles, Megaphone, Building } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, Briefcase, Menu, X, LogOut, Package, ChevronDown, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun, Wrench, Lightbulb, Key, Flag, Share2, Sparkles, Megaphone, Building, MessageCircle } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import FlashNotification from '@/Components/FlashNotification';
 
@@ -42,6 +42,7 @@ export default function AdminLayout({ children, title }) {
       icon: Megaphone,
       items: [
         { name: 'Leads', href: '/admin/leads', icon: Target, module: 'leads' },
+        { name: 'AI Chats', href: '/admin/chats', icon: MessageCircle, module: 'leads' },
         { name: 'Clients', href: '/admin/clients', icon: Building2, module: 'clients' },
         { name: 'Proposals', href: '/admin/proposals', icon: FileSignature, module: 'proposals' },
         { name: 'Invoices', href: '/admin/invoices', icon: Receipt, module: 'invoices' },
