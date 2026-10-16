@@ -161,7 +161,7 @@
   animation-play-state: paused;
 }
 
-/* "Dot" — website AI assistant avatar (resources/js/Components/Chat/DotAvatar.jsx) */
+/* "Dani" — website AI assistant avatar (the dot) (resources/js/Components/Chat/DotAvatar.jsx) */
 .dot-avatar-look {
   animation: dot-look 7s ease-in-out infinite;
 }

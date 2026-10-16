@@ -61,7 +61,7 @@ export default function ChatWidget() {
 
   if (!chat?.enabled) return null;
 
-  const name = chat.name || 'Dot';
+  const name = chat.name || 'Dani';
   const welcome = chat.welcome || `Hi, I'm ${name}, the DNE Consultants AI assistant. Ask me about our services, products, or how we can help you build, automate and scale.`;
 
   const send = async (text) => {

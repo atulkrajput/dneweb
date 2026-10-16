@@ -1,6 +1,6 @@
 import React from 'react';
 
-// "Dot", the website AI assistant. Drawn from the dneco logo: the slanted
+// Avatar for "Dani", the website AI assistant. Drawn from the dneco logo: the slanted
 // blue "o" ring with its orange dot, which looks around and blinks like an eye.
 // Animations live in app.css (.dot-avatar-*) and stop for reduced motion.
 //
