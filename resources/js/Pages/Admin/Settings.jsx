@@ -39,8 +39,8 @@ export default function Settings({ settings }) {
     ],
     chat: [
       { key: 'chat_enabled', label: 'Show AI chat on the website (needs the Groq API key under Integrations)', type: 'toggle' },
-      { key: 'chat_assistant_name', label: 'Assistant Name', type: 'text', placeholder: 'DNE Assistant' },
-      { key: 'chat_welcome_message', label: 'Welcome Message', type: 'textarea', placeholder: "Hi! I'm the DNE Consultants assistant. Ask me about our services, products, or how we can help with your project." },
+      { key: 'chat_assistant_name', label: 'Assistant Name', type: 'text', placeholder: 'Dot' },
+      { key: 'chat_welcome_message', label: 'Welcome Message', type: 'textarea', placeholder: "Hi, I'm Dot, the DNE Consultants AI assistant. Ask me about our services, products, or how we can help you build, automate and scale." },
       { key: 'chat_knowledge', label: 'Extra Knowledge for the Assistant', type: 'textarea', placeholder: 'Anything else the assistant should know: typical project timelines, starting prices, working hours, industries you serve, what you do NOT offer… Services, products and FAQs are included automatically.' },
     ],
   };

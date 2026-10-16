@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { MessageCircle, X, Send, RotateCcw, Sparkles } from 'lucide-react';
+import { X, Send, RotateCcw } from 'lucide-react';
 import ChatMessageText from '@/Components/Chat/ChatMessageText';
+import DotAvatar from '@/Components/Chat/DotAvatar';
 
 const STORAGE_KEY = 'dne-chat-v1';
 const SUGGESTIONS = [
@@ -60,8 +61,8 @@ export default function ChatWidget() {
 
   if (!chat?.enabled) return null;
 
-  const name = chat.name || 'DNE Assistant';
-  const welcome = chat.welcome || "Hi! I'm the DNE Consultants assistant. Ask me about our services, products, or how we can help with your project.";
+  const name = chat.name || 'Dot';
+  const welcome = chat.welcome || `Hi, I'm ${name}, the DNE Consultants AI assistant. Ask me about our services, products, or how we can help you build, automate and scale.`;
 
   const send = async (text) => {
     const message = (text ?? input).trim();
@@ -113,9 +114,7 @@ export default function ChatWidget() {
           className="fixed z-50 bottom-24 right-4 left-4 sm:left-auto sm:right-6 sm:w-[380px] h-[min(560px,calc(100vh-8rem))] flex flex-col bg-card text-foreground border border-border rounded-2xl shadow-2xl overflow-hidden"
         >
           <div className="flex items-center gap-3 px-4 py-3 bg-primary text-primary-foreground">
-            <div className="h-9 w-9 rounded-full bg-primary-foreground/15 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="h-5 w-5" />
-            </div>
+            <DotAvatar size={38} variant="light" active={sending} className="flex-shrink-0 shadow-sm rounded-full" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold leading-tight truncate">{name}</p>
               <p className="text-xs opacity-80">AI assistant · replies instantly</p>
@@ -165,7 +164,8 @@ export default function ChatWidget() {
 
             {sending && (
               <div className="flex justify-start" aria-label={`${name} is typing`}>
-                <div className="rounded-2xl rounded-tl-sm bg-muted border border-border px-4 py-3 flex gap-1">
+                <div className="rounded-2xl rounded-tl-sm bg-muted border border-border px-3 py-2 flex items-center gap-1.5">
+                  <DotAvatar size={22} active className="rounded-full mr-1" />
                   {[0, 150, 300].map((d) => (
                     <span key={d} className="h-2 w-2 rounded-full bg-muted-foreground/60 animate-bounce" style={{ animationDelay: `${d}ms` }} />
                   ))}
@@ -206,14 +206,27 @@ export default function ChatWidget() {
         </div>
       )}
 
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="fixed z-50 bottom-6 right-4 sm:right-6 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 hover:scale-105 transition-all flex items-center justify-center"
-        aria-label={open ? 'Close chat' : `Chat with ${name}`}
-        aria-expanded={open}
-      >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </button>
+      <div className="fixed z-50 bottom-6 right-4 sm:right-6 flex items-center gap-3">
+        {!open && (
+          <button
+            onClick={() => setOpen(true)}
+            className="hidden sm:block px-3 py-1.5 rounded-full bg-card text-foreground text-sm font-medium border border-border shadow-md hover:border-primary/50 transition-colors"
+            tabIndex={-1}
+            aria-hidden="true"
+          >
+            Ask {name}
+          </button>
+        )}
+        <button
+          onClick={() => setOpen((o) => !o)}
+          className="relative h-14 w-14 rounded-full shadow-lg hover:scale-105 transition-transform flex items-center justify-center bg-[#0A1E3E] text-white ring-2 ring-[#1985F0]/40"
+          aria-label={open ? 'Close chat' : `Chat with ${name}`}
+          aria-expanded={open}
+        >
+          {!open && <span className="dot-launcher-halo absolute inset-0 rounded-full bg-[#1985F0]/40 pointer-events-none" />}
+          {open ? <X className="h-6 w-6" /> : <DotAvatar size={56} active={sending} className="relative" />}
+        </button>
+      </div>
     </>
   );
 }

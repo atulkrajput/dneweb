@@ -160,3 +160,54 @@
 .animate-scroll-x:hover {
   animation-play-state: paused;
 }
+
+/* "Dot" — website AI assistant avatar (resources/js/Components/Chat/DotAvatar.jsx) */
+.dot-avatar-look {
+  animation: dot-look 7s ease-in-out infinite;
+}
+
+.dot-avatar-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dot-blink 5s ease-in-out infinite;
+}
+
+.dot-avatar--active .dot-avatar-look {
+  animation: dot-think 1.2s ease-in-out infinite;
+}
+
+@keyframes dot-look {
+  0%, 18%, 100% { transform: translate(0, 0); }
+  26%, 42% { transform: translate(4px, -1.7px); }
+  52%, 66% { transform: translate(-4px, 1.7px); }
+  76%, 88% { transform: translate(1.5px, -0.7px); }
+}
+
+@keyframes dot-think {
+  0%, 100% { transform: translate(-4px, 1.7px); }
+  50% { transform: translate(4px, -1.7px); }
+}
+
+@keyframes dot-blink {
+  0%, 44%, 50%, 100% { transform: scaleY(1); }
+  47% { transform: scaleY(0.12); }
+}
+
+/* Soft halo that pulses around the closed launcher button */
+.dot-launcher-halo {
+  animation: dot-halo 2.8s ease-out infinite;
+}
+
+@keyframes dot-halo {
+  0% { transform: scale(1); opacity: 0.55; }
+  70%, 100% { transform: scale(1.45); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot-avatar-look,
+  .dot-avatar-eye,
+  .dot-avatar--active .dot-avatar-look,
+  .dot-launcher-halo {
+    animation: none;
+  }
+}

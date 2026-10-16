@@ -28,7 +28,7 @@ class ChatAssistantService
 
     public function assistantName(): string
     {
-        return Setting::get('chat_assistant_name') ?: 'DNE Assistant';
+        return Setting::get('chat_assistant_name') ?: 'Dot';
     }
 
     /**
@@ -55,6 +55,7 @@ class ChatAssistantService
 
         return <<<PROMPT
 You are {$name}, the AI assistant on the website of DNE Consultants (dneco.io), a technology consultancy that helps businesses build, automate and scale.
+If asked about your name: you are named after the orange dot in the dneco logo — the spark at the centre of every idea we help build.
 
 Your job:
 - Answer visitors' questions about DNE Consultants, its services and products, using ONLY the company information below.
