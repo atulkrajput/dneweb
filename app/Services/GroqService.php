@@ -39,12 +39,37 @@ class GroqService
      */
     public function chat(array $messages, string $kind, float $temperature = 0.4, int $maxTokens = 1500): array
     {
+        $result = $this->complete($messages, $kind, $temperature, $maxTokens);
+
+        if (!$result['ok']) {
+            return ['ok' => false, 'content' => null, 'message' => $result['message']];
+        }
+
+        $content = trim((string) ($result['reply']['content'] ?? ''));
+        if ($content === '') {
+            return ['ok' => false, 'content' => null, 'message' => 'The AI service returned an empty response.'];
+        }
+
+        return ['ok' => true, 'content' => $content, 'message' => null];
+    }
+
+    /**
+     * Send a chat completion and return the assistant message as the API gave
+     * it (content and, when tools are offered, tool_calls). Extra payload keys
+     * such as `tools` / `tool_choice` are passed through.
+     *
+     * @param  array<int, array<string, mixed>>  $messages
+     * @param  array<string, mixed>  $extra
+     * @return array{ok:bool, reply:?array, message:?string}
+     */
+    public function complete(array $messages, string $kind, float $temperature = 0.4, int $maxTokens = 1500, array $extra = []): array
+    {
         $apiKey = Setting::get('groq_api_key');
         $model = $this->model();
 
         if (empty($apiKey)) {
             $this->log($kind, $model, 'error', $messages, null, null, 0, 'Groq API key is not configured.');
-            return ['ok' => false, 'content' => null, 'message' => 'Groq API key is not configured. Add it under Settings → Integrations.'];
+            return ['ok' => false, 'reply' => null, 'message' => 'Groq API key is not configured. Add it under Settings → Integrations.'];
         }
 
         $startedAt = microtime(true);
@@ -55,12 +80,12 @@ class GroqService
                 $request->withOptions(['verify' => $ca]);
             }
 
-            $payload = [
+            $payload = array_merge([
                 'model' => $model,
                 'temperature' => $temperature,
                 'max_tokens' => $maxTokens,
                 'messages' => $messages,
-            ];
+            ], $extra);
 
             // gpt-oss reasoning models consume completion budget on reasoning.
             // A low effort hint keeps more of the budget for the actual answer.
@@ -72,7 +97,7 @@ class GroqService
         } catch (\Throwable $e) {
             Log::error('Groq request failed: ' . $e->getMessage());
             $this->log($kind, $model, 'error', $messages, null, null, $this->ms($startedAt), $e->getMessage());
-            return ['ok' => false, 'content' => null, 'message' => 'Could not reach the AI service. Please try again.'];
+            return ['ok' => false, 'reply' => null, 'message' => 'Could not reach the AI service. Please try again.'];
         }
 
         $duration = $this->ms($startedAt);
@@ -81,19 +106,22 @@ class GroqService
             $apiMessage = $response->json('error.message');
             Log::error('Groq API error', ['status' => $response->status(), 'body' => $response->body()]);
             $this->log($kind, $model, 'error', $messages, null, null, $duration, $apiMessage ?: ('HTTP ' . $response->status()));
-            return ['ok' => false, 'content' => null, 'message' => $apiMessage ?: 'The AI service returned an error.'];
+            return ['ok' => false, 'reply' => null, 'message' => $apiMessage ?: 'The AI service returned an error.'];
         }
 
-        $content = trim((string) $response->json('choices.0.message.content'));
+        $reply = $response->json('choices.0.message');
+        $content = trim((string) ($reply['content'] ?? ''));
+        $toolCalls = $reply['tool_calls'] ?? [];
 
-        if ($content === '') {
+        if (!is_array($reply) || ($content === '' && empty($toolCalls))) {
             $this->log($kind, $model, 'error', $messages, null, $response->json('usage'), $duration, 'Empty response.');
-            return ['ok' => false, 'content' => null, 'message' => 'The AI service returned an empty response.'];
+            return ['ok' => false, 'reply' => null, 'message' => 'The AI service returned an empty response.'];
         }
 
-        $this->log($kind, $model, 'success', $messages, $content, $response->json('usage'), $duration, null);
+        $output = $content !== '' ? $content : 'Tool calls: ' . collect($toolCalls)->pluck('function.name')->implode(', ');
+        $this->log($kind, $model, 'success', $messages, $output, $response->json('usage'), $duration, null);
 
-        return ['ok' => true, 'content' => $content, 'message' => null];
+        return ['ok' => true, 'reply' => $reply, 'message' => null];
     }
 
     /**
@@ -169,7 +197,7 @@ class GroqService
     {
         try {
             // Store the user-role message as the input summary.
-            $input = collect($messages)->firstWhere('role', 'user')['content'] ?? null;
+            $input = collect($messages)->where('role', 'user')->last()['content'] ?? null;
 
             AiUsageLog::create([
                 'user_id' => auth()->id(),

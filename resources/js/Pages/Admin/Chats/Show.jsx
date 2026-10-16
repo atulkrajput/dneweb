@@ -32,6 +32,16 @@ export default function ChatShow({ chat }) {
             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${m.role === 'user' ? 'bg-primary text-primary-foreground rounded-tr-sm whitespace-pre-wrap break-words' : 'bg-muted text-foreground rounded-tl-sm'}`}>
                 {m.role === 'user' ? m.content : <ChatMessageText text={m.content} />}
+                {m.actions?.length > 0 && (
+                  <p className="mt-2 text-xs text-muted-foreground">Buttons shown: {m.actions.map((a) => `${a.label} (${a.url})`).join(', ')}</p>
+                )}
+                {m.tools?.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {m.tools.map((t) => (
+                      <span key={t} className="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary">{t.replaceAll('_', ' ')}</span>
+                    ))}
+                  </div>
+                )}
                 {m.at && <p className={`mt-1 text-[11px] ${m.role === 'user' ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{formatDate(m.at)}</p>}
               </div>
             </div>

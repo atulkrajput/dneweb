@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import axios from 'axios';
-import { X, Send, RotateCcw } from 'lucide-react';
+import { X, Send, RotateCcw, ArrowRight } from 'lucide-react';
 import ChatMessageText from '@/Components/Chat/ChatMessageText';
 import DotAvatar from '@/Components/Chat/DotAvatar';
 
@@ -80,7 +80,7 @@ export default function ChatWidget() {
         page_url: window.location.href,
       });
       setConversationId(data.conversation_id);
-      setMessages((prev) => [...prev, { role: 'assistant', content: data.reply }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: data.reply, actions: data.actions || [] }]);
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong. Please try again.');
       // Put the unsent text back so the visitor can retry.
@@ -117,7 +117,7 @@ export default function ChatWidget() {
             <DotAvatar size={38} variant="light" active={sending} className="flex-shrink-0 shadow-sm rounded-full" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold leading-tight truncate">{name}</p>
-              <p className="text-xs opacity-80">AI assistant · replies instantly</p>
+              <p className="text-xs opacity-80">AI agent · replies instantly</p>
             </div>
             {messages.length > 0 && (
               <button onClick={reset} className="p-2 rounded-lg hover:bg-primary-foreground/15 transition-colors" title="Start a new chat" aria-label="Start a new chat">
@@ -149,7 +149,7 @@ export default function ChatWidget() {
             )}
 
             {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                 <div
                   className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 ${
                     m.role === 'user'
@@ -159,6 +159,19 @@ export default function ChatWidget() {
                 >
                   {m.role === 'user' ? m.content : <ChatMessageText text={m.content} />}
                 </div>
+                {m.role === 'assistant' && m.actions?.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2 max-w-[90%]">
+                    {m.actions.map((a) => (
+                      <Link
+                        key={a.url + a.label}
+                        href={a.url}
+                        className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors"
+                      >
+                        {a.label} <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
 

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
- * Public endpoint behind the website chat widget. The conversation history is
+ * Public endpoint behind the website AI agent (Dani) widget. The conversation history is
  * kept server-side (keyed by a random UUID the widget stores), so visitors
  * can't inject fake assistant turns into the prompt.
  */
@@ -66,18 +66,41 @@ class ChatController extends Controller
             ]);
         }
 
+        $isNew = !$conversation->exists;
+        $previous = $messages;
         $messages[] = ['role' => 'user', 'content' => $text, 'at' => now()->toIso8601String()];
 
-        $result = $this->assistant->reply($messages, $validated['page_url'] ?? null);
+        // Save the visitor's message first: the agent's tools (e.g. saving a
+        // contact request) work on the stored conversation.
+        $conversation->fill([
+            'messages' => $messages,
+            'message_count' => count($messages),
+            'last_message_at' => now(),
+        ])->save();
+
+        $result = $this->assistant->reply($conversation, $validated['page_url'] ?? null);
 
         if (!$result['ok']) {
             Log::warning('Website chat reply failed: ' . $result['message']);
+
+            if ($isNew && !$conversation->lead_id) {
+                $conversation->delete();
+            } else {
+                $conversation->update(['messages' => $previous, 'message_count' => count($previous)]);
+            }
+
             return response()->json([
                 'message' => 'Sorry, I\'m having trouble answering right now. Please try again in a moment, or use the contact page.',
             ], 502);
         }
 
-        $messages[] = ['role' => 'assistant', 'content' => $result['content'], 'at' => now()->toIso8601String()];
+        $messages[] = array_filter([
+            'role' => 'assistant',
+            'content' => $result['content'],
+            'actions' => $result['actions'] ?: null,
+            'tools' => $result['tools'] ?: null,
+            'at' => now()->toIso8601String(),
+        ]);
 
         $conversation->fill([
             'messages' => $messages,
@@ -85,11 +108,14 @@ class ChatController extends Controller
             'last_message_at' => now(),
         ])->save();
 
-        $this->captureLead($conversation, $text);
+        // Safety net: if the visitor shared an email but the agent didn't save
+        // a contact request, still hand the conversation to the team.
+        $this->captureLead($conversation->refresh(), $text);
 
         return response()->json([
             'conversation_id' => $conversation->uuid,
             'reply' => $result['content'],
+            'actions' => $result['actions'],
         ]);
     }
 
