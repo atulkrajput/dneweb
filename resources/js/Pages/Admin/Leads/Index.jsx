@@ -1,6 +1,6 @@
 import React from 'react';
-import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Search, Target, UserCheck, Trophy, Users } from 'lucide-react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Plus, Search, Target, UserCheck, Trophy, Users, Trash2, X } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 
 const STATUS_LABELS = {
@@ -25,6 +25,29 @@ const STATUS_COLORS = {
 
 export default function LeadsIndex({ leads, stats, filters }) {
   const [search, setSearch] = React.useState(filters.search || '');
+  const canDelete = usePage().props.auth?.isSuperAdmin || false;
+  const [selected, setSelected] = React.useState([]);
+  const [deleting, setDeleting] = React.useState(false);
+
+  const pageIds = (leads.data || []).map((l) => l.id);
+  const allSelected = pageIds.length > 0 && pageIds.every((id) => selected.includes(id));
+
+  // Selection is per page: clear it when the list changes (paging, filters).
+  React.useEffect(() => setSelected([]), [leads.current_page, filters.search, filters.status]);
+
+  const toggle = (id) => setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const toggleAll = () => setSelected(allSelected ? [] : pageIds);
+
+  const deleteSelected = () => {
+    const n = selected.length;
+    if (!n || !confirm(`Delete ${n} lead${n === 1 ? '' : 's'}? This also removes their activity history and cannot be undone.`)) return;
+    router.post('/admin/leads/bulk-delete', { ids: selected }, {
+      preserveScroll: true,
+      onStart: () => setDeleting(true),
+      onFinish: () => setDeleting(false),
+      onSuccess: () => setSelected([]),
+    });
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -97,12 +120,40 @@ export default function LeadsIndex({ leads, stats, filters }) {
         ))}
       </div>
 
+      {/* Bulk actions */}
+      {canDelete && selected.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 mb-4 px-4 py-3 rounded-xl border border-primary/30 bg-primary/5">
+          <span className="text-sm font-medium text-foreground">{selected.length} selected</span>
+          <button
+            onClick={deleteSelected}
+            disabled={deleting}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50"
+          >
+            <Trash2 className="h-4 w-4" /> {deleting ? 'Deleting…' : 'Delete selected'}
+          </button>
+          <button onClick={() => setSelected([])} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" /> Clear
+          </button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-muted/50">
               <tr>
+                {canDelete && (
+                  <th className="pl-6 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleAll}
+                      aria-label="Select all leads on this page"
+                      className="rounded border-input text-primary focus:ring-primary h-4 w-4"
+                    />
+                  </th>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Company</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Source</th>
@@ -113,7 +164,18 @@ export default function LeadsIndex({ leads, stats, filters }) {
             </thead>
             <tbody className="divide-y divide-border">
               {leads.data?.map((lead) => (
-                <tr key={lead.id} className="hover:bg-muted/30 transition-colors">
+                <tr key={lead.id} className={`hover:bg-muted/30 transition-colors ${selected.includes(lead.id) ? 'bg-primary/5' : ''}`}>
+                  {canDelete && (
+                    <td className="pl-6 py-4 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(lead.id)}
+                        onChange={() => toggle(lead.id)}
+                        aria-label={`Select ${lead.name}`}
+                        className="rounded border-input text-primary focus:ring-primary h-4 w-4"
+                      />
+                    </td>
+                  )}
                   <td className="px-6 py-4">
                     <Link href={`/admin/leads/${lead.id}`} className="text-sm font-medium text-foreground hover:text-primary">
                       {lead.name}

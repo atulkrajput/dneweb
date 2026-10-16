@@ -109,6 +109,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::get('chats', [App\Http\Controllers\Admin\ChatConversationController::class, 'index'])->name('chats.index');
         Route::get('chats/{chat}', [App\Http\Controllers\Admin\ChatConversationController::class, 'show'])->name('chats.show');
         Route::delete('chats/{chat}', [App\Http\Controllers\Admin\ChatConversationController::class, 'destroy'])->name('chats.destroy');
+        Route::post('/leads/bulk-delete', [LeadController::class, 'bulkDestroy'])->name('leads.bulk-destroy');
         Route::resource('leads', LeadController::class)->except(['edit']);
         Route::post('/leads/{lead}/convert', [ClientController::class, 'convertFromLead'])->name('leads.convert');
         Route::patch('/leads/{lead}/status', [LeadController::class, 'updateStatus'])->name('leads.status');

@@ -133,9 +133,35 @@ class LeadController extends Controller
 
     public function destroy(Lead $lead)
     {
+        $this->authorize('delete', $lead);
+
         $lead->delete();
 
         return redirect()->route('admin.leads.index')->with('success', 'Lead deleted.');
+    }
+
+    /**
+     * Delete several leads at once (checkbox selection on the leads list).
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1|max:500',
+            'ids.*' => 'integer',
+        ]);
+
+        $leads = Lead::whereIn('id', $validated['ids'])->get();
+
+        // Check every lead first so nothing is deleted if one isn't allowed.
+        foreach ($leads as $lead) {
+            $this->authorize('delete', $lead);
+        }
+
+        $leads->each->delete();
+
+        $count = $leads->count();
+
+        return back()->with('success', $count === 1 ? '1 lead deleted.' : "{$count} leads deleted.");
     }
 
     public function updateStatus(Request $request, Lead $lead)
