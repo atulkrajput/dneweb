@@ -14,13 +14,21 @@ export default function ProductShow({ product }) {
     name: '',
     email: '',
     mobile: '',
+    company: '',
     message: '',
+    wants_demo: !!product.has_demo,
   });
+
+  const requestDemo = () => {
+    setData('wants_demo', true);
+    document.getElementById('interest-form')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const handleInterestSubmit = (e) => {
     e.preventDefault();
     post(`/products/${product.slug}/interest`, {
-      onSuccess: () => reset(),
+      preserveScroll: true,
+      onSuccess: () => reset('name', 'email', 'mobile', 'company', 'message'),
     });
   };
 
@@ -139,10 +147,10 @@ export default function ProductShow({ product }) {
                     Visit Product <ExternalLink className="h-4 w-4" />
                   </a>
                 )}
-                {product.demo_link && (
-                  <a href={product.demo_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-5 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">
-                    <Monitor className="h-4 w-4" /> Try Demo
-                  </a>
+                {product.has_demo && (
+                  <button type="button" onClick={requestDemo} className="inline-flex items-center gap-2 px-5 py-3 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors">
+                    <Monitor className="h-4 w-4" /> Request a Demo
+                  </button>
                 )}
               </div>
             </div>
@@ -286,37 +294,19 @@ export default function ProductShow({ product }) {
         </section>
       )}
 
-      {/* Demo Details */}
-      {product.demo_credentials && (
-        <section className="py-12 bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-              <h2 className="text-2xl font-bold text-foreground mb-6">Demo Access</h2>
-              <div className="bg-card border border-border rounded-xl p-6">
-                {product.demo_link && (
-                  <div className="mb-4">
-                    <span className="text-sm font-medium text-muted-foreground">Demo URL: </span>
-                    <a href={product.demo_link} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                      {product.demo_link}
-                    </a>
-                  </div>
-                )}
-                <div className="whitespace-pre-wrap text-muted-foreground text-sm bg-muted/50 rounded-lg p-4 font-mono">
-                  {product.demo_credentials}
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-      )}
-
       {/* Interest Form */}
       <section className="py-16 bg-muted/30 border-t border-border/40" id="interest-form">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-foreground mb-3">Interested in {product.name}?</h2>
-              <p className="text-muted-foreground">Let us know and we'll get back to you with more details, pricing, or a personalized demo.</p>
+              <h2 className="text-2xl font-bold text-foreground mb-3">
+                {data.wants_demo ? `Get a ${product.name} demo` : `Interested in ${product.name}?`}
+              </h2>
+              <p className="text-muted-foreground">
+                {data.wants_demo
+                  ? "Tell us who you are and we'll email you demo access right away. Our team will also follow up to answer your questions."
+                  : "Let us know and we'll get back to you with more details, pricing, or a personalized demo."}
+              </p>
             </div>
 
             {flash?.success && (
@@ -340,10 +330,17 @@ export default function ProductShow({ product }) {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Mobile</label>
-                <input type="text" value={data.mobile} onChange={(e) => setData('mobile', e.target.value)} className="form-input" placeholder="+1 (555) 123-4567" />
-                {errors.mobile && <p className="text-sm text-destructive mt-1">{errors.mobile}</p>}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Mobile</label>
+                  <input type="text" value={data.mobile} onChange={(e) => setData('mobile', e.target.value)} className="form-input" placeholder="+1 (555) 123-4567" />
+                  {errors.mobile && <p className="text-sm text-destructive mt-1">{errors.mobile}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Company</label>
+                  <input type="text" value={data.company} onChange={(e) => setData('company', e.target.value)} className="form-input" placeholder="Your company" />
+                  {errors.company && <p className="text-sm text-destructive mt-1">{errors.company}</p>}
+                </div>
               </div>
 
               <div>
@@ -352,8 +349,20 @@ export default function ProductShow({ product }) {
                 {errors.message && <p className="text-sm text-destructive mt-1">{errors.message}</p>}
               </div>
 
+              {product.has_demo && (
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={data.wants_demo}
+                    onChange={(e) => setData('wants_demo', e.target.checked)}
+                    className="rounded border-input text-primary focus:ring-primary h-4 w-4"
+                  />
+                  <span className="text-sm text-foreground">Email me demo access to {product.name}</span>
+                </label>
+              )}
+
               <button type="submit" disabled={processing} className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
-                {processing ? 'Submitting...' : 'Submit Interest'}
+                {processing ? 'Submitting...' : data.wants_demo ? 'Request Demo Access' : 'Submit Interest'}
               </button>
             </form>
           </motion.div>

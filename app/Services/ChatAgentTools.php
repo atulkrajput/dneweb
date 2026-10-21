@@ -150,8 +150,11 @@ class ChatAgentTools
             'details' => $this->clean($product->details, 1200),
             'features' => collect($product->features ?? [])->map(fn ($f) => is_array($f) ? ($f['title'] ?? $f['name'] ?? '') : $f)->filter()->values(),
             'feature_details' => $this->clean($product->features_detail, 800),
-            'has_live_demo' => !empty($product->demo_link),
-            'demo_note' => !empty($product->demo_credentials) ? 'Demo login details are shown on the product page.' : null,
+            'has_demo' => !empty($product->demo_link) || !empty($product->demo_credentials),
+            // Never give the demo link or login in chat: demos are on request so they become leads.
+            'demo_note' => (!empty($product->demo_link) || !empty($product->demo_credentials))
+                ? 'Demo access is sent by email on request. Offer the "Request a demo" button on the product page, or take their name and email and call save_contact_request (mention it is a demo request).'
+                : null,
             'website' => $product->link,
             'url' => '/products/' . $product->slug,
         ];

@@ -53,7 +53,9 @@ Route::post('/chat/message', [App\Http\Controllers\ChatController::class, 'messa
 // Products
 Route::get('/products', [ProductPageController::class, 'index'])->name('products.index');
 Route::get('/products/{slug}', [ProductPageController::class, 'show'])->name('products.show');
-Route::post('/products/{slug}/interest', [ProductPageController::class, 'storeInterest'])->name('products.interest');
+Route::post('/products/{slug}/interest', [ProductPageController::class, 'storeInterest'])
+    ->middleware('throttle:5,10')
+    ->name('products.interest');
 
 // Insights (Blog)
 Route::get('/insights', [InsightsPageController::class, 'index'])->name('insights.index');

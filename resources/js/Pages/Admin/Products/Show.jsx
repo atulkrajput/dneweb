@@ -35,6 +35,7 @@ export default function ProductShow({ product, interests }) {
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Mobile</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Request</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Message</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
@@ -58,6 +59,18 @@ export default function ProductShow({ product, interests }) {
                       <span className="text-sm text-muted-foreground">—</span>
                     )}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {interest.demo_requested ? (
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary" title={interest.demo_sent_at ? `Demo access emailed ${new Date(interest.demo_sent_at).toLocaleString()}` : 'Demo email not sent'}>
+                        Demo{interest.demo_sent_at ? ' · sent' : ''}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">Interest</span>
+                    )}
+                    {interest.lead_id && (
+                      <Link href={`/admin/leads/${interest.lead_id}`} className="block text-xs text-primary hover:underline mt-1">View lead</Link>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <p className="text-sm text-muted-foreground max-w-xs truncate">{interest.message || '—'}</p>
                   </td>
@@ -73,7 +86,7 @@ export default function ProductShow({ product, interests }) {
               ))}
               {interests.data.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
                     No interest submissions yet for this product.
                   </td>
                 </tr>

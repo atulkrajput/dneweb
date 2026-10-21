@@ -385,7 +385,7 @@ export default function ProductForm({ product }) {
         {/* Demo Details */}
         <div className="bg-card border border-border rounded-xl p-6 space-y-6">
           <h3 className="text-lg font-semibold text-foreground">Demo Details</h3>
-          <p className="text-sm text-muted-foreground">These are shown on the product page only if filled in.</p>
+          <p className="text-sm text-muted-foreground">Private: never shown on the website. When filled in, the product page shows a "Request a Demo" button; visitors who request it become a lead and get these details by email.</p>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">Demo Link</label>
@@ -395,7 +395,7 @@ export default function ProductForm({ product }) {
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">Demo Credentials / Test User Details</label>
             <textarea value={data.demo_credentials} onChange={(e) => setData('demo_credentials', e.target.value)} className="form-input resize-y" rows={4} placeholder="Username: demo@example.com&#10;Password: demo123&#10;&#10;Or any instructions for the test area..." />
-            <p className="text-xs text-muted-foreground mt-1">This will be shown publicly on the product page. Include test user login details here.</p>
+            <p className="text-xs text-muted-foreground mt-1">Emailed only to visitors who request a demo. Use a demo account with sample data, never a real one.</p>
           </div>
         </div>
 
