@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Client;
 use App\Models\Project;
 use App\Models\Sprint;
 use App\Models\Task;
@@ -16,7 +17,9 @@ class TaskMoveProjectTest extends TestCase
 
     protected function project(string $name, array $team = []): Project
     {
-        return Project::create(['name' => $name, 'status' => 'in_progress', 'priority' => 'medium', 'assigned_team' => $team]);
+        $client = Client::firstOrCreate(['company' => 'Acme'], ['contact_person' => 'Sam', 'email' => 'sam@example.com', 'status' => 'active']);
+
+        return Project::create(['client_id' => $client->id, 'name' => $name, 'status' => 'in_progress', 'priority' => 'medium', 'assigned_team' => $team]);
     }
 
     protected function payload(Task $task, array $overrides = []): array
@@ -32,7 +35,7 @@ class TaskMoveProjectTest extends TestCase
         $pm = User::factory()->create(['team_role' => User::ROLE_PROJECT_MANAGER]);
         $from = $this->project('Website rebuild');
         $to = $this->project('Mobile app');
-        $sprint = Sprint::create(['project_id' => $from->id, 'name' => 'Sprint 1', 'duration' => 'two_weeks', 'status' => 'active']);
+        $sprint = Sprint::create(['project_id' => $from->id, 'name' => 'Sprint 1', 'duration' => 'two_weeks', 'status' => 'active', 'start_date' => now(), 'end_date' => now()->addDays(14)]);
         $task = Task::create(['project_id' => $from->id, 'sprint_id' => $sprint->id, 'title' => 'Login screen', 'priority' => 'medium', 'status' => 'todo', 'created_by' => $pm->id]);
 
         $this->actingAs($pm)->post("/dpm/tasks/{$task->id}", $this->payload($task, ['project_id' => $to->id]))
@@ -61,7 +64,7 @@ class TaskMoveProjectTest extends TestCase
     {
         $pm = User::factory()->create(['team_role' => User::ROLE_PROJECT_MANAGER]);
         $p = $this->project('Website rebuild');
-        $sprint = Sprint::create(['project_id' => $p->id, 'name' => 'Sprint 1', 'duration' => 'two_weeks', 'status' => 'active']);
+        $sprint = Sprint::create(['project_id' => $p->id, 'name' => 'Sprint 1', 'duration' => 'two_weeks', 'status' => 'active', 'start_date' => now(), 'end_date' => now()->addDays(14)]);
         $task = Task::create(['project_id' => $p->id, 'sprint_id' => $sprint->id, 'title' => 'Login screen', 'priority' => 'medium', 'status' => 'todo']);
 
         $this->actingAs($pm)->post("/dpm/tasks/{$task->id}", $this->payload($task, ['project_id' => $p->id, 'title' => 'Login page']))
