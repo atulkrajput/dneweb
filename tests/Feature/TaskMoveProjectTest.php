@@ -38,7 +38,7 @@ class TaskMoveProjectTest extends TestCase
         $sprint = Sprint::create(['project_id' => $from->id, 'name' => 'Sprint 1', 'duration' => 'two_weeks', 'status' => 'active', 'start_date' => now(), 'end_date' => now()->addDays(14)]);
         $task = Task::create(['project_id' => $from->id, 'sprint_id' => $sprint->id, 'title' => 'Login screen', 'priority' => 'medium', 'status' => 'todo', 'created_by' => $pm->id]);
 
-        $this->actingAs($pm)->post("/dpm/tasks/{$task->id}", $this->payload($task, ['project_id' => $to->id]))
+        $this->actingAs($pm)->patch("/dpm/tasks/{$task->id}/project", ['project_id' => $to->id])
             ->assertSessionHasNoErrors()->assertRedirect();
 
         $task->refresh();
@@ -54,24 +54,28 @@ class TaskMoveProjectTest extends TestCase
         $secret = $this->project('Other client', []);
         $task = Task::create(['project_id' => $from->id, 'title' => 'Login screen', 'priority' => 'medium', 'status' => 'todo', 'assignee_id' => $dev->id]);
 
-        $this->actingAs($dev)->post("/dpm/tasks/{$task->id}", $this->payload($task, ['project_id' => $secret->id]))
+        $this->actingAs($dev)->patch("/dpm/tasks/{$task->id}/project", ['project_id' => $secret->id])
             ->assertForbidden();
 
         $this->assertSame($from->id, $task->fresh()->project_id);
     }
 
-    public function test_saving_without_changing_project_keeps_sprint_and_adds_no_comment(): void
+    public function test_editing_a_task_does_not_change_its_project(): void
     {
         $pm = User::factory()->create(['team_role' => User::ROLE_PROJECT_MANAGER]);
         $p = $this->project('Website rebuild');
         $sprint = Sprint::create(['project_id' => $p->id, 'name' => 'Sprint 1', 'duration' => 'two_weeks', 'status' => 'active', 'start_date' => now(), 'end_date' => now()->addDays(14)]);
         $task = Task::create(['project_id' => $p->id, 'sprint_id' => $sprint->id, 'title' => 'Login screen', 'priority' => 'medium', 'status' => 'todo']);
 
-        $this->actingAs($pm)->post("/dpm/tasks/{$task->id}", $this->payload($task, ['project_id' => $p->id, 'title' => 'Login page']))
+        $other = $this->project('Mobile app');
+
+        // The edit form no longer moves tasks: a project_id sent with it is ignored.
+        $this->actingAs($pm)->post("/dpm/tasks/{$task->id}", $this->payload($task, ['project_id' => $other->id, 'title' => 'Login page']))
             ->assertSessionHasNoErrors();
 
         $task->refresh();
         $this->assertSame('Login page', $task->title);
+        $this->assertSame($p->id, $task->project_id);
         $this->assertSame($sprint->id, $task->sprint_id);
         $this->assertSame(0, TaskComment::count());
     }

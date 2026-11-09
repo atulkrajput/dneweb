@@ -241,7 +241,6 @@ class TaskController extends Controller
             'assignee_id' => 'nullable|exists:users,id',
             'reviewer_id' => 'nullable|exists:users,id',
             'sprint_id' => 'nullable|exists:sprints,id',
-            'project_id' => 'sometimes|required|exists:projects,id',
             'priority' => 'required|string|in:' . implode(',', Task::PRIORITIES),
             'due_date' => 'nullable|date',
             'status' => 'required|string|in:' . implode(',', Task::STATUSES),
@@ -257,17 +256,9 @@ class TaskController extends Controller
 
         unset($validated['attachment_files'], $validated['removed_attachments']);
 
-        // Moving to another project: the person must be able to see that project,
-        // and a sprint from the old project can't come along.
-        $previousProject = $task->project;
-        $movedTo = null;
-        if (isset($validated['project_id']) && (int) $validated['project_id'] !== (int) $task->project_id) {
-            $movedTo = Project::findOrFail($validated['project_id']);
-            $this->authorize('view', $movedTo);
-        }
-        $targetProjectId = (int) ($validated['project_id'] ?? $task->project_id);
+        // A sprint must belong to the task's project.
         if (!empty($validated['sprint_id'])
-            && !Sprint::where('id', $validated['sprint_id'])->where('project_id', $targetProjectId)->exists()) {
+            && !Sprint::where('id', $validated['sprint_id'])->where('project_id', $task->project_id)->exists()) {
             $validated['sprint_id'] = null;
         }
 
@@ -291,14 +282,6 @@ class TaskController extends Controller
         $previousReviewerId = $task->reviewer_id;
 
         $task->update($validated);
-
-        if ($movedTo) {
-            TaskComment::create([
-                'task_id' => $task->id,
-                'user_id' => auth()->id(),
-                'body' => 'Moved this task from "' . ($previousProject->name ?? 'another project') . '" to "' . $movedTo->name . '".',
-            ]);
-        }
 
         // Only notify when the assignee actually changed to a new person.
         if ($task->assignee_id && $task->assignee_id !== $previousAssigneeId) {
@@ -435,12 +418,24 @@ class TaskController extends Controller
             return back();
         }
 
+        // The person must be able to see the project they move the task into.
+        $target = Project::findOrFail($validated['project_id']);
+        $this->authorize('view', $target);
+
+        $previous = $task->project;
+
         $task->update([
-            'project_id' => $validated['project_id'],
+            'project_id' => $target->id,
             'sprint_id' => null,
         ]);
 
-        return back()->with('success', 'Task moved to the selected project.');
+        TaskComment::create([
+            'task_id' => $task->id,
+            'user_id' => auth()->id(),
+            'body' => 'Moved this task from "' . ($previous->name ?? 'another project') . '" to "' . $target->name . '".',
+        ]);
+
+        return back()->with('success', "Task moved to {$target->name}.");
     }
 
     public function destroy(Task $task)

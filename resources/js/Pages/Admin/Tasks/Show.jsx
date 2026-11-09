@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Trash2, Edit3, Save, X, MessageSquare, Calendar, Clock, User, UserCheck, Timer, Paperclip, Download, Bell, ArrowRightCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Edit3, Save, X, MessageSquare, Calendar, Clock, User, UserCheck, Timer, Paperclip, Download, Bell, ArrowRightCircle, CheckCircle2, FolderKanban } from 'lucide-react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import NotesSection from '@/Components/NotesSection';
 import RichTextEditor from '@/Components/RichTextEditor';
@@ -43,7 +43,6 @@ export default function TaskShow({ task, team, sprints, projects, goals, interna
     assignee_id: task.assignee_id || '',
     reviewer_id: task.reviewer_id || '',
     sprint_id: task.sprint_id || '',
-    project_id: task.project_id,
     priority: task.priority,
     due_date: task.due_date ? task.due_date.split('T')[0] : '',
     status: task.status,
@@ -58,8 +57,6 @@ export default function TaskShow({ task, team, sprints, projects, goals, interna
   const commentForm = useForm({ body: '' });
 
   // Attachments already stored on the task, minus any marked for removal.
-  const projectChanged = Number(data.project_id) !== Number(task.project_id);
-
   const existingAttachments = (task.attachments || []).filter(
     (a) => !data.removed_attachments.includes(a.path)
   );
@@ -121,6 +118,19 @@ export default function TaskShow({ task, team, sprints, projects, goals, interna
         setTransitionDialog(null);
         setTransitionComment('');
       },
+    });
+  };
+
+  // Project switcher: moves the task straight away (its sprint is cleared).
+  const [movingProject, setMovingProject] = useState(false);
+  const handleChangeProject = (projectId) => {
+    if (!projectId || Number(projectId) === Number(task.project_id)) return;
+    const target = (projects || []).find((p) => String(p.id) === String(projectId));
+    if (!confirm(`Move this task to "${target?.name}"? Its sprint will be cleared.`)) return;
+    router.patch(`/dpm/tasks/${task.id}/project`, { project_id: projectId }, {
+      preserveScroll: true,
+      onStart: () => setMovingProject(true),
+      onFinish: () => setMovingProject(false),
     });
   };
 
@@ -303,24 +313,6 @@ export default function TaskShow({ task, team, sprints, projects, goals, interna
                       </select>
                     </div>
                   </div>
-                  <div>
-                    <label className="form-label" htmlFor="task-project">Project</label>
-                    <select
-                      id="task-project"
-                      value={data.project_id}
-                      onChange={(e) => setData((d) => ({ ...d, project_id: Number(e.target.value), sprint_id: '' }))}
-                      className="form-input"
-                    >
-                      {(projects || []).map((p) => (
-                        <option key={p.id} value={p.id}>{p.name}{p.client?.company ? ` — ${p.client.company}` : ''}</option>
-                      ))}
-                    </select>
-                    {errors.project_id && <p className="text-sm text-destructive mt-1">{errors.project_id}</p>}
-                    {projectChanged && (
-                      <p className="text-xs text-muted-foreground mt-1">The task moves to this project when you save. Its sprint is cleared; pick a sprint from the new project afterwards.</p>
-                    )}
-                  </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="form-label">Assignee</label>
@@ -331,9 +323,9 @@ export default function TaskShow({ task, team, sprints, projects, goals, interna
                     </div>
                     <div>
                       <label className="form-label">Sprint</label>
-                      <select value={data.sprint_id} onChange={(e) => setData('sprint_id', e.target.value)} className="form-input" disabled={projectChanged}>
+                      <select value={data.sprint_id} onChange={(e) => setData('sprint_id', e.target.value)} className="form-input">
                         <option value="">Backlog</option>
-                        {!projectChanged && (sprints || []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        {(sprints || []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                     </div>
                   </div>
@@ -735,6 +727,23 @@ export default function TaskShow({ task, team, sprints, projects, goals, interna
                     {task.due_date ? new Date(task.due_date).toLocaleDateString() : '—'}
                     {isOverdue && ' (Overdue)'}
                   </p>
+                </div>
+                <div>
+                  <label htmlFor="task-project" className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                    <FolderKanban className="h-3 w-3" /> Move to other project
+                  </label>
+                  <select
+                    id="task-project"
+                    value=""
+                    onChange={(e) => handleChangeProject(e.target.value)}
+                    disabled={movingProject}
+                    className="form-input text-sm mt-1"
+                  >
+                    <option value="">{movingProject ? 'Moving…' : 'Choose a project…'}</option>
+                    {(projects || []).filter((p) => p.id !== task.project_id).map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}{p.client?.company ? ` — ${p.client.company}` : ''}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">

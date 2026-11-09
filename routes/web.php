@@ -237,6 +237,7 @@ Route::middleware(['auth', 'verified'])->prefix('dpm')->name('admin.')->group(fu
         Route::patch('/tasks/{task}/status', [TaskController::class, 'updateStatus'])->name('tasks.status');
         Route::post('/tasks/{task}/transition', [TaskController::class, 'transition'])->name('tasks.transition');
         Route::patch('/tasks/{task}/sprint', [TaskController::class, 'changeSprint'])->name('tasks.sprint');
+        Route::patch('/tasks/{task}/project', [TaskController::class, 'changeProject'])->name('tasks.project');
         Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
         Route::post('/tasks/{task}/comments', [TaskController::class, 'addComment'])->name('tasks.comments.store');
         Route::post('/tasks/{task}/remind-reviewer', [TaskController::class, 'remindReviewer'])->name('tasks.remind-reviewer');
