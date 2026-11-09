@@ -27,7 +27,7 @@ const PRIORITY_COLORS = {
   urgent: 'text-red-400',
 };
 
-export default function TaskShow({ task, team, sprints, goals, internalNotes }) {
+export default function TaskShow({ task, team, sprints, projects, goals, internalNotes }) {
   const [editing, setEditing] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -43,6 +43,7 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
     assignee_id: task.assignee_id || '',
     reviewer_id: task.reviewer_id || '',
     sprint_id: task.sprint_id || '',
+    project_id: task.project_id,
     priority: task.priority,
     due_date: task.due_date ? task.due_date.split('T')[0] : '',
     status: task.status,
@@ -57,6 +58,8 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
   const commentForm = useForm({ body: '' });
 
   // Attachments already stored on the task, minus any marked for removal.
+  const projectChanged = Number(data.project_id) !== Number(task.project_id);
+
   const existingAttachments = (task.attachments || []).filter(
     (a) => !data.removed_attachments.includes(a.path)
   );
@@ -300,6 +303,24 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
                       </select>
                     </div>
                   </div>
+                  <div>
+                    <label className="form-label" htmlFor="task-project">Project</label>
+                    <select
+                      id="task-project"
+                      value={data.project_id}
+                      onChange={(e) => setData((d) => ({ ...d, project_id: Number(e.target.value), sprint_id: '' }))}
+                      className="form-input"
+                    >
+                      {(projects || []).map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}{p.client?.company ? ` — ${p.client.company}` : ''}</option>
+                      ))}
+                    </select>
+                    {errors.project_id && <p className="text-sm text-destructive mt-1">{errors.project_id}</p>}
+                    {projectChanged && (
+                      <p className="text-xs text-muted-foreground mt-1">The task moves to this project when you save. Its sprint is cleared; pick a sprint from the new project afterwards.</p>
+                    )}
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="form-label">Assignee</label>
@@ -310,9 +331,9 @@ export default function TaskShow({ task, team, sprints, goals, internalNotes }) 
                     </div>
                     <div>
                       <label className="form-label">Sprint</label>
-                      <select value={data.sprint_id} onChange={(e) => setData('sprint_id', e.target.value)} className="form-input">
+                      <select value={data.sprint_id} onChange={(e) => setData('sprint_id', e.target.value)} className="form-input" disabled={projectChanged}>
                         <option value="">Backlog</option>
-                        {(sprints || []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        {!projectChanged && (sprints || []).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                       </select>
                     </div>
                   </div>

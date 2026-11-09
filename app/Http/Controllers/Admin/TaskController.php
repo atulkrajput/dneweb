@@ -205,10 +205,13 @@ class TaskController extends Controller
             ->orderBy('start_date')
             ->get(['id', 'name', 'status']);
 
-        $projects = Project::active()
+        // Projects this person may move the task into (plus its current one).
+        $projects = Project::where(fn ($q) => $q->active()->orWhere('id', $task->project_id))
             ->with('client:id,company')
             ->orderBy('name')
-            ->get(['id', 'name', 'client_id']);
+            ->get(['id', 'name', 'client_id', 'status'])
+            ->filter(fn (Project $p) => $p->id === $task->project_id || auth()->user()->can('view', $p))
+            ->values();
 
         $goals = \App\Models\Goal::active()->ordered()->get(['id', 'title', 'category']);
 
@@ -238,6 +241,7 @@ class TaskController extends Controller
             'assignee_id' => 'nullable|exists:users,id',
             'reviewer_id' => 'nullable|exists:users,id',
             'sprint_id' => 'nullable|exists:sprints,id',
+            'project_id' => 'sometimes|required|exists:projects,id',
             'priority' => 'required|string|in:' . implode(',', Task::PRIORITIES),
             'due_date' => 'nullable|date',
             'status' => 'required|string|in:' . implode(',', Task::STATUSES),
@@ -252,6 +256,20 @@ class TaskController extends Controller
         ]);
 
         unset($validated['attachment_files'], $validated['removed_attachments']);
+
+        // Moving to another project: the person must be able to see that project,
+        // and a sprint from the old project can't come along.
+        $previousProject = $task->project;
+        $movedTo = null;
+        if (isset($validated['project_id']) && (int) $validated['project_id'] !== (int) $task->project_id) {
+            $movedTo = Project::findOrFail($validated['project_id']);
+            $this->authorize('view', $movedTo);
+        }
+        $targetProjectId = (int) ($validated['project_id'] ?? $task->project_id);
+        if (!empty($validated['sprint_id'])
+            && !Sprint::where('id', $validated['sprint_id'])->where('project_id', $targetProjectId)->exists()) {
+            $validated['sprint_id'] = null;
+        }
 
         // Start from existing attachments, drop any the user removed, then add new uploads.
         $attachments = collect($task->attachments ?? []);
@@ -273,6 +291,14 @@ class TaskController extends Controller
         $previousReviewerId = $task->reviewer_id;
 
         $task->update($validated);
+
+        if ($movedTo) {
+            TaskComment::create([
+                'task_id' => $task->id,
+                'user_id' => auth()->id(),
+                'body' => 'Moved this task from "' . ($previousProject->name ?? 'another project') . '" to "' . $movedTo->name . '".',
+            ]);
+        }
 
         // Only notify when the assignee actually changed to a new person.
         if ($task->assignee_id && $task->assignee_id !== $previousAssigneeId) {
