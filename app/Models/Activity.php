@@ -108,7 +108,8 @@ class Activity extends Model
     }
 
     /**
-     * Log a login/attendance activity at most once per calendar day per user.
+     * Log the daily attendance activity (type "login") at most once per calendar
+     * day per user. Called on login and on the first admin page each day.
      */
     public static function logDailyLogin(int $userId): ?self
     {

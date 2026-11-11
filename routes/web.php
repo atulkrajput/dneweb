@@ -75,7 +75,7 @@ Route::get('/proposal/{proposal}/accept', [App\Http\Controllers\ProposalAcceptCo
     ->middleware('signed');
 
 // Admin routes
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'attendance'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Settings (super admin only — no role map entry)
@@ -217,7 +217,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 // Project Management module (Projects, Tasks, Services, Sprints) — lives under
 // its own /dpm prefix while keeping the admin.* route names so the rest of the
 // app (redirects, route() calls, policies) doesn't need to know about the split.
-Route::middleware(['auth', 'verified'])->prefix('dpm')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'attendance'])->prefix('dpm')->name('admin.')->group(function () {
     // Services
     Route::middleware('module:services')->group(function () {
         Route::resource('services', ServiceController::class);

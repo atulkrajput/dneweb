@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'module' => \App\Http\Middleware\EnsureModuleAccess::class,
+            'attendance' => \App\Http\Middleware\RecordDailyAttendance::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
