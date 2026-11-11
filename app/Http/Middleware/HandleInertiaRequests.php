@@ -192,7 +192,7 @@ class HandleInertiaRequests extends Middleware
                 'keywords' => 'contact DNE Consultants, start a project, technology consultation, software quote, hire developers',
             ],
             'products.index' => [
-                'h1' => 'Products Built by DNE',
+                'h1' => 'Products that grow your business',
                 'intro' => 'SaaS platforms and AI-powered products designed, built, and maintained by DNE Consultants.',
                 'keywords' => 'DNE products, SaaS platforms, AI products, software products, business tools',
             ],
