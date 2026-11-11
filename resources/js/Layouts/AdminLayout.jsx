@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Settings, Users, Briefcase, Menu, X, LogOut, Package, ChevronDown, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun, Wrench, Lightbulb, Key, Flag, Share2, Sparkles, Megaphone, Building, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, Settings, Users, Briefcase, Menu, X, LogOut, Package, ChevronDown, Handshake, Target, BarChart3, Building2, FolderKanban, CheckSquare, Receipt, FileSignature, Bell, PieChart, Moon, Sun, Wrench, Lightbulb, Key, Flag, Share2, Sparkles, Megaphone, Building, MessageCircle, Star, FileText, Globe } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import FlashNotification from '@/Components/FlashNotification';
 
@@ -28,6 +28,10 @@ export default function AdminLayout({ children, title }) {
       team: ['project_manager'],
       goals: ['project_manager'],
       social: ['project_manager', 'sales'],
+      products: ['sales', 'project_manager'],
+      testimonials: ['sales', 'project_manager'],
+      partners: ['sales', 'project_manager'],
+      'legal-pages': ['project_manager'],
     };
     return (access[module] || []).includes(role);
   };
@@ -65,6 +69,16 @@ export default function AdminLayout({ children, title }) {
       items: [
         { name: 'Team', href: '/admin/team', icon: Users, module: 'team' },
         { name: 'Goals', href: '/admin/goals', icon: Flag, module: 'goals' },
+      ],
+    },
+    {
+      name: 'Website',
+      icon: Globe,
+      items: [
+        { name: 'Products', href: '/admin/products', icon: Package, module: 'products' },
+        { name: 'Testimonials', href: '/admin/testimonials', icon: Star, module: 'testimonials' },
+        { name: 'Partners', href: '/admin/partners', icon: Handshake, module: 'partners' },
+        { name: 'Legal Pages', href: '/admin/legal-pages', icon: FileText, module: 'legal-pages' },
       ],
     },
     {
